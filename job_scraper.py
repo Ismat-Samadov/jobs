@@ -79,7 +79,7 @@ def main():
         logging.error("One or more required environment variables are not set.")
         return
 
-    # Construct the PostgreSQL connection URL
+    # Construct the PostgresSQL connection URL
     db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
     # Initialize VacancyScraper
