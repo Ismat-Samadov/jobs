@@ -49,7 +49,7 @@ To set up the project environment, follow these steps:
 
 2. **Create a new virtual environment**:
    ```
-   virtualenv venv
+   python -m venv venv
    ```
 
 3. **Activate the virtual environment**:
@@ -59,6 +59,6 @@ To set up the project environment, follow these steps:
      ```
    - On Windows:
      ```
-     .\venv\Scripts\activate
+     .\venv\bin\activate
      ```
    
