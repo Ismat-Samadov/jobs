@@ -28,4 +28,4 @@ def fetch_vacancies(pages=10):
 # Example usage:
 all_vacancies = fetch_vacancies(pages=10)
 for vacancy in all_vacancies:
-    print(vacancy['title'])
+    print(vacancy)
