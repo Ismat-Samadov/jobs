@@ -3,7 +3,7 @@ import sqlalchemy
 import pandas as pd
 import requests
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, exc
+from sqlalchemy import create_engine
 import logging
 
 # Setting up logging configuration
@@ -50,11 +50,6 @@ class VacancyScraper:
                       if_exists='append',
                       dtype={"categories": sqlalchemy.types.JSON})
             logging.info("Data saved to the database.")
-        except exc.IntegrityError as e:
-            if "unique constraint" in str(e):
-                logging.warning("Duplicate entry detected. Skipping insertion of duplicate data.")
-            else:
-                logging.error(f"An error occurred while saving data to the database: {str(e)}")
         except Exception as e:
             logging.error(f"An error occurred while saving data to the database: {str(e)}")
             # Log the error message if an exception occurs during the database operation.
@@ -62,7 +57,7 @@ class VacancyScraper:
             if db_engine:
                 db_engine.dispose()
                 logging.info("Database connection closed.")
-
+                # Log when the database connection is closed.
 
 def main():
     load_dotenv()
@@ -79,14 +74,14 @@ def main():
         logging.error("One or more required environment variables are not set.")
         return
 
-    # Construct the PostgresSQL connection URL
+    # Construct the PostgreSQL connection URL
     db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
     # Initialize VacancyScraper
     scraper = VacancyScraper(db_url)
 
     # Fetch vacancies
-    all_vacancies_df = scraper.fetch_vacancies(pages=5)
+    all_vacancies_df = scraper.fetch_vacancies(pages=2)
 
     # Save data to the database
     table_name = 'vacancies'
