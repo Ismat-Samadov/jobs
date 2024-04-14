@@ -1,64 +1,53 @@
-# Job Data Scraping Project README
+# Job API
 
-## Project Overview:
-This project aims to scrape job data from various websites and provide a platform for users to access and search for job listings conveniently. Below is a step-by-step guide to accomplish this task efficiently.
+This project is a FastAPI-based API for accessing job vacancy data scraped from various websites. It includes a scraper module to fetch data from specific sources and store it in a PostgreSQL database, as well as an API module to serve the data via HTTP endpoints.
 
-## Steps to Accomplish the Project:
+## Installation
 
-1. **Identify the Website**:
-   - Determine the target website(s) from which you intend to scrape job data.
-   - Ensure compliance with the website's terms of service regarding scraping activities.
+1. Clone the repository:
 
-2. **Choose a Web Scraping Tool**:
-   - Select a suitable web scraping tool or library based on your programming language preferences and project requirements.
-   - Options include BeautifulSoup and Scrapy for Python, Cheerio and Puppeteer for Node.js, among others.
+    ```bash
+    git clone https://github.com/Ismat-Samadov/job_api.git
+    ```
 
-3. **Scrape Job Data**:
-   - Develop code to scrape job data from the selected website(s).
-   - Implement functionalities to send HTTP requests, parse HTML content, and extract relevant job information such as title, company, location, and description.
+2. Install dependencies:
 
-4. **Set Up a Database**:
-   - Choose an appropriate database system to store the scraped job data.
-   - MongoDB Atlas is recommended for NoSQL databases, while MySQL, PostgreSQL, or SQLite are suitable options for relational databases.
-   - Create a database schema to organize and manage job data efficiently.
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-5. **Save Data to the Database**:
-   - Establish a connection to the chosen database from your scraping application.
-   - Develop code to insert the scraped job data into the respective tables or collections within the database.
+## Usage
 
-6. **Build an API**:
-   - Utilize a web framework such as Flask (Python), Express.js (Node.js), Django (Python), etc., to create an API.
-   - Design endpoints to facilitate the retrieval and filtering of job data based on various criteria.
+1. Set up your PostgreSQL database and configure the connection details in the `.env` file. You can use the provided `.env.example` file as a template.
 
-7. **Develop Frontend**:
-   - Create a frontend application (e.g., web app, mobile app) to interact with the API and display job listings to users.
-   - Utilize frontend frameworks and libraries like React.js, Angular, Vue.js, etc., for building an interactive user interface.
+2. Run the scraper to fetch job vacancies and store them in the database:
 
-## Additional Considerations:
-- **Error Handling**: Implement robust error handling mechanisms to gracefully manage errors during scraping, database operations, API requests, and frontend interactions.
-- **Security Measures**: Incorporate security measures to safeguard the application and users' data against potential threats and vulnerabilities.
-- **Testing and Improvement**: Regularly test the application to ensure proper functionality and user experience, and make iterative improvements as necessary.
+    ```bash
+    python scraper/scraper.py
+    ```
 
-## Setup Instructions:
-To set up the project environment, follow these steps:
+3. Start the FastAPI server to serve the API:
 
-1. **Install virtualenv**:
-   ```
-   pip install virtualenv
-   ```
+    ```bash
+    uvicorn app.main:app --reload
+    ```
 
-2. **Create a new virtual environment**:
-   ```
-   python -m venv venv
-   ```
+4. Access the API endpoints to retrieve job vacancy data.
 
-3. **Activate the virtual environment**:
-   - On macOS/Linux:
-     ```
-     source venv/bin/activate
-     ```
-   - On Windows:
-     ```
-     .\venv\bin\activate
-     ```
-   
+## API Endpoints
+
+- `GET /`: Root endpoint that returns a welcome message.
+- `GET /data/`: Endpoint to retrieve all job vacancy data.
+- `GET /data/id/{id}`: Endpoint to retrieve job vacancy data by ID.
+- `GET /data/company/{company}`: Endpoint to retrieve job vacancy data by company name.
+- `POST /data/`: Endpoint to create new job vacancy data.
+- `PUT /data/{id}`: Endpoint to update job vacancy data by ID.
+- `DELETE /data/{id}`: Endpoint to delete job vacancy data by ID.
+
+## Contributing
+
+Contributions are welcome! Feel free to open issues or pull requests for any improvements or bug fixes.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
