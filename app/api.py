@@ -1,3 +1,4 @@
+# api.py
 from fastapi import FastAPI, Depends
 from database import connect_to_postgres, close_connection
 
