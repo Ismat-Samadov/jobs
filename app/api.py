@@ -35,7 +35,7 @@ async def get_data_by_id(id: int, db=Depends(connect_to_postgres)):
     await close_connection(db)
     return row
 @app.get("/data/{company}")
-async def get_data_by_id(id: int, db=Depends(connect_to_postgres)):
+async def get_data_by_company(company: str, db=Depends(connect_to_postgres)):
     query = "SELECT * FROM vacancies WHERE company = $1;"
     row = await db.fetchrow(query, id)
     await close_connection(db)
