@@ -24,21 +24,21 @@ async def read_root():
 
 @app.get("/data/")
 async def get_data(db=Depends(connect_to_postgres)):
-    query = "SELECT * FROM vacancies;"
+    query = "SELECT * FROM vacancy_table;"
     rows = await db.fetch(query)
     await close_connection(db)
     return rows
 
 @app.get("/data/id/{id}")
 async def get_data_by_id(id: int, db=Depends(connect_to_postgres)):
-    query = "SELECT * FROM vacancies WHERE id = $1;"
+    query = "SELECT * FROM vacancy_table WHERE id = $1;"
     row = await db.fetchrow(query, id)
     await close_connection(db)
     return row
 
 @app.get("/data/company/{company}")
 async def get_data_by_company(company: str, db=Depends(connect_to_postgres)):
-    query = "SELECT * FROM vacancies WHERE company = $1;"
+    query = "SELECT * FROM vacancy_table WHERE company = $1;"
     rows = await db.fetch(query, company)
     await close_connection(db)
     return rows
@@ -52,7 +52,7 @@ async def create_data(data: dict, db=Depends(connect_to_postgres)):
 
 @app.put("/data/{id}")
 async def update_data(id: int, data: dict, db=Depends(connect_to_postgres)):
-    query = "UPDATE vacancies SET column1 = $1, column2 = $2 WHERE id = $3 RETURNING *;"
+    query = "UPDATE vacancy_table SET column1 = $1, column2 = $2 WHERE id = $3 RETURNING *;"
     values = (data.get("column1"), data.get("column2"), id)
     row = await db.fetchrow(query, *values)
     await close_connection(db)
@@ -60,7 +60,7 @@ async def update_data(id: int, data: dict, db=Depends(connect_to_postgres)):
 
 @app.delete("/data/{id}")
 async def delete_data(id: int, db=Depends(connect_to_postgres)):
-    query = "DELETE FROM vacancies WHERE id = $1 RETURNING *;"
+    query = "DELETE FROM vacancy_table WHERE id = $1 RETURNING *;"
     row = await db.fetchrow(query, id)
     await close_connection(db)
     return row
