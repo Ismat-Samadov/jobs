@@ -57,3 +57,9 @@ async def delete_data(id: int, db=Depends(connect_to_postgres)):
     row = await db.fetchrow(query, id)
     await close_connection(db)
     return row
+
+port = 8000
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=port)
