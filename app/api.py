@@ -3,6 +3,20 @@ from database import connect_to_postgres, close_connection
 
 app = FastAPI()
 
+
+@app.head("/")
+async def head_root():
+    """
+    Handler for HEAD requests at the root URL ("/").
+    """
+    return {"message": "This is a HEAD request."}
+
+@app.get("/")
+async def read_root():
+    """
+    Handler for GET requests at the root URL ("/").
+    """
+    return {"message": "Welcome to your FastAPI application!"}
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to your FastAPI application!"}
