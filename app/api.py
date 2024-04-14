@@ -37,13 +37,13 @@ async def get_data_by_id(id: int, db=Depends(connect_to_postgres)):
 @app.get("/data/{company}")
 async def get_data_by_company(company: str, db=Depends(connect_to_postgres)):
     query = "SELECT * FROM vacancies WHERE company = $1;"
-    row = await db.fetchrow(query, id)
+    row = await db.fetchrow(query, company)
     await close_connection(db)
     return row
 @app.post("/data/")
 async def create_data(data: dict, db=Depends(connect_to_postgres)):
-    query = "INSERT INTO vacancies (column1, column2) VALUES ($1, $2) RETURNING *;"
-    values = (data.get("column1"), data.get("column2"))
+    query = "INSERT INTO vacancies (title, description) VALUES ($1, $2) RETURNING *;"
+    values = (data.get("title"), data.get("description"))
     row = await db.fetchrow(query, *values)
     await close_connection(db)
     return row
