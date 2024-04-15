@@ -50,7 +50,7 @@ async def get_data_by_company(company: str, db=Depends(connect_to_postgres)):
     return rows
 @app.get("/data/position/")
 async def get_data_by_position(position: str = Query(..., description="Position name to search for"), db=Depends(connect_to_postgres)):
-    query = "SELECT * FROM vacancy_table WHERE position ILIKE $1;"
+    query = "SELECT * FROM vacancy_table WHERE vacancy ILIKE $1;"
     rows = await db.fetch(query, f"%{position}%")
     await close_connection(db)
     return rows
