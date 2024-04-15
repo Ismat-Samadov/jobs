@@ -84,9 +84,9 @@
                 const vacancyItem = document.createElement('li');
                 vacancyItem.classList.add('vacancy-item');
                 vacancyItem.innerHTML = `
-                    <h2>${vacancy.title}</h2>
-                    <p><strong>Company:</strong> ${vacancy.company}</p>
-                    <p><strong>Description:</strong> ${vacancy.description}</p>
+                    <h2>${vacancy.company}</h2>
+                    <p><strong>Position:</strong> ${vacancy.vacancy}</p>
+                    <p><strong>Apply Link:</strong> <a href="${vacancy.apply_link}" target="_blank">${vacancy.apply_link}</a></p>
                 `;
                 vacancyList.appendChild(vacancyItem);
             });
