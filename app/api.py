@@ -8,9 +8,9 @@ app = FastAPI()
 # CORS settings to allow only the specified origin
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://ismat-samadov.github.io/job_api/"],  # Added
+    allow_origins=["https://ismat-samadov.github.io/job_api/"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],  # Add other allowed methods if needed
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
