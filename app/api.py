@@ -8,7 +8,7 @@ app = FastAPI()
 # CORS settings to allow only the specified origin
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://ismat-samadov.github.io/job_api/"],
+    allow_origins=["https://jobapi.netlify.app/"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
