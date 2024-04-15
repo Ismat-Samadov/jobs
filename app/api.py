@@ -34,12 +34,12 @@ async def read_root():
 async def read_root():
     return {"message": "Welcome to your JobAPI "}
 
-@app.get("/data/")
-async def get_data(db=Depends(connect_to_postgres)):
-    query = "SELECT * FROM vacancy_table;"
-    rows = await db.fetch(query)
-    await close_connection(db)
-    return rows
+# @app.get("/data/")
+# async def get_data(db=Depends(connect_to_postgres)):
+#     query = "SELECT * FROM vacancy_table;"
+#     rows = await db.fetch(query)
+#     await close_connection(db)
+#     return rows
 
 
 @app.get("/data/company/{company}")
@@ -54,6 +54,8 @@ async def get_data_by_position(position: str = Query(..., description="Position 
     rows = await db.fetch(query, f"%{position}%")
     await close_connection(db)
     return rows
+
+
 @app.post("/data/")
 async def create_data(data: dict, db=Depends(connect_to_postgres)):
     query = "INSERT INTO vacancies (title, description) VALUES ($1, $2) RETURNING *;"
@@ -61,3 +63,27 @@ async def create_data(data: dict, db=Depends(connect_to_postgres)):
     row = await db.fetchrow(query, *values)
     await close_connection(db)
     return row
+@app.get("/data/")
+async def get_data(
+    company: str = Query(None, description="Company name to search for (partial match)"),
+    position: str = Query(None, description="Position name to search for"),
+    db=Depends(connect_to_postgres)
+):
+    if company is None and position is None:
+        # If neither company nor position is provided, return all data
+        query = "SELECT * FROM vacancy_table;"
+        rows = await db.fetch(query)
+    elif company is not None and position is not None:
+        # If both company and position are provided, search by both
+        query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 AND vacancy ILIKE $2;"
+        rows = await db.fetch(query, f"%{company}%", f"%{position}%")
+    elif company is not None:
+        # If only company is provided, search by company with LIKE
+        query = "SELECT * FROM vacancy_table WHERE company ILIKE $1;"
+        rows = await db.fetch(query, f"%{company}%")
+    else:
+        # If only position is provided, search by position
+        query = "SELECT * FROM vacancy_table WHERE vacancy ILIKE $1;"
+        rows = await db.fetch(query, f"%{position}%")
+    await close_connection(db)
+    return rows
