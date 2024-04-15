@@ -1,9 +1,18 @@
 # app/api.py
 from fastapi import FastAPI, Depends
 from database import connect_to_postgres, close_connection
-
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
+
+# CORS settings to allow only the specified origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://ismat-samadov.github.io/job_api/"],  # Added
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],  # Add other allowed methods if needed
+    allow_headers=["*"],
+)
 
 @app.head("/")
 async def head_root():
