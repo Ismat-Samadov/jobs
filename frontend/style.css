@@ -93,7 +93,13 @@ h1 {
         padding: 10px;
     }
 
-    .vacancy-item,
+    .vacancy-item {
+        padding: 10px;
+        /* Adjusted padding for smaller devices */
+        font-size: 14px;
+        /* Adjusted font size for smaller devices */
+    }
+
     #search-input-company,
     #search-input-position {
         width: calc(100% - 20px);
