@@ -1,4 +1,4 @@
-# app/api.py
+# api/api.py
 from fastapi import FastAPI, Depends, Query
 from database import connect_to_postgres, close_connection
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,13 +33,6 @@ async def read_root():
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to your JobAPI "}
-
-# @app.get("/data/")
-# async def get_data(db=Depends(connect_to_postgres)):
-#     query = "SELECT * FROM vacancy_table;"
-#     rows = await db.fetch(query)
-#     await close_connection(db)
-#     return rows
 
 
 @app.get("/data/company/{company}")

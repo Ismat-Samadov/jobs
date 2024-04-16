@@ -29,7 +29,7 @@ This project is a FastAPI-based API for accessing job vacancy data scraped from 
 3. Start the FastAPI server to serve the API:
 
     ```bash
-    uvicorn app.main:app --reload
+    uvicorn api.main:api --reload
     ```
 
 4. Access the API endpoints to retrieve job vacancy data.
