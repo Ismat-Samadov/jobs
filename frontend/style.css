@@ -16,6 +16,12 @@ body {
     /* Solarized Dark container background color */
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    /* Use flexbox layout */
+    flex-direction: column;
+    /* Align items vertically */
+    align-items: center;
+    /* Center items horizontally */
 }
 
 h1 {
@@ -30,12 +36,18 @@ h1 {
 }
 
 .vacancy-item {
-    padding: 20px; /* Increased padding for a more boxy appearance */
-    margin-bottom: 20px; /* Increased margin-bottom for spacing */
-    background-color: #073642; /* Background color */
-    border-radius: 10px; /* Increased border-radius for rounded corners */
-    border: 2px solid #586e75; /* Border color */
-    color: #93a1a1; /* Text color */
+    padding: 20px;
+    /* Increased padding for a more boxy appearance */
+    margin-bottom: 20px;
+    /* Increased margin-bottom for spacing */
+    background-color: #073642;
+    /* Background color */
+    border-radius: 10px;
+    /* Increased border-radius for rounded corners */
+    border: 2px solid #586e75;
+    /* Border color */
+    color: #93a1a1;
+    /* Text color */
 }
 
 #search-input-company,
@@ -51,10 +63,15 @@ h1 {
     /* Solarized Dark input background color */
     color: #93a1a1;
     /* Solarized Dark input text color */
+    display: inline-block;
+    /* Display inputs inline */
 }
 
 #search-button {
-    width: calc(100% - 20px);
+    width: 100px;
+    /* Set a fixed width for the button */
+    margin-top: 10px;
+    /* Add margin to separate from inputs */
     padding: 10px;
     background-color: #268bd2;
     /* Solarized Dark button background color */
@@ -68,4 +85,20 @@ h1 {
 #search-button:hover {
     background-color: #586e75;
     /* Solarized Dark button hover background color */
+}
+
+/* Media queries for responsiveness */
+@media screen and (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    #search-input-company,
+    #search-input-position {
+        width: calc(100% - 20px);
+    }
+
+    #search-button {
+        width: calc(100% - 20px);
+    }
 }
