@@ -72,3 +72,4 @@ function toggleMode() {
 
 // Event listener for mode toggle button
 document.getElementById('toggle-mode-button').addEventListener('click', toggleMode);
+
