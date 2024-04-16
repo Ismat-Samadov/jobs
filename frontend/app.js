@@ -42,7 +42,10 @@ async function searchVacancies() {
 
 document.getElementById('search-button').addEventListener('click', searchVacancies);
 
-window.onload = fetchJobVacancies;
+window.onload = function () {
+    fetchJobVacancies();
+    toggleMode(); // Initially toggle mode to set the default mode
+};
 
 // Function to toggle between light and dark modes
 function toggleMode() {
@@ -51,23 +54,5 @@ function toggleMode() {
     body.classList.toggle('dark-mode'); // Toggle dark mode
 }
 
-// Function to initialize the application
-async function initialize() {
-    toggleMode(); // Initially toggle mode to set the default mode
-    try {
-        const response = await fetch('https://job-api-cv1f.onrender.com/data/');
-        if (!response.ok) {
-            throw new Error('Failed to fetch job vacancies');
-        }
-        const vacancies = await response.json();
-        displayVacancies(vacancies);
-    } catch (error) {
-        console.error('Error fetching job vacancies:', error.message);
-    }
-}
-
 // Event listener for mode toggle button
 document.getElementById('toggle-mode-button').addEventListener('click', toggleMode);
-
-// Initialize the application
-initialize();
