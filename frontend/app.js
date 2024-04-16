@@ -26,18 +26,35 @@ function displayVacancies(vacancies) {
     });
 }
 
+
+
 async function searchVacancies() {
     const searchInputCompany = document.getElementById('search-input-company').value;
     const searchInputPosition = document.getElementById('search-input-position').value;
-    const url = new URL('https://job-api-cv1f.onrender.com/data/position/');
-    const params = { position: searchInputPosition };
-    url.search = new URLSearchParams(params).toString();
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error('Failed to fetch job vacancies');
+
+    // Construct the base URL
+    let url = 'https://job-api-cv1f.onrender.com/data/?';
+
+    // Add company parameter if it's provided
+    if (searchInputCompany) {
+        url += `company=${encodeURIComponent(searchInputCompany)}&`;
     }
-    const vacancies = await response.json();
-    displayVacancies(vacancies);
+
+    // Add position parameter if it's provided
+    if (searchInputPosition) {
+        url += `position=${encodeURIComponent(searchInputPosition)}`;
+    }
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Failed to fetch job vacancies');
+        }
+        const vacancies = await response.json();
+        displayVacancies(vacancies);
+    } catch (error) {
+        console.error('Error fetching job vacancies:', error.message);
+    }
 }
 
 document.getElementById('search-button').addEventListener('click', searchVacancies);
