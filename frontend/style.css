@@ -30,14 +30,20 @@ h1 {
 }
 
 .vacancy-item {
-    padding: 10px;
-    margin-bottom: 10px;
-    background-color: #002b36;
-    /* Solarized Dark vacancy item background color */
-    border-radius: 5px;
+    padding: 20px;
+    /* Increased padding for a more boxy appearance */
+    margin-bottom: 20px;
+    /* Increased margin-bottom for spacing */
+    background-color: #073642;
+    /* Background color */
+    border-radius: 10px;
+    /* Increased border-radius for rounded corners */
+    border: 2px solid #586e75;
+    /* Border color */
     color: #93a1a1;
-    /* Solarized Dark vacancy item text color */
+    /* Text color */
 }
+
 
 #search-input-company,
 #search-input-position {
