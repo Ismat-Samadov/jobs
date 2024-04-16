@@ -2,20 +2,26 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f0f0f0;
+    background-color: #002b36;
+    /* Solarized Dark background color */
+    color: #839496;
+    /* Solarized Dark text color */
 }
 
 .container {
     max-width: 800px;
     margin: 20px auto;
     padding: 20px;
-    background-color: #fff;
+    background-color: #073642;
+    /* Solarized Dark container background color */
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
     text-align: center;
+    color: #93a1a1;
+    /* Solarized Dark heading text color */
 }
 
 #vacancy-list {
@@ -26,8 +32,11 @@ h1 {
 .vacancy-item {
     padding: 10px;
     margin-bottom: 10px;
-    background-color: #f9f9f9;
+    background-color: #002b36;
+    /* Solarized Dark vacancy item background color */
     border-radius: 5px;
+    color: #93a1a1;
+    /* Solarized Dark vacancy item text color */
 }
 
 #search-input-company,
@@ -35,21 +44,29 @@ h1 {
     width: calc(50% - 40px);
     padding: 10px;
     margin-bottom: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #586e75;
+    /* Solarized Dark input border color */
     border-radius: 5px;
     box-sizing: border-box;
+    background-color: #073642;
+    /* Solarized Dark input background color */
+    color: #93a1a1;
+    /* Solarized Dark input text color */
 }
 
 #search-button {
     width: calc(100% - 20px);
     padding: 10px;
-    background-color: #007bff;
-    color: #fff;
+    background-color: #268bd2;
+    /* Solarized Dark button background color */
+    color: #fdf6e3;
+    /* Solarized Dark button text color */
     border: none;
     border-radius: 5px;
     cursor: pointer;
 }
 
 #search-button:hover {
-    background-color: #0056b3;
+    background-color: #586e75;
+    /* Solarized Dark button hover background color */
 }
