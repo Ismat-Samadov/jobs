@@ -1,111 +1,97 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+/* Solarized Light mode */
+body.light-mode {
+    background-color: #fdf6e3;
+    /* Solarized Light background color */
+    color: #657b83;
+    /* Solarized Light text color */
+}
+
+.container.light-mode {
+    background-color: #eee8d5;
+    /* Solarized Light container background color */
+}
+
+h1.light-mode {
+    color: #586e75;
+    /* Solarized Light heading text color */
+}
+
+.vacancy-item.light-mode {
+    background-color: #eee8d5;
+    /* Solarized Light vacancy item background color */
+    border-color: #839496;
+    /* Solarized Light border color */
+    color: #586e75;
+    /* Solarized Light text color */
+}
+
+#search-input-company.light-mode,
+#search-input-position.light-mode {
+    border-color: #839496;
+    /* Solarized Light input border color */
+    background-color: #fdf6e3;
+    /* Solarized Light input background color */
+    color: #657b83;
+    /* Solarized Light input text color */
+}
+
+#search-button.light-mode {
+    background-color: #268bd2;
+    /* Solarized Light button background color */
+    color: #fdf6e3;
+    /* Solarized Light button text color */
+}
+
+#search-button.light-mode:hover {
+    background-color: #93a1a1;
+    /* Solarized Light button hover background color */
+}
+
+/* Solarized Dark mode */
+body.dark-mode {
     background-color: #002b36;
     /* Solarized Dark background color */
     color: #839496;
     /* Solarized Dark text color */
 }
 
-.container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
+.container.dark-mode {
     background-color: #073642;
     /* Solarized Dark container background color */
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    /* Use flexbox layout */
-    flex-direction: column;
-    /* Align items vertically */
-    align-items: center;
-    /* Center items horizontally */
 }
 
-h1 {
-    text-align: center;
+h1.dark-mode {
     color: #93a1a1;
     /* Solarized Dark heading text color */
 }
 
-#vacancy-list {
-    list-style-type: none;
-    padding: 0;
-}
-
-.vacancy-item {
-    padding: 20px;
-    /* Increased padding for a more boxy appearance */
-    margin-bottom: 20px;
-    /* Increased margin-bottom for spacing */
+.vacancy-item.dark-mode {
     background-color: #073642;
-    /* Background color */
-    border-radius: 10px;
-    /* Increased border-radius for rounded corners */
-    border: 2px solid #586e75;
-    /* Border color */
+    /* Solarized Dark vacancy item background color */
+    border-color: #586e75;
+    /* Solarized Dark border color */
     color: #93a1a1;
-    /* Text color */
+    /* Solarized Dark text color */
 }
 
-#search-input-company,
-#search-input-position {
-    width: calc(50% - 40px);
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #586e75;
+#search-input-company.dark-mode,
+#search-input-position.dark-mode {
+    border-color: #586e75;
     /* Solarized Dark input border color */
-    border-radius: 5px;
-    box-sizing: border-box;
-    background-color: #073642;
+    background-color: #002b36;
     /* Solarized Dark input background color */
-    color: #93a1a1;
+    color: #839496;
     /* Solarized Dark input text color */
-    display: inline-block;
-    /* Display inputs inline */
 }
 
-#search-button {
-    width: 100px;
-    /* Set a fixed width for the button */
-    margin-top: 10px;
-    /* Add margin to separate from inputs */
-    padding: 10px;
+#search-button.dark-mode {
     background-color: #268bd2;
     /* Solarized Dark button background color */
     color: #fdf6e3;
     /* Solarized Dark button text color */
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
 }
 
-#search-button:hover {
+#search-button.dark-mode:hover {
     background-color: #586e75;
     /* Solarized Dark button hover background color */
-}
-
-/* Media queries for responsiveness */
-@media screen and (max-width: 600px) {
-    .container {
-        padding: 10px;
-    }
-
-    .vacancy-item {
-        padding: 10px;
-        /* Adjusted padding for smaller devices */
-        font-size: 14px;
-        /* Adjusted font size for smaller devices */
-    }
-
-    #search-input-company,
-    #search-input-position {
-        width: calc(100% - 20px);
-    }
-
-    #search-button {
-        width: calc(100% - 20px);
-    }
 }
