@@ -92,7 +92,7 @@ h1 {
     .container {
         padding: 10px;
     }
-
+        .vacancy-item,
     #search-input-company,
     #search-input-position {
         width: calc(100% - 20px);
