@@ -1,15 +1,9 @@
 #scraper/scraper.py
 import urllib3
 from bs4 import BeautifulSoup
-import os
-import sqlalchemy
-from dotenv import load_dotenv
 import pandas as pd
 import requests
-from sqlalchemy import create_engine
 from datetime import datetime
-
-load_dotenv()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class JobScraper:
@@ -75,7 +69,6 @@ class JobScraper:
             job_listings = soup.find_all('div', class_='CollapsibleItem_item__CB3bC')
 
             vacancies = []
-            responsibilities = []
             apply_links = []
             for job in job_listings:
                 job_title = job.find('div', class_='CollapsibleItem_toggle__XNu5y').find('span').text.strip()
@@ -135,18 +128,11 @@ class JobScraper:
 
                 for job in job_listings:
                     job_details = job.find('div', class_='job-listing-details')
-
                     job_title = job_details.find('h3', class_='job-listing-title').text.strip()
-
                     company_element = job_details.find('i', class_='icon-material-outline-business')
                     company_name = company_element.find_parent('li').text.strip() if company_element else 'N/A'
-
                     apply_link = job.get('href')
-
-                    scraped_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-                    job_vacancies.append({"title": job_title, "company": company_name, "apply_link": apply_link, "scraped_time": scraped_time})
-
+                    job_vacancies.append({"vacancy": job_title, "company": company_name, "apply_link": apply_link})
             else:
                 print(f"Failed to retrieve page {page_num}. Status code: {response.status_code}")
 
