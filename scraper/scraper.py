@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 import pandas as pd
 import requests
 from sqlalchemy import create_engine
+from datetime import datetime
+
 load_dotenv()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -132,7 +134,41 @@ class JobScraper:
                                azercell_df,
                                abb_df],
                               ignore_index=True)
+        
+        scrape_date = datetime.now()
+        
+        # Assign the scrape_date to each dataframe
+        abb_df['scrape_date'] = scrape_date
+        azerconnect_df['scrape_date'] = scrape_date
+        pashabank_df['scrape_date'] = scrape_date
+        azercell_df['scrape_date'] = scrape_date
 
+        self.data = pd.concat([pashabank_df,
+                               azerconnect_df,
+                               azercell_df,
+                               abb_df],
+                              ignore_index=True)
+    
+    def get_data(self):
+        abb_df = self.scrape_abb()
+        azerconnect_df = self.scrape_azerconnect()
+        pashabank_df = self.scrape_pashabank()
+        azercell_df = self.scrape_azercell()
+        
+        # Add scrape_date column with current date time
+        scrape_date = datetime.now()
+        
+        # Assign the scrape_date to each dataframe
+        abb_df['scrape_date'] = scrape_date
+        azerconnect_df['scrape_date'] = scrape_date
+        pashabank_df['scrape_date'] = scrape_date
+        azercell_df['scrape_date'] = scrape_date
+
+        self.data = pd.concat([pashabank_df,
+                               azerconnect_df,
+                               azercell_df,
+                               abb_df],
+                              ignore_index=True)
 
 if __name__ == "__main__":
     job_scraper = JobScraper()
