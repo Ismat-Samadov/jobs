@@ -129,44 +129,32 @@ class JobScraper:
         azerconnect_df = self.scrape_azerconnect()
         pashabank_df = self.scrape_pashabank()
         azercell_df = self.scrape_azercell()
-        self.data = pd.concat([pashabank_df,
-                               azerconnect_df,
-                               azercell_df,
-                               abb_df],
-                              ignore_index=True)
-        
-        scrape_date = datetime.now()        
+        scrape_date = datetime.now()
         abb_df['scrape_date'] = scrape_date
         azerconnect_df['scrape_date'] = scrape_date
         pashabank_df['scrape_date'] = scrape_date
         azercell_df['scrape_date'] = scrape_date
-
         self.data = pd.concat([pashabank_df,
                                azerconnect_df,
                                azercell_df,
                                abb_df],
                               ignore_index=True)
-    
 
 if __name__ == "__main__":
     job_scraper = JobScraper()
     job_scraper.get_data()
 
-    # Database connection details
     db_host = os.environ.get('DB_HOST')
     db_port = os.environ.get('DB_PORT')
     db_user = os.environ.get('DB_USER')
     db_password = os.environ.get('DB_PASSWORD')
     db_name = os.environ.get('DB_NAME')
 
-    # Construct the PostgreSQL connection URL
     db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
-    # Establish connection to PostgreSQL database
     db_engine = create_engine(db_url)
 
     try:
-        # Save data to the database
         table_name = 'vacancy_table'
         job_scraper.data.to_sql(name=table_name,
                                 con=db_engine,
@@ -179,6 +167,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"An error occurred while saving data to the database: {str(e)}")
     finally:
-        # Close the database connection
         db_engine.dispose()
         print("Database connection closed.")
