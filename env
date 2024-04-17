@@ -1,9 +1,0 @@
-ACCESS_TOKEN_EXPIRE_MINUTES=30.0
-ALGORITHM=HS256
-DB_HOST=ep-misty-firefly-a22fwkh5.eu-central-1.aws.neon.tech
-DB_NAME=jobs
-DB_PASSWORD=Sl0ixDXcRA9r
-DB_PORT=5432
-DB_STRING=postgresql://jobs_owner:Sl0ixDXcRA9r@ep-misty-firefly-a22fwkh5.eu-central-1.aws.neon.tech/jobs?sslmode=require
-DB_USER=jobs_owner
-SECRET_KEY=alphaomegatango
