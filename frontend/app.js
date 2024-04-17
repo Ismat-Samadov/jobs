@@ -13,7 +13,7 @@ async function fetchJobVacancies() {
 
 function displayVacancies(vacancies) {
     const vacancyList = document.getElementById('vacancy-list');
-    vacancyList.innerHTML = ''; // Clear previous list items
+    vacancyList.innerHTML = ''; 
     vacancies.forEach(vacancy => {
         const vacancyItem = document.createElement('li');
         vacancyItem.classList.add('vacancy-item');
@@ -21,7 +21,8 @@ function displayVacancies(vacancies) {
             <h2>${vacancy.company}</h2>
             <p><strong>Position:</strong> ${vacancy.vacancy}</p>
             <p><strong>Apply Link:</strong> <a href="${vacancy.apply_link}" target="_blank">${vacancy.apply_link}</a></p>
-        `;
+            <p><strong>Scrape Date:</strong> ${new Date(vacancy.scrape_date).toLocaleString()}</p>
+            `;
         vacancyList.appendChild(vacancyItem);
     });
 }
