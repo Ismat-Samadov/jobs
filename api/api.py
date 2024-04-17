@@ -29,14 +29,14 @@ async def read_root():
 
 @app.get("/data/company/{company}")
 async def get_data_by_company(company: str, db=Depends(connect_to_postgres)):
-    query = "SELECT * FROM vacancy_table WHERE company ILIKE $1;"
+    query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 ORDER BY scrape_date DESC;"
     rows = await db.fetch(query, f"%{company}%")
     await close_connection(db)
     return rows
 
 @app.get("/data/position/")
 async def get_data_by_position(position: str = Query(..., description="Position name to search for"), db=Depends(connect_to_postgres)):
-    query = "SELECT * FROM vacancy_table WHERE vacancy ILIKE $1;"
+    query = "SELECT * FROM vacancy_table WHERE vacancy ILIKE $1 ORDER BY scrape_date DESC;"
     rows = await db.fetch(query, f"%{position}%")
     await close_connection(db)
     return rows
@@ -57,19 +57,19 @@ async def get_data(
 ):
     if company is None and position is None:
         # If neither company nor position is provided, return all data
-        query = "SELECT * FROM vacancy_table;"
+        query = "SELECT * FROM vacancy_table ORDER BY scrape_date DESC;"
         rows = await db.fetch(query)
     elif company is not None and position is not None:
         # If both company and position are provided, search by both
-        query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 AND vacancy ILIKE $2;"
+        query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 AND vacancy ILIKE $2 ORDER BY scrape_date DESC;"
         rows = await db.fetch(query, f"%{company}%", f"%{position}%")
     elif company is not None:
         # If only company is provided, search by company with LIKE
-        query = "SELECT * FROM vacancy_table WHERE company ILIKE $1;"
+        query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 ORDER BY scrape_date DESC;"
         rows = await db.fetch(query, f"%{company}%")
     else:
         # If only position is provided, search by position
-        query = "SELECT * FROM vacancy_table WHERE vacancy ILIKE $1;"
+        query = "SELECT * FROM vacancy_table WHERE vacancy ILIKE $1 ORDER BY scrape_date DESC;"
         rows = await db.fetch(query, f"%{position}%")
     await close_connection(db)
     return rows
