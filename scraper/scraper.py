@@ -139,11 +139,10 @@ class JobScraper:
         df = pd.DataFrame(job_vacancies)
         return df
     
-
     def scrape_hellojob_az():
         job_vacancies = []
 
-        for page_number in range(1, 11):  
+        for page_number in range(1, 11):
             url = f"https://www.hellojob.az/vakansiyalar?page={page_number}"
             response = requests.get(url)
 
@@ -161,7 +160,9 @@ class JobScraper:
             else:
                 print(f"Failed to retrieve page {page_number}. Status code:", response.status_code)
 
-        return pd.DataFrame(job_vacancies)
+        df = pd.DataFrame(job_vacancies)
+        return df
+    
     
     def get_data(self):
         abb_df = self.scrape_abb()
@@ -179,7 +180,7 @@ class JobScraper:
         azercell_df['scrape_date'] = scrape_date
         busy_az_df['scrape_date'] = scrape_date  
         hellojob_az_df['scrape_date'] = scrape_date
-        
+
         self.data = pd.concat([pashabank_df,
                                azerconnect_df,
                                azercell_df,

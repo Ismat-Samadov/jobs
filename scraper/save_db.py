@@ -21,7 +21,7 @@ if __name__ == "__main__":
     db_engine = create_engine(db_url)
 
     try:
-        table_name = 'vakansiya'
+        table_name = 'jobs'
         job_scraper.data.to_sql(name=table_name,
                                 con=db_engine,
                                 index=False,
