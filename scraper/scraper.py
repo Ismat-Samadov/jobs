@@ -139,7 +139,7 @@ class JobScraper:
         df = pd.DataFrame(job_vacancies)
         return df
     
-    def scrape_hellojob_az():
+    def scrape_hellojob_az(self):
         job_vacancies = []
 
         for page_number in range(1, 11):
@@ -185,5 +185,6 @@ class JobScraper:
                                azerconnect_df,
                                azercell_df,
                                abb_df,
-                               busy_az_df],  
+                               busy_az_df,
+                               hellojob_az_df],  
                               ignore_index=True)
