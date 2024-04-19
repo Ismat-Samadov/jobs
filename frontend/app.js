@@ -75,11 +75,8 @@
 // document.getElementById('toggle-mode-button').addEventListener('click', toggleMode);
 
 
-
-
-// Define global variables for pagination
 let currentPage = 1;
-const itemsPerPage = 10; // You can adjust this as needed
+const itemsPerPage = 10; 
 
 // Function to fetch job vacancies with pagination
 async function fetchJobVacancies() {
@@ -184,6 +181,6 @@ document.getElementById('page-number').addEventListener('change', () => {
 
 // Fetch job vacancies on page load
 window.onload = function () {
-    fetchJobVacancies();
+    fetchJobVacancies(); // Fetch the initial 10 job vacancies
     toggleMode(); // Initially toggle mode to set the default mode
 };
