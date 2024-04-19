@@ -41,50 +41,28 @@ async def get_data_by_position(position: str = Query(..., description="Position 
     await close_connection(db)
     return rows
 
-# @app.get("/data/")
-# async def get_data(
-#     company: str = Query(None, description="Company name to search for (partial match)"),
-#     position: str = Query(None, description="Position name to search for"),
-#     db=Depends(connect_to_postgres)
-# ):
-#     if company is None and position is None:
-#         # If neither company nor position is provided, return all data
-#         query = "SELECT * FROM vacancy_table ORDER BY scrape_date DESC;"
-#         rows = await db.fetch(query)
-#     elif company is not None and position is not None:
-#         # If both company and position are provided, search by both
-#         query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 AND vacancy ILIKE $2 ORDER BY scrape_date DESC;"
-#         rows = await db.fetch(query, f"%{company}%", f"%{position}%")
-#     elif company is not None:
-#         # If only company is provided, search by company with LIKE
-#         query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 ORDER BY scrape_date DESC;"
-#         rows = await db.fetch(query, f"%{company}%")
-#     else:
-#         # If only position is provided, search by position
-#         query = "SELECT * FROM vacancy_table WHERE vacancy ILIKE $1 ORDER BY scrape_date DESC;"
-#         rows = await db.fetch(query, f"%{position}%")
-#     await close_connection(db)
-#     return rows
-
 @app.get("/data/")
 async def get_data(
-    page: int = Query(1, description="Page number"),
-    items_per_page: int = Query(10, description="Number of items per page"),
     company: str = Query(None, description="Company name to search for (partial match)"),
     position: str = Query(None, description="Position name to search for"),
     db=Depends(connect_to_postgres)
 ):
-    offset = (page - 1) * items_per_page
     if company is None and position is None:
-        query = "SELECT * FROM vacancy_table ORDER BY scrape_date DESC LIMIT $1 OFFSET $2;"
-        rows = await db.fetch(query, items_per_page, offset)
+        # If neither company nor position is provided, return all data
+        query = "SELECT * FROM vacancy_table ORDER BY scrape_date DESC;"
+        rows = await db.fetch(query)
     elif company is not None and position is not None:
-        query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 AND vacancy ILIKE $2 ORDER BY scrape_date DESC LIMIT $3 OFFSET $4;"
-        rows = await db.fetch(query, f"%{company}%", f"%{position}%", items_per_page, offset)
+        # If both company and position are provided, search by both
+        query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 AND vacancy ILIKE $2 ORDER BY scrape_date DESC;"
+        rows = await db.fetch(query, f"%{company}%", f"%{position}%")
     elif company is not None:
-        query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 ORDER BY scrape_date DESC LIMIT $2 OFFSET $3;"
-        rows = await db.fetch(query, f"%{company}%", items_per_page, offset)
+        # If only company is provided, search by company with LIKE
+        query = "SELECT * FROM vacancy_table WHERE company ILIKE $1 ORDER BY scrape_date DESC;"
+        rows = await db.fetch(query, f"%{company}%")
     else:
-        query = "SELECT * FROM vacancy_table WHERE vacancy ILIKE $1 ORDER BY scrape_date DESC LIMIT $2 OFFSET $3;"
-        rows = await db.fetch(query, f"%{position}%", items_per_page, offset)
+        # If only position is provided, search by position
+        query = "SELECT * FROM vacancy_table WHERE vacancy ILIKE $1 ORDER BY scrape_date DESC;"
+        rows = await db.fetch(query, f"%{position}%")
+    await close_connection(db)
     return rows
+
