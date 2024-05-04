@@ -1,3 +1,64 @@
+//app.js
+
+
+// Initialize Google Sign-In
+function initGoogleSignIn() {
+    gapi.load('auth2', function () {
+        gapi.auth2.init({
+            client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'
+        }).then(() => {
+            // Render the Google Sign-In button
+            gapi.signin2.render('google-signin-button', {
+                scope: 'email profile',
+                width: 200,
+                height: 40,
+                longtitle: true,
+                theme: 'dark',
+                onsuccess: onGoogleSignInSuccess,
+                onfailure: onGoogleSignInFailure
+            });
+        }).catch((error) => {
+            console.error('Error initializing Google Sign-In:', error);
+        });
+    });
+}
+
+// Handle successful Google sign-in
+function onGoogleSignInSuccess(googleUser) {
+    const profile = googleUser.getBasicProfile();
+    const idToken = googleUser.getAuthResponse().id_token;
+
+    // Send the ID token to your backend server for verification and authentication
+    // Example:
+    // fetch('/your-backend-endpoint', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   },
+    //   body: JSON.stringify({ idToken })
+    // })
+    // .then(response => response.json())
+    // .then(data => {
+    //   // Handle server response
+    // })
+    // .catch(error => {
+    //   console.error('Error:', error);
+    // });
+
+    console.log('Google Sign-In successful!');
+    console.log('ID token:', idToken);
+}
+
+// Handle failed Google sign-in
+function onGoogleSignInFailure(error) {
+    console.error('Google Sign-In failed:', error);
+}
+
+// Load Google Sign-In
+window.onload = function () {
+    gapi.load('auth2', initGoogleSignIn);
+};
+
 let currentPage = 1; // Track the current page number
 
 document.getElementById('prev-page').addEventListener('click', () => {
