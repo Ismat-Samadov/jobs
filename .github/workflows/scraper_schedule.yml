@@ -2,8 +2,7 @@ name: Scheduled Scraper Job
 
 on:
   schedule:
-    - cron: '0 7,13 * * *'  # Runs daily at 07:00 and 13:00 UTC
-
+    - cron: '*/5 * * * *'  # Runs every 5 minutes
 
 jobs:
   scrape:
@@ -21,5 +20,14 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: Save to database
+    - name: Run scraper and save to database
+      run: python scraper/save_db.py
+
+    - name: Run scraper and save to database
+      env:
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_NAME: ${{ secrets.DB_NAME }}
       run: python scraper/save_db.py
