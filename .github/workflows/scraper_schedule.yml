@@ -21,9 +21,6 @@ jobs:
       run: pip install -r requirements.txt
 
     - name: Run scraper and save to database
-      run: python scraper/save_db.py
-
-    - name: Run scraper and save to database
       env:
         DB_HOST: ${{ secrets.DB_HOST }}
         DB_PORT: ${{ secrets.DB_PORT }}
