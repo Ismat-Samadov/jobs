@@ -2,7 +2,7 @@
 name = "jobs-frontend"
 version = "0.1.0"
 description = "A Streamlit frontend for job data processing."
-authors = ["Your Name <your.email@example.com>"]
+authors = ["Ismat Samadov ismetsemedov@gmail.com"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
