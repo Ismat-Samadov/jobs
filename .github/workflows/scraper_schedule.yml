@@ -1,0 +1,27 @@
+name: Scheduled Scraper Job
+
+on:
+  schedule:
+    - cron: '0 7,13 * * *'  # Runs daily at 07:00 and 13:00 UTC
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run scraper
+      run: python scraper/scraper.py
+
+    - name: Save to database
+      run: python scraper/save_db.py
