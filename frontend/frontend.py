@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import datetime
 
 API_BASE_URL = "https://job-api-cv1f.onrender.com/data/"
 
@@ -13,6 +14,24 @@ def fetch_data(endpoint, params=None):
     except Exception as err:
         return None, str(err)
 
+# def display_data(data):
+#     if data:
+#         for item in data:
+#             company = item.get('company', 'Unknown Company')
+#             position = item.get('vacancy', 'Unknown Position')
+#             description = item.get('description', 'No description available')[:100]
+#             apply_link = item.get('apply_link', '#')
+#             scrape_date = item.get('scrape_date', 'No date available')
+#
+#             st.subheader(f"{company} - {position}")
+#             st.write(f"Scrape Date: {scrape_date}")
+#             st.markdown(f"[Apply Here]({apply_link})", unsafe_allow_html=True)
+#     else:
+#         st.error("No data available for the given query.")
+
+
+
+
 def display_data(data):
     if data:
         for item in data:
@@ -20,13 +39,22 @@ def display_data(data):
             position = item.get('vacancy', 'Unknown Position')
             description = item.get('description', 'No description available')[:100]
             apply_link = item.get('apply_link', '#')
-            scrape_date = item.get('scrape_date', 'No date available')
+            scrape_date_raw = item.get('scrape_date', 'No date available')
+
+            # Parse and format the date
+            try:
+                parsed_date = datetime.datetime.fromisoformat(
+                    scrape_date_raw[:-1])  # Remove the last character if it's 'Z'
+                scrape_date = parsed_date.strftime('%B %d, %Y at %H:%M:%S')
+            except ValueError:
+                scrape_date = scrape_date_raw  # Use the original string if parsing fails
 
             st.subheader(f"{company} - {position}")
             st.write(f"Scrape Date: {scrape_date}")
             st.markdown(f"[Apply Here]({apply_link})", unsafe_allow_html=True)
     else:
         st.error("No data available for the given query.")
+
 
 def main():
     st.title("Advanced Job Vacancies Search")
