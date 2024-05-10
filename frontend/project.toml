@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "jobs-frontend"
+name = "jobs"
 version = "0.1.0"
 description = "A Streamlit frontend for job data processing."
 authors = ["Ismat Samadov <ismetsemedov@gmail.com>"]
