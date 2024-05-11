@@ -1,10 +1,12 @@
-#scraper/scraper.py
+# scraper/scraper.py
 import urllib3
 from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 from datetime import datetime
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 class JobScraper:
     def __init__(self):
@@ -35,7 +37,6 @@ class JobScraper:
                 print("Vacancies section not found on the page.")
         else:
             print("Failed to retrieve the page. Status code:", response.status_code)
-
 
     def scrape_pashabank(self):
         url = "https://careers.pashabank.az/az/page/vakansiyalar?q=&branch="
@@ -115,6 +116,7 @@ class JobScraper:
 
         df = pd.DataFrame(job_vacancies)
         return df
+
     def scrape_busy_az(self):
         job_vacancies = []
         for page_num in range(1, 5):
@@ -138,7 +140,7 @@ class JobScraper:
 
         df = pd.DataFrame(job_vacancies)
         return df
-    
+
     def scrape_hellojob_az(self):
         job_vacancies = []
 
@@ -162,23 +164,22 @@ class JobScraper:
 
         df = pd.DataFrame(job_vacancies)
         return df
-    
-    
+
     def get_data(self):
         abb_df = self.scrape_abb()
         azerconnect_df = self.scrape_azerconnect()
         pashabank_df = self.scrape_pashabank()
         azercell_df = self.scrape_azercell()
-        busy_az_df = self.scrape_busy_az() 
-        hellojob_az_df = self.scrape_hellojob_az() 
-        
+        busy_az_df = self.scrape_busy_az()
+        hellojob_az_df = self.scrape_hellojob_az()
+
         scrape_date = datetime.now()
 
         abb_df['scrape_date'] = scrape_date
         azerconnect_df['scrape_date'] = scrape_date
         pashabank_df['scrape_date'] = scrape_date
         azercell_df['scrape_date'] = scrape_date
-        busy_az_df['scrape_date'] = scrape_date  
+        busy_az_df['scrape_date'] = scrape_date
         hellojob_az_df['scrape_date'] = scrape_date
 
         self.data = pd.concat([pashabank_df,
@@ -186,5 +187,5 @@ class JobScraper:
                                azercell_df,
                                abb_df,
                                busy_az_df,
-                               hellojob_az_df],  
+                               hellojob_az_df],
                               ignore_index=True)
