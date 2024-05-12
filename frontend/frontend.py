@@ -7,8 +7,8 @@ API_BASE_URL = "https://job-api-cv1f.onrender.com/data/"
 # Set page config with new favicon
 st.set_page_config(
     page_title='JOBS',
-    page_icon='',
-    layout='wide',
+    page_icon='assets/favicon.ico',
+    layout='centered',
     initial_sidebar_state='expanded'
 )
 
