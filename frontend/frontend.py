@@ -132,7 +132,6 @@ def display_data(data):
                 with col2:
                     st.subheader(f"{company} - {position}")
                     st.caption(f"Scrape Date: {scrape_date}")
-                    st.write(f"{description}...")
                     st.markdown(f"[Apply Here]({apply_link})", unsafe_allow_html=True)
     else:
         st.error("No data available for the given query.")
