@@ -118,7 +118,6 @@ def display_data(data):
         for item in data:
             company = item.get('company', 'Unknown Company')
             position = item.get('vacancy', 'Unknown Position')
-            description = item.get('description', 'No description available')[:100]
             apply_link = item.get('apply_link', '#')
             scrape_date_raw = item.get('scrape_date', 'No date available')
             first_letter = company[0] if company else 'U'  # Default to 'U' for unknown
@@ -140,7 +139,6 @@ def display_data(data):
                 with col2:
                     st.subheader(f"{company} - {position}")
                     st.caption(f"Scrape Date: {scrape_date}")
-                    st.write(f"{description}...")
                     st.markdown(f"[Apply Here]({apply_link})", unsafe_allow_html=True)
     else:
         st.error("No data available for the given query.")
