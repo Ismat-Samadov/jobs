@@ -65,7 +65,8 @@ def display_data(data):
 
 
 def main():
-    st.title("Job Search")
+    st.title("Job Search",page_icon=':briefcase:')
+    hide_streamlit_style()
 
     # Search form at the top
     with st.form("search_form"):
