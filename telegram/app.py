@@ -1,46 +1,49 @@
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext
-from telegram.ext import filters
-import requests
+from telegram import Update, Bot
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 import os
+from dotenv import load_dotenv
+import requests
 
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')  # Ensure you've set this environment variable
+# Load environment variables
+load_dotenv()
+
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 API_BASE_URL = 'https://job-api-cv1f.onrender.com/data/'
 
-def start(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi! Send me a job title and I will look for available vacancies.')
 
-def fetch_jobs(job_title):
-    """Fetches jobs from the job API."""
+async def start(update: Update, context: CallbackContext) -> None:
+    await update.message.reply_text('Hi! Send me a job title and I will look for available vacancies.')
+
+
+async def fetch_jobs(job_title):
     try:
         response = requests.get(f"{API_BASE_URL}?position={job_title}")
-        response.raise_for_status()  # Raises an exception for HTTP errors
+        response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
         print(f"HTTP Error: {e}")
         return []
 
-def reply_jobs(update: Update, context: CallbackContext) -> None:
-    """Replies with job data based on user input."""
+
+async def reply_jobs(update: Update, context: CallbackContext) -> None:
     user_text = update.message.text
-    jobs = fetch_jobs(user_text)
+    jobs = await fetch_jobs(user_text)
     if jobs:
-        for job in jobs[:5]:  # Limiting the number of jobs sent to 5
+        for job in jobs[:5]:
             message = f"{job['company']} - {job['vacancy']}\nApply here: {job['apply_link']}"
-            update.message.reply_text(message)
+            await update.message.reply_text(message)
     else:
-        update.message.reply_text("No jobs found for your query.")
+        await update.message.reply_text("No jobs found for your query.")
+
 
 def main():
-    """Starts the bot."""
-    updater = Updater(TELEGRAM_BOT_TOKEN,0)
-    # updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
-    dispatcher = updater.dispatcher()
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(MessageHandler(filters.text & ~filters.command, reply_jobs))
-    updater.start_polling()
-    updater.idle()
+    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply_jobs))
+
+    application.run_polling()
+
 
 if __name__ == '__main__':
     main()
