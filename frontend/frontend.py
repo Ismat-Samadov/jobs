@@ -151,8 +151,8 @@ def main():
 
     # Search form at the top
     with st.form("search_form"):
-        company = st.text_input("Company Name").strip()
-        position = st.text_input("Position").strip()
+        company = st.text_input("Company Name", key='company').strip()
+        position = st.text_input("Position", key='position').strip()
         search = st.form_submit_button("Search")
 
     # Pagination controls
@@ -160,24 +160,28 @@ def main():
     page_size = st.selectbox("Results per page", options=[10, 20, 50], index=0, key='page_size')
     fetch_data_button = st.button("Fetch Data", key='fetch_data_button')
 
-    if fetch_data_button:
+    # Data fetching logic
+    if search or fetch_data_button:
+        # If user performs a search or changes pagination
         with st.spinner("Fetching data..."):
-            data, error = fetch_data("",
-                                     {"page": page, "page_size": page_size, "company": company, "position": position})
+            query_params = {"page": page, "page_size": page_size}
+            if company:
+                query_params["company"] = company
+            if position:
+                query_params["position"] = position
+            data, error = fetch_data("", query_params)
             if error:
                 st.error(f"Failed to fetch data: {error}")
             else:
                 display_data(data)
-
-    # Fetch and display data based on search and pagination
-    if search and (company or position):
-        with st.spinner("Fetching data..."):
-            data, error = fetch_data("",
-                                     {"company": company, "position": position, "page": page, "page_size": page_size})
-            if error:
-                st.error(f"Failed to fetch data: {error}")
+    else:
+        # Initial data loading when the app is first opened
+        with st.spinner("Loading initial data..."):
+            initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 10})
+            if initial_error:
+                st.error(f"Failed to fetch initial data: {initial_error}")
             else:
-                display_data(data)
+                display_data(initial_data)
 
 
 if __name__ == "__main__":
