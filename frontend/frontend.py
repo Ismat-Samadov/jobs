@@ -7,7 +7,7 @@ API_BASE_URL = "https://job-api-cv1f.onrender.com/data/"
 # Set page config with new favicon
 st.set_page_config(
     page_title='JOBS',
-    page_icon='path_to_your_favicon/favicon.ico',  # Update the path to where your favicon file is located
+    page_icon='',
     layout='wide',
     initial_sidebar_state='expanded'
 )
@@ -57,7 +57,7 @@ def display_data(data):
 
 
 def main():
-    st.title("Advanced Job Vacancies Search")
+    st.title("Job Search")
 
     # Search form at the top
     with st.form("search_form"):
