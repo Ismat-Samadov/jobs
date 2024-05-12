@@ -119,16 +119,33 @@ st.set_page_config(
     initial_sidebar_state='expanded'
 )
 
+# def hide_streamlit_style():
+#     """This function hides the 'Made with Streamlit' footer."""
+#     hide_footer_style = """
+#         <style>
+#         #MainMenu {visibility: hidden;}
+#         footer {visibility: hidden;}
+#         </style>
+#     """
+#     st.markdown(hide_footer_style, unsafe_allow_html=True)
 def hide_streamlit_style():
-    """This function hides the 'Made with Streamlit' footer."""
-    hide_footer_style = """
-        <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        </style>
-    """
-    st.markdown(hide_footer_style, unsafe_allow_html=True)
+    """Hide the Streamlit branding with more specific CSS targeting."""
+    hide_styling = """
+    <style>
+        /* Hide the Streamlit header menu and branding */
+        header {visibility: hidden;}
+        /* Or target more specifically */
+        .css-1d391kg {visibility: hidden;}  /* This class name may change based on Streamlit updates */
 
+        /* Hide footer: "Made with Streamlit" */
+        footer {visibility: hidden;}
+
+        /* Attempt to hide the "Hosted with Streamlit" button */
+        #MainMenu {visibility: hidden;}
+        .css-18e3th9 {visibility: hidden;}  /* This is an example and may not be accurate */
+    </style>
+    """
+    st.markdown(hide_styling, unsafe_allow_html=True)
 def fetch_data(endpoint, params=None):
     try:
         response = requests.get(f"{API_BASE_URL}{endpoint}", params=params)
