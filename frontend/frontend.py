@@ -13,6 +13,7 @@ st.set_page_config(
 )
 
 def hide_streamlit_style():
+    """This function hides the 'Made with Streamlit' footer."""
     hide_footer_style = """
         <style>
         #MainMenu {visibility: hidden;}
@@ -31,6 +32,7 @@ def fetch_data(endpoint, params=None):
     except Exception as err:
         return None, str(err)
 
+
 def display_data(data):
     if data:
         for item in data:
@@ -38,19 +40,22 @@ def display_data(data):
             position = item.get('vacancy', 'Unknown Position')
             apply_link = item.get('apply_link', '#')
             scrape_date_raw = item.get('scrape_date', 'No date available')
-            first_letter = company[0] if company else 'U'
+            first_letter = company[0] if company else 'U'  # Default to 'U' for unknown
+
+            # Parse and format the date
             try:
-                parsed_date = datetime.datetime.fromisoformat(scrape_date_raw[:-1])
+                parsed_date = datetime.datetime.fromisoformat(
+                    scrape_date_raw[:-1])  # Remove the last character if it's 'Z'
                 scrape_date = parsed_date.strftime('%B %d, %Y at %H:%M:%S')
             except ValueError:
-                scrape_date = scrape_date_raw
+                scrape_date = scrape_date_raw  # Use the original string if parsing fails
 
             image_url = f"https://via.placeholder.com/100/FFA500/FFFFFF?text={first_letter}"
 
             with st.container():
                 col1, col2 = st.columns([1, 4])
                 with col1:
-                    st.image(image_url, width=100)
+                    st.image(image_url, width=100)  # Display the first letter of the company name as an image
                 with col2:
                     st.subheader(f"{company} - {position}")
                     st.caption(f"Scrape Date: {scrape_date}")
@@ -58,19 +63,25 @@ def display_data(data):
     else:
         st.error("No data available for the given query.")
 
+
 def main():
-    hide_streamlit_style()
     st.title("Job Search")
+    hide_streamlit_style()
+
+    # Search form at the top
     with st.form("search_form"):
         company = st.text_input("Company Name", key='company').strip()
         position = st.text_input("Position", key='position').strip()
         search = st.form_submit_button("Search")
 
+    # Pagination controls
     page = st.number_input("Page Number", value=1, min_value=1, key='page_number')
     page_size = st.selectbox("Results per page", options=[10, 20, 50], index=0, key='page_size')
     fetch_data_button = st.button("Fetch Data", key='fetch_data_button')
 
+    # Data fetching logic
     if search or fetch_data_button:
+        # If user performs a search or changes pagination
         with st.spinner("Fetching data..."):
             query_params = {"page": page, "page_size": page_size}
             if company:
@@ -83,12 +94,14 @@ def main():
             else:
                 display_data(data)
     else:
+        # Initial data loading when the app is first opened
         with st.spinner("Loading initial data..."):
             initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 10})
             if initial_error:
                 st.error(f"Failed to fetch initial data: {initial_error}")
             else:
                 display_data(initial_data)
+
 
 if __name__ == "__main__":
     main()
