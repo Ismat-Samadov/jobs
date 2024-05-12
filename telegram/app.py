@@ -34,8 +34,9 @@ def reply_jobs(update: Update, context: CallbackContext) -> None:
 
 def main():
     """Starts the bot."""
-    updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
-    dispatcher = updater.dispatcher
+    updater = Updater(TELEGRAM_BOT_TOKEN,0)
+    # updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
+    dispatcher = updater.dispatcher()
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(MessageHandler(filters.text & ~filters.command, reply_jobs))
     updater.start_polling()
