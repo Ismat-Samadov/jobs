@@ -55,6 +55,9 @@ from dotenv import load_dotenv
 import threading
 import asyncio
 import aiohttp
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Load environment variables
 load_dotenv()
@@ -74,15 +77,29 @@ async def start(update: Update, context: CallbackContext) -> None:
     """ Respond to the /start command with a welcome message. """
     await update.message.reply_text('Hi! Send me a job title and I will look for available vacancies.')
 
+# async def fetch_jobs(job_title):
+#     """ Fetch job listings from an external API asynchronously using aiohttp. """
+#     async with aiohttp.ClientSession() as session:
+#         async with session.get(f"{API_BASE_URL}?position={job_title}") as response:
+#             if response.status == 200:
+#                 return await response.json()
+#             else:
+#                 print(f"HTTP Error: {response.status}")
+#                 return []
+
 async def fetch_jobs(job_title):
-    """ Fetch job listings from an external API asynchronously using aiohttp. """
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{API_BASE_URL}?position={job_title}") as response:
+        url = f"{API_BASE_URL}?position={job_title}"
+        logging.info(f"Fetching jobs from URL: {url}")
+        async with session.get(url) as response:
+            logging.info(f"Response Status: {response.status}")
             if response.status == 200:
-                return await response.json()
+                data = await response.json()
+                logging.info(f"Data received: {data}")
+                return data
             else:
-                print(f"HTTP Error: {response.status}")
                 return []
+
 
 async def reply_jobs(update: Update, context: CallbackContext) -> None:
     """ Reply to user messages with job listings. """
