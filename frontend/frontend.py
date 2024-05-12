@@ -156,9 +156,11 @@ def main():
         search = st.form_submit_button("Search")
 
     # Pagination controls
-    page = st.number_input("Page Number", value=1, min_value=1)
-    page_size = st.selectbox("Results per page", options=[10, 20, 50], index=0)
-    if st.button("Fetch Data"):
+    page = st.number_input("Page Number", value=1, min_value=1, key='page_number')
+    page_size = st.selectbox("Results per page", options=[10, 20, 50], index=0, key='page_size')
+    fetch_data_button = st.button("Fetch Data", key='fetch_data_button')
+
+    if fetch_data_button:
         with st.spinner("Fetching data..."):
             data, error = fetch_data("",
                                      {"page": page, "page_size": page_size, "company": company, "position": position})
@@ -168,7 +170,7 @@ def main():
                 display_data(data)
 
     # Fetch and display data based on search and pagination
-    if not st.button("Fetch Data") and (search and (company or position)):
+    if search and (company or position):
         with st.spinner("Fetching data..."):
             data, error = fetch_data("",
                                      {"company": company, "position": position, "page": page, "page_size": page_size})
@@ -176,12 +178,6 @@ def main():
                 st.error(f"Failed to fetch data: {error}")
             else:
                 display_data(data)
-    elif not search:
-        initial_data, initial_error = fetch_data("", {"page": page, "page_size": page_size})
-        if initial_error:
-            st.error(f"Failed to fetch initial data: {initial_error}")
-        elif initial_data:
-            display_data(initial_data)
 
 
 if __name__ == "__main__":
