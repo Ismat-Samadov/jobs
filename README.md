@@ -1,53 +1,57 @@
 # Job Vacancy Application
 
-This project includes two separate frontend deployments and a backend API that provides job vacancy data. Below are details on each part of the project:
+This project encompasses a robust backend API and two distinct frontend deployments aimed at showcasing job vacancy data extracted from various websites. The backend is responsible for scraping job data, storing it in a PostgreSQL database, and then serving this information via an API to the frontends. Below are detailed descriptions of each component involved in this setup:
 
 ## Frontend Deployments
 
 ### 1. Streamlit Frontend
 
-The first frontend is built with Streamlit and is deployed at [https://vacancy.streamlit.app/](https://vacancy.streamlit.app/). It provides an interactive way to browse job vacancies via a Python-driven interface.
+Deployed using Streamlit, this frontend offers an interactive experience that allows users to explore job vacancies through a Python-driven interface.
 
 **Key Features:**
-- Search job vacancies by company name or position.
-- Navigate through the results using pagination.
+- **Dynamic Search:** Users can search for job vacancies by company name or position, tailoring the results to their specific needs.
+- **Pagination:** A user-friendly pagination system lets users navigate through extensive job listings with ease.
 
 **Source File:**
-- `frontend.py`: This script powers the Streamlit application, handling UI elements and server-side logic.
+- `frontend.py`: Manages all user interface elements and server-side interactions within the Streamlit application.
 
 ### 2. Traditional Web Frontend
 
-The second frontend is a traditional web application built using HTML, CSS, and JavaScript, deployed at [https://capit.netlify.app/](https://capit.netlify.app/).
+This frontend is a traditional web application constructed using HTML, CSS, and JavaScript, with a deployment on [https://capit.netlify.app/](https://capit.netlify.app/).
 
 **Key Features:**
-- Job search functionality implemented with JavaScript fetching data from the backend.
-- Pagination to browse through pages of results.
-- Light and dark mode toggling for user preference.
+- **Interactive Search:** Implements job search functionality using JavaScript to interact dynamically with the backend.
+- **Paginated Results:** Allows users to sift through job listings via pagination controls.
+- **Theme Toggling:** Users can switch between light and dark modes according to their preference.
 
 **Source Files:**
-- `index.html`: The main HTML document providing the structure of the web interface.
-- `style.css`: CSS file for styling the web interface.
-- `app.js`: JavaScript file handling the fetching of data, dynamic content generation, and user interactions.
+- `index.html`: Provides the structural framework of the web interface.
+- `style.css`: Applies custom styling to enhance the visual layout.
+- `app.js`: Handles data fetching, content generation dynamically, and manages user interactions.
 
 ## Backend API
 
-The backend API is built with FastAPI and is hosted separately. It responds to HTTP requests from both frontends and serves job vacancy data from a PostgreSQL database.
+The backend API, powered by FastAPI, operates independently and interfaces with both frontend deployments. It serves as the conduit for job vacancy data stored within a PostgreSQL database, responding adeptly to HTTP requests.
 
 **API Endpoint:**
-- `https://job-api-cv1f.onrender.com/data/`: Endpoint to fetch job vacancy data, which supports filtering by company and position through query parameters.
+- `https://job-api-cv1f.onrender.com/data/`: This endpoint fetches job vacancy data, offering filtering capabilities by company name and job position via query parameters.
 
 ## Usage Instructions
 
 ### Streamlit Frontend
-Visit [https://vacancy.streamlit.app/](https://vacancy.streamlit.app/) to start interacting with the application. Use the search fields to filter job vacancies as per your requirement.
+Access the interactive application at [https://vacancy.streamlit.app/](https://vacancy.streamlit.app/). Utilize the search functionality to filter job vacancies according to your criteria.
 
 ### Traditional Web Frontend
-Go to [https://capit.netlify.app/](https://capit.netlify.app/) for the HTML/CSS/JavaScript version of the job search. Use the search functionality to find jobs and toggle the theme using the button provided.
+Visit [https://capit.netlify.app/](https://capit.netlify.app/) to explore the HTML/CSS/JavaScript version of the job search. Leverage the search features to locate jobs and use the theme toggle for a customized visual experience.
 
 ## Development
 
-To run these applications locally or contribute to development, you will need to clone the repository and set up a local development environment with the required dependencies for Python (Streamlit app) and ensure you have a web server for the traditional web app (e.g., using live-server in VSCode).
+For local development or contributions:
+1. **Clone the Repository:** Obtain a copy of the source code on your local machine.
+2. **Set Up the Local Development Environment:** Install all necessary dependencies. For the Streamlit app, ensure Python dependencies are met, and for the traditional web app, set up a web server (e.g., using the live-server feature in VS Code).
 
 ## Contributing
 
-Contributions to this project are welcome. Please fork the repository and submit a pull request with your enhancements or fixes.
+Contributions are encouraged and appreciated. To contribute:
+1. **Fork the Repository:** Make a copy under your GitHub account.
+2. **Create a Pull Request:** Submit your proposed changes for review.
