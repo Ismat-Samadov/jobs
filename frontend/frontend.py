@@ -155,33 +155,33 @@ def main():
         position = st.text_input("Position").strip()
         search = st.form_submit_button("Search")
 
-    # Fetch and display initial set of job vacancies when the page first loads
-    if search and (company or position):
+    # Pagination controls
+    page = st.number_input("Page Number", value=1, min_value=1)
+    page_size = st.selectbox("Results per page", options=[10, 20, 50], index=0)
+    if st.button("Fetch Data"):
         with st.spinner("Fetching data..."):
-            data, error = fetch_data("", {"company": company, "position": position})
+            data, error = fetch_data("",
+                                     {"page": page, "page_size": page_size, "company": company, "position": position})
             if error:
                 st.error(f"Failed to fetch data: {error}")
             else:
                 display_data(data)
-    else:
-        initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 10})  # Default page and size
+
+    # Fetch and display data based on search and pagination
+    if not st.button("Fetch Data") and (search and (company or position)):
+        with st.spinner("Fetching data..."):
+            data, error = fetch_data("",
+                                     {"company": company, "position": position, "page": page, "page_size": page_size})
+            if error:
+                st.error(f"Failed to fetch data: {error}")
+            else:
+                display_data(data)
+    elif not search:
+        initial_data, initial_error = fetch_data("", {"page": page, "page_size": page_size})
         if initial_error:
             st.error(f"Failed to fetch initial data: {initial_error}")
         elif initial_data:
             display_data(initial_data)
-
-    with st.expander("Advanced Search Options"):
-        page = st.number_input("Page Number", value=1, min_value=1)
-        page_size = st.selectbox("Results per page", options=[10, 20, 50], index=0)
-        fetch = st.button("Fetch Data")
-
-        if fetch:
-            with st.spinner("Fetching data..."):
-                data, error = fetch_data("", {"page": page, "page_size": page_size})
-                if error:
-                    st.error(f"Failed to fetch data: {error}")
-                else:
-                    display_data(data)
 
 
 if __name__ == "__main__":
