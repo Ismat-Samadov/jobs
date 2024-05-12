@@ -131,8 +131,8 @@ def display_data(data):
                 scrape_date = scrape_date_raw  # Use the original string if parsing fails
 
             # image_url = f"https://via.placeholder.com/100/0000FF/FFFFFF?text={first_letter}"
-            image_url = f"https://via.placeholder.com/100/800080/FFFFFF?text={first_letter}"
-
+            # image_url = f"https://via.placeholder.com/100/800080/FFFFFF?text={first_letter}"
+            image_url = f"https://via.placeholder.com/100/FFA500/FFFFFF?text={first_letter}"
 
             with st.container():
                 col1, col2 = st.columns([1, 4])
