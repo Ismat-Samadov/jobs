@@ -12,6 +12,16 @@ st.set_page_config(
     initial_sidebar_state='expanded'
 )
 
+def hide_streamlit_style():
+    """This function hides the 'Made with Streamlit' footer."""
+    hide_footer_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+    """
+    st.markdown(hide_footer_style, unsafe_allow_html=True)
+
 def fetch_data(endpoint, params=None):
     try:
         response = requests.get(f"{API_BASE_URL}{endpoint}", params=params)
