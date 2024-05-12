@@ -94,6 +94,7 @@
 #
 # if __name__ == "__main__":
 #     main()
+
 import streamlit as st
 import requests
 import datetime
@@ -115,23 +116,28 @@ def display_data(data):
         for item in data:
             company = item.get('company', 'Unknown Company')
             position = item.get('vacancy', 'Unknown Position')
+            description = item.get('description', 'No description available')[:100]
             apply_link = item.get('apply_link', '#')
             scrape_date_raw = item.get('scrape_date', 'No date available')
+            first_letter = company[0] if company else 'U'  # Default to 'U' for unknown
 
             # Parse and format the date
             try:
-                parsed_date = datetime.datetime.fromisoformat(scrape_date_raw[:-1])
+                parsed_date = datetime.datetime.fromisoformat(scrape_date_raw[:-1])  # Remove the last character if it's 'Z'
                 scrape_date = parsed_date.strftime('%B %d, %Y at %H:%M:%S')
             except ValueError:
                 scrape_date = scrape_date_raw  # Use the original string if parsing fails
 
+            image_url = f"https://via.placeholder.com/100/0000FF/FFFFFF?text={first_letter}"
+
             with st.container():
                 col1, col2 = st.columns([1, 4])
                 with col1:
-                    st.image("https://via.placeholder.com/100", width=100)  # Placeholder for company logo
+                    st.image(image_url, width=100)  # Display the first letter of the company name as an image
                 with col2:
                     st.subheader(f"{company} - {position}")
                     st.caption(f"Scrape Date: {scrape_date}")
+                    st.write(f"{description}...")
                     st.markdown(f"[Apply Here]({apply_link})", unsafe_allow_html=True)
     else:
         st.error("No data available for the given query.")
