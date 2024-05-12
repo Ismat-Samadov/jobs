@@ -121,7 +121,7 @@ def display_data(data):
 
             # Parse and format the date
             try:
-                parsed_date = datetime.datetime.fromisoformat(scrape_date_raw[:-1])  # Remove the last character if it's 'Z'
+                parsed_date = datetime.datetime.fromisoformat(scrape_date_raw[:-1])
                 scrape_date = parsed_date.strftime('%B %d, %Y at %H:%M:%S')
             except ValueError:
                 scrape_date = scrape_date_raw  # Use the original string if parsing fails
