@@ -40,8 +40,6 @@ def display_data(data):
             except ValueError:
                 scrape_date = scrape_date_raw  # Use the original string if parsing fails
 
-            # image_url = f"https://via.placeholder.com/100/0000FF/FFFFFF?text={first_letter}"
-            # image_url = f"https://via.placeholder.com/100/800080/FFFFFF?text={first_letter}"
             image_url = f"https://via.placeholder.com/100/FFA500/FFFFFF?text={first_letter}"
 
             with st.container():
