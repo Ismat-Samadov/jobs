@@ -101,6 +101,7 @@ import datetime
 
 API_BASE_URL = "https://job-api-cv1f.onrender.com/data/"
 
+
 def fetch_data(endpoint, params=None):
     try:
         response = requests.get(f"{API_BASE_URL}{endpoint}", params=params)
@@ -110,6 +111,7 @@ def fetch_data(endpoint, params=None):
         return None, str(http_error)
     except Exception as err:
         return None, str(err)
+
 
 def display_data(data):
     if data:
@@ -123,7 +125,8 @@ def display_data(data):
 
             # Parse and format the date
             try:
-                parsed_date = datetime.datetime.fromisoformat(scrape_date_raw[:-1])  # Remove the last character if it's 'Z'
+                parsed_date = datetime.datetime.fromisoformat(
+                    scrape_date_raw[:-1])  # Remove the last character if it's 'Z'
                 scrape_date = parsed_date.strftime('%B %d, %Y at %H:%M:%S')
             except ValueError:
                 scrape_date = scrape_date_raw  # Use the original string if parsing fails
@@ -142,28 +145,30 @@ def display_data(data):
     else:
         st.error("No data available for the given query.")
 
+
 def main():
     st.title("Advanced Job Vacancies Search")
 
-    # Fetch and display initial set of job vacancies when the page first loads
-    initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 10})  # Default page and size
-    if initial_error:
-        st.error(f"Failed to fetch initial data: {initial_error}")
-    elif initial_data:
-        display_data(initial_data)
-
+    # Search form at the top
     with st.form("search_form"):
         company = st.text_input("Company Name").strip()
         position = st.text_input("Position").strip()
         search = st.form_submit_button("Search")
 
-        if search and (company or position):
-            with st.spinner("Fetching data..."):
-                data, error = fetch_data("", {"company": company, "position": position})
-                if error:
-                    st.error(f"Failed to fetch data: {error}")
-                else:
-                    display_data(data)
+    # Fetch and display initial set of job vacancies when the page first loads
+    if search and (company or position):
+        with st.spinner("Fetching data..."):
+            data, error = fetch_data("", {"company": company, "position": position})
+            if error:
+                st.error(f"Failed to fetch data: {error}")
+            else:
+                display_data(data)
+    else:
+        initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 10})  # Default page and size
+        if initial_error:
+            st.error(f"Failed to fetch initial data: {initial_error}")
+        elif initial_data:
+            display_data(initial_data)
 
     with st.expander("Advanced Search Options"):
         page = st.number_input("Page Number", value=1, min_value=1)
@@ -177,6 +182,7 @@ def main():
                     st.error(f"Failed to fetch data: {error}")
                 else:
                     display_data(data)
+
 
 if __name__ == "__main__":
     main()
