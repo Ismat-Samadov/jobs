@@ -5,7 +5,7 @@ import pandas as pd
 import requests
 from datetime import datetime
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+urllib3.disable_warnings(urllib3.disable_warnings().InsecureRequestWarning)
 
 
 class JobScraper:
@@ -134,7 +134,7 @@ class JobScraper:
                     company_element = job_details.find('i', class_='icon-material-outline-business')
                     company_name = company_element.find_parent('li').text.strip() if company_element else 'N/A'
                     apply_link = job.get('href')
-                    job_vacancies.append({"vacancy": job_title, "company": company_name, "apply_link": apply_link})
+                    job_vacancies.append({ "company": company_name,"vacancy": job_title, "apply_link": apply_link})
             else:
                 print(f"Failed to retrieve page {page_num}. Status code: {response.status_code}")
 
@@ -143,35 +143,45 @@ class JobScraper:
 
     def scrape_hellojob_az(self):
         job_vacancies = []
+        base_url = "https://www.hellojob.az"
 
         for page_number in range(1, 11):
-            url = f"https://www.hellojob.az/vakansiyalar?page={page_number}"
-            response = requests.get(url)
+            url = f"{base_url}/vakansiyalar?page={page_number}"
+            try:
+                response = requests.get(url)
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    job_listings = soup.find_all('a', class_='vacancies__item')
+                    if not job_listings:
+                        print(f"No job listings found on page {page_number}.")
+                        continue
 
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.content, 'html.parser')
-                job_listings = soup.find_all('a', class_='vacancies__item')
+                    for job in job_listings:
+                        company_name = job.find('p', class_='vacancy_item_company').text.strip()
+                        vacancy_title = job.find('h3').text.strip()
+                        apply_link = job['href'] if job['href'].startswith('http') else base_url + job['href']
 
-                for job in job_listings:
-                    company_name = job.find('p', class_='vacancy_item_company').text.strip()
-                    vacancy_title = job.find('h3').text.strip()
-                    apply_link = "https://www.hellojob.az" + job['href']
+                        job_vacancies.append(
+                            {"company": company_name, "vacancy": vacancy_title, "apply_link": apply_link})
 
-                    job_vacancies.append({"company": company_name, "vacancy": vacancy_title, "apply_link": apply_link})
+                else:
+                    print(f"Failed to retrieve page {page_number}. Status code: {response.status_code}")
+            except Exception as e:
+                print(f"An error occurred while scraping page {page_number}: {e}")
 
-            else:
-                print(f"Failed to retrieve page {page_number}. Status code:", response.status_code)
-
-        df = pd.DataFrame(job_vacancies)
-        return df
+        if job_vacancies:
+            return pd.DataFrame(job_vacancies)
+        else:
+            return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
 
     def get_data(self):
         abb_df = self.scrape_abb()
         azerconnect_df = self.scrape_azerconnect()
         pashabank_df = self.scrape_pashabank()
         azercell_df = self.scrape_azercell()
-        busy_az_df = self.scrape_busy_az()
+        busy_az_df = self.busy_az()
         hellojob_az_df = self.scrape_hellojob_az()
+
 
         scrape_date = datetime.now()
 
@@ -182,10 +192,12 @@ class JobScraper:
         busy_az_df['scrape_date'] = scrape_date
         hellojob_az_df['scrape_date'] = scrape_date
 
+
         self.data = pd.concat([pashabank_df,
                                azerconnect_df,
                                azercell_df,
                                abb_df,
                                busy_az_df,
-                               hellojob_az_df],
+                               hellojob_az_df
+                               ],
                               ignore_index=True)
