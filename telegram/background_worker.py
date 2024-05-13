@@ -21,12 +21,13 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 
 async def fetch_jobs(job_title):
+    # Setting up the proxy
     proxies = {
-        'http': os.getenv('HTTP_PROXY', None),
-        'https': os.getenv('HTTPS_PROXY', None),
+        'http': 'http://193.187.175.217:3128',  # Use the same proxy for HTTP
+        'https': 'http://193.187.175.217:3128'  # And HTTPS if the proxy supports it
     }
     try:
-        response = requests.get(f"{API_BASE_URL}?position={job_title}", proxies=proxies if proxies['http'] else None)
+        response = requests.get(f"{API_BASE_URL}?position={job_title}", proxies=proxies)
         response.raise_for_status()
         return response.json()
     except RequestException as e:
