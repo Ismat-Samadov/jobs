@@ -1,6 +1,6 @@
 # Job Vacancy Application
 
-This project encompasses a robust backend API and two distinct frontend deployments aimed at showcasing job vacancy data extracted from various websites. The backend is responsible for scraping job data, storing it in a PostgreSQL database, and then serving this information via an API to the frontends. Below are detailed descriptions of each component involved in this setup:
+This project encompasses a robust backend API, two distinct frontend deployments, and a Telegram bot integration aimed at showcasing job vacancy data extracted from various websites. The backend is responsible for scraping job data, storing it in a PostgreSQL database, and serving this information via an API to the frontends and the Telegram bot. Below are detailed descriptions of each component involved in this setup:
 
 ## Frontend Deployments
 
@@ -31,10 +31,18 @@ This frontend is a traditional web application constructed using HTML, CSS, and 
 
 ## Backend API
 
-The backend API, powered by FastAPI, operates independently and interfaces with both frontend deployments. It serves as the conduit for job vacancy data stored within a PostgreSQL database, responding adeptly to HTTP requests.
+The backend API, powered by FastAPI, operates independently and interfaces with both frontend deployments and the Telegram bot. It serves as the conduit for job vacancy data stored within a PostgreSQL database, responding adeptly to HTTP requests.
 
 **API Endpoint:**
 - `https://job-api-cv1f.onrender.com/data/`: This endpoint fetches job vacancy data, offering filtering capabilities by company name and job position via query parameters.
+
+## Telegram Bot Integration
+
+The Telegram bot, accessible via a designated token, interacts with the backend API to fetch and deliver job vacancies directly through the Telegram interface. Users can send job titles to the bot and receive current vacancies in real-time.
+
+**Features:**
+- **Interactive Queries:** Users can interactively query job vacancies by sending messages to the bot.
+- **Direct Links:** Provides direct links for applications, facilitating easy access to job application pages.
 
 ## Usage Instructions
 
@@ -43,6 +51,9 @@ Access the interactive application at [https://vacancy.streamlit.app/](https://v
 
 ### Traditional Web Frontend
 Visit [https://capit.netlify.app/](https://capit.netlify.app/) to explore the HTML/CSS/JavaScript version of the job search. Leverage the search features to locate jobs and use the theme toggle for a customized visual experience.
+
+### Telegram Bot
+Interact with the Telegram bot by sending job titles directly through your Telegram app to receive instant job listings.
 
 ## Development
 
