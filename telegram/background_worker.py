@@ -23,8 +23,8 @@ async def start(update: Update, context: CallbackContext) -> None:
 async def fetch_jobs(job_title):
     # Setting up the proxy
     proxies = {
-        'http': 'http://193.187.175.217:3128',  # Use the same proxy for HTTP
-        'https': 'http://193.187.175.217:3128'  # And HTTPS if the proxy supports it
+        'http': 'http://193.187.175.217:3128',
+        'https': 'http://193.187.175.217:3128'
     }
     try:
         response = requests.get(f"{API_BASE_URL}?position={job_title}", proxies=proxies)
