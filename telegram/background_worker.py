@@ -1,13 +1,8 @@
-#telegram/background_worker.py
 from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 import os
 from dotenv import load_dotenv
 import requests
-import os
-from requests.exceptions import RequestException
-
-
 
 # Load environment variables
 load_dotenv()
@@ -21,18 +16,14 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 
 async def fetch_jobs(job_title):
-    # Setting up the proxy
-    proxies = {
-        'http': 'http://193.187.175.217:3128',
-        'https': 'http://193.187.175.217:3128'
-    }
     try:
-        response = requests.get(f"{API_BASE_URL}?position={job_title}", proxies=proxies)
+        response = requests.get(f"{API_BASE_URL}?position={job_title}")
         response.raise_for_status()
         return response.json()
-    except RequestException as e:
+    except requests.RequestException as e:
         print(f"HTTP Error: {e}")
         return []
+
 
 async def reply_jobs(update: Update, context: CallbackContext) -> None:
     user_text = update.message.text
