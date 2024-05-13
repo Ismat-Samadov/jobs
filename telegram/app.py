@@ -39,9 +39,9 @@ async def start(update: Update, context: CallbackContext) -> None:
 #                 return []
 
 async def fetch_jobs(job_title):
+    url = f"{API_BASE_URL}?position={job_title}"
+    logging.info(f"Fetching jobs from URL: {url}")
     async with aiohttp.ClientSession() as session:
-        url = f"{API_BASE_URL}?position={job_title}"
-        logging.info(f"Fetching jobs from URL: {url}")
         async with session.get(url) as response:
             logging.info(f"Response Status: {response.status}")
             if response.status == 200:
@@ -49,7 +49,9 @@ async def fetch_jobs(job_title):
                 logging.info(f"Data received: {data}")
                 return data
             else:
+                logging.info(f"Failed to fetch data: {response.status}")
                 return []
+
 
 
 async def reply_jobs(update: Update, context: CallbackContext) -> None:
