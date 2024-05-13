@@ -30,22 +30,24 @@ async def start(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text('Hi! Send me a job title and I will look for available vacancies.')
 
 async def fetch_jobs(job_title):
-    """ Fetch job listings from an external API asynchronously using aiohttp. """
     url = f"{API_BASE_URL}?position={job_title.strip()}"
     logging.info(f"Fetching jobs from URL: {url}")
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
-                data = await response.json()
-                logging.info(f"Response Status: {response.status}, Data: {data}")
+                response_text = await response.text()  # Get response text to log it
+                logging.info(f"Response Status: {response.status}, Response Body: {response_text}")
                 if response.status == 200:
+                    data = await response.json()
+                    logging.info(f"Data received: {data}")
                     return data
                 else:
                     logging.error(f"API request failed with status {response.status}")
                     return []
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+        logging.error(f"An error occurred while fetching jobs: {str(e)}")
         return []
+
 
 async def reply_jobs(update: Update, context: CallbackContext) -> None:
     """ Reply to user messages with job listings. """
