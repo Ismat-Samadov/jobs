@@ -8,6 +8,7 @@ import asyncio
 import aiohttp
 import logging
 
+# Setup basic logging
 logging.basicConfig(level=logging.INFO)
 
 # Load environment variables
@@ -16,7 +17,7 @@ load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 API_BASE_URL = 'https://job-api-cv1f.onrender.com/data/'
 
-# Initialize Flask
+# Initialize Flask for minimal web server functionality
 app = Flask(__name__)
 
 @app.route('/')
@@ -28,31 +29,23 @@ async def start(update: Update, context: CallbackContext) -> None:
     """ Respond to the /start command with a welcome message. """
     await update.message.reply_text('Hi! Send me a job title and I will look for available vacancies.')
 
-# async def fetch_jobs(job_title):
-#     """ Fetch job listings from an external API asynchronously using aiohttp. """
-#     async with aiohttp.ClientSession() as session:
-#         async with session.get(f"{API_BASE_URL}?position={job_title}") as response:
-#             if response.status == 200:
-#                 return await response.json()
-#             else:
-#                 print(f"HTTP Error: {response.status}")
-#                 return []
-
 async def fetch_jobs(job_title):
-    url = f"{API_BASE_URL}?position={job_title}"
+    """ Fetch job listings from an external API asynchronously using aiohttp. """
+    url = f"{API_BASE_URL}?position={job_title.strip()}"
     logging.info(f"Fetching jobs from URL: {url}")
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            logging.info(f"Response Status: {response.status}")
-            if response.status == 200:
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
                 data = await response.json()
-                logging.info(f"Data received: {data}")
-                return data
-            else:
-                logging.info(f"Failed to fetch data: {response.status}")
-                return []
-
-
+                logging.info(f"Response Status: {response.status}, Data: {data}")
+                if response.status == 200:
+                    return data
+                else:
+                    logging.error(f"API request failed with status {response.status}")
+                    return []
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
+        return []
 
 async def reply_jobs(update: Update, context: CallbackContext) -> None:
     """ Reply to user messages with job listings. """
