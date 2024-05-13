@@ -179,7 +179,7 @@ class JobScraper:
         azerconnect_df = self.scrape_azerconnect()
         pashabank_df = self.scrape_pashabank()
         azercell_df = self.scrape_azercell()
-        busy_az_df = self.busy_az()
+        busy_az_df = self.scrape_busy_az()
         hellojob_az_df = self.scrape_hellojob_az()
 
 
