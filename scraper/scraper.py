@@ -5,7 +5,7 @@ import pandas as pd
 import requests
 from datetime import datetime
 
-urllib3.disable_warnings(urllib3.disable_warnings().InsecureRequestWarning)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class JobScraper:
@@ -198,6 +198,5 @@ class JobScraper:
                                azercell_df,
                                abb_df,
                                busy_az_df,
-                               hellojob_az_df
-                               ],
+                               hellojob_az_df],
                               ignore_index=True)
