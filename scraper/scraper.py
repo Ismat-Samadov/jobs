@@ -230,3 +230,4 @@ class JobScraper:
                                hellojob_az_df,
                                boss_az_df],
                               ignore_index=True)
+        return self.data
