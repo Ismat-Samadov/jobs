@@ -224,6 +224,34 @@ class JobScraper:
                     f"Failed to retrieve page: {page} - Response: {response.text[:500]}")
         return pd.DataFrame(all_jobs)
 
+    def vakansiya_az(self):
+        url = 'https://www.vakansiya.az/az/'
+        response = requests.get(url)
+        if response.status_code != 200:
+            print(f"Failed to retrieve page with status code: {response.status_code}")
+            return []
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        jobs = []
+
+        job_divs = soup.find_all('div', id='js-jobs-wrapper')
+        print(f"Found {len(job_divs)} job postings.")
+
+        for job_div in job_divs:
+            job = {}
+            company = job_div.find_all('div', class_='js-fields')[1].find('a')
+            title = job_div.find('a', class_='jobtitle')
+            apply_link = title['href'] if title else None
+
+            job['company'] = company.get_text(strip=True) if company else 'N/A'
+            job['vacancy'] = title.get_text(strip=True) if title else 'N/A'
+            job['apply_link'] = 'https://www.vakansiya.az' + apply_link if apply_link else 'N/A'
+            print(f"Job found: {job}")
+            jobs.append(job)
+
+        return pd.DataFrame(jobs)
+
     def get_data(self):
         abb_df = self.abb()
         azerconnect_df = self.azerconnect()
@@ -233,6 +261,7 @@ class JobScraper:
         hellojob_az_df = self.hellojob_az()
         boss_az_df = self.boss_az()
         ejob_az_df = self.ejob_az()
+        vakansiya_az_df = self.vakansiya_az()
 
         scrape_date = datetime.now()
 
@@ -244,7 +273,7 @@ class JobScraper:
         hellojob_az_df['scrape_date'] = scrape_date
         boss_az_df['scrape_date'] = scrape_date
         ejob_az_df['scrape_date'] = scrape_date
-
+        vakansiya_az_df['scrape_date'] = scrape_date
         self.data = pd.concat([pashabank_df,
                                azerconnect_df,
                                azercell_df,
@@ -252,6 +281,7 @@ class JobScraper:
                                busy_az_df,
                                hellojob_az_df,
                                boss_az_df,
-                               ejob_az_df],
+                               ejob_az_df,
+                               vakansiya_az_df],
                               ignore_index=True)
         return self.data
