@@ -232,7 +232,7 @@ class JobScraper:
         busy_az_df = self.busy_az()
         hellojob_az_df = self.hellojob_az()
         boss_az_df = self.boss_az()
-        ejobs_az_df = self.ejobs_az()
+        ejob_az_df = self.ejob_az()
 
         scrape_date = datetime.now()
 
