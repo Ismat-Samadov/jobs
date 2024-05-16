@@ -41,6 +41,7 @@ class JobScraper:
             print("Failed to retrieve the page. Status code:", response.status_code)
 
     def pashabank(self):
+        print("Scraping Pashabank")
         url = "https://careers.pashabank.az/az/page/vakansiyalar?q=&branch="
         response = requests.get(url)
         vacancy_list = []
@@ -62,9 +63,11 @@ class JobScraper:
         }
         df = pd.DataFrame(data)
         df = df.drop_duplicates(subset=['company', 'vacancy', 'apply_link'])
+        print("Pashabank Scraping completed")
         return df
 
     def azerconnect(self):
+        print("Started scraping of Azerconnect")
         url = "https://www.azerconnect.az/careers"
         response = requests.get(url, verify=False)
         if response.status_code == 200:
@@ -86,6 +89,7 @@ class JobScraper:
             df = pd.DataFrame({'company': 'azerconnect',
                                'vacancy': vacancies,
                                'apply_link': apply_links})
+            print("Scraping of Azerconnect completed")
             return df
 
         else:
@@ -93,6 +97,7 @@ class JobScraper:
             return None
 
     def abb(self):
+        print("Scraping starting for ABB")
         base_url = "https://careers.abb-bank.az/api/vacancy/v2/get"
         job_vacancies = []
         page = 0
@@ -117,9 +122,11 @@ class JobScraper:
                 break
 
         df = pd.DataFrame(job_vacancies)
+        print("ABB scraping completed")
         return df
 
     def busy_az(self):
+        print("Scraping started for busy.az")
         job_vacancies = []
         for page_num in range(1, 5):
             print(f"Scraping page {page_num}")
@@ -141,9 +148,11 @@ class JobScraper:
                 print(f"Failed to retrieve page {page_num}. Status code: {response.status_code}")
 
         df = pd.DataFrame(job_vacancies)
+        print("Scraping completed for busy.az")
         return df
 
     def hellojob_az(self):
+        print("Started scraping of hellojob.az")
         job_vacancies = []
         base_url = "https://www.hellojob.az"
 
@@ -170,7 +179,7 @@ class JobScraper:
                     print(f"Failed to retrieve page {page_number}. Status code: {response.status_code}")
             except Exception as e:
                 print(f"An error occurred while scraping page {page_number}: {e}")
-
+        print("Scraping completed for hellojob.az")
         if job_vacancies:
             return pd.DataFrame(job_vacancies)
         else:
@@ -197,9 +206,10 @@ class JobScraper:
                 print(f"Scraped {len(job_listings)} jobs from page {page_num}")
             else:
                 print(f"Failed to retrieve page {page_num}. Status code: {response.status_code}")
-
+        print("Scraping completed boss.az")
         return pd.DataFrame(job_vacancies)
     def ejob_az(self,start_page=1, end_page=20):
+        print("Scraping started for ejob.az")
         base_url = "https://ejob.az/is-elanlari"
         all_jobs = []
         for page in range(start_page, end_page + 1):
@@ -224,9 +234,11 @@ class JobScraper:
             else:
                 print(
                     f"Failed to retrieve page: {page} - Response: {response.text[:500]}")
+        print("Scraping completed for ejob.az")
         return pd.DataFrame(all_jobs)
 
     def vakansiya_az(self):
+        print("Scraping started for vakansiya.az")
         url = 'https://www.vakansiya.az/az/'
         response = requests.get(url)
         if response.status_code != 200:
@@ -251,7 +263,7 @@ class JobScraper:
             job['apply_link'] = 'https://www.vakansiya.az' + apply_link if apply_link else 'N/A'
             print(f"Job found: {job}")
             jobs.append(job)
-
+        print("Scraping completed for vakansiya.az")
         return pd.DataFrame(jobs)
 
     def get_data(self):
