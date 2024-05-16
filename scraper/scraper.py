@@ -329,6 +329,27 @@ class JobScraper:
         print("Scraping completed for Bank of Baku")
         return pd.DataFrame(jobs)
 
+    def bank_respublika(self):
+        print("Scraping started for Bank Respublika")
+        url = "https://www.bankrespublika.az/az/career"
+        response = requests.get(url, verify=False)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        jobs = []
+
+        # Correcting the class to look for job listings
+        for job in soup.find_all("div", class_="vacancyItem whiteBox"):
+            title_element = job.find("a", class_="title")
+            title = title_element.text.strip() if title_element else "No title found"
+            link = title_element['href'] if title_element and 'href' in title_element.attrs else "No link available"
+
+            jobs.append({
+                "company": 'Bank_Respublika',
+                "vacancy": title,
+                "link": link
+            })
+        print("Scraping completed for Bank Respublika")
+        return pd.DataFrame(jobs)
+
     def get_data(self):
         abb_df = self.abb()
         azerconnect_df = self.azerconnect()
@@ -341,6 +362,7 @@ class JobScraper:
         vakansiya_az_df = self.vakansiya_az()
         ishelanlari_az_df = self.ishelanlari_az()
         bank_of_baku_az_df = self.bank_of_baku_az()
+        bank_respublika_df = self.bank_respublika()
 
 
         scrape_date = datetime.now()
@@ -356,7 +378,7 @@ class JobScraper:
         vakansiya_az_df['scrape_date'] = scrape_date
         ishelanlari_az_df['scrape_date'] = scrape_date
         bank_of_baku_az_df['scrape_date'] = scrape_date
-
+        bank_respublika_df['scrape_date'] = scrape_date
         self.data = pd.concat([pashabank_df,
                                azerconnect_df,
                                azercell_df,
@@ -367,6 +389,7 @@ class JobScraper:
                                ejob_az_df,
                                vakansiya_az_df,
                                ishelanlari_az_df,
-                               bank_of_baku_az_df],
+                               bank_of_baku_az_df,
+                               bank_respublika_df],
                               ignore_index=True)
         return self.data
