@@ -20,7 +20,9 @@ def main():
     db_name = os.environ.get('DB_NAME')
 
     # Build the database URL
-    db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    # db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    db_url = "postgresql://jobs_owner:Sl0ixDXcRA9r@ep-misty-firefly-a22fwkh5.eu-central-1.aws.neon.tech:5432/jobs?sslmode=require"
+
     # Create a database engine
     db_engine = create_engine(db_url)
 

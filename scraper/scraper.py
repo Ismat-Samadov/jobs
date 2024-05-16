@@ -266,6 +266,37 @@ class JobScraper:
         print("Scraping completed for vakansiya.az")
         return pd.DataFrame(jobs)
 
+    def ishelanlari_az(self):
+        print("Scraping started for ishelanlari.az")
+        url = "https://ishelanlari.az/az/vacancies//0/360/"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                vacancies = []
+                for job in soup.find_all("div", class_="card-body"):
+                    title_element = job.find("h2", class_="font-weight-bold")
+                    company_element = job.find("a", class_="text-muted")
+                    details_link_element = job.find("a", class_="position-absolute")
+
+                    title = title_element.text.strip() if title_element else "No title provided"
+                    company = company_element.text.strip() if company_element else "No company provided"
+                    link = details_link_element["href"] if details_link_element else "No link provided"
+
+                    vacancies.append({
+                        "company": company,
+                        "vacancy": title,
+                        "apply_link": "https://ishelanlari.az" + link
+                    })
+                print("Scraping completed for ishelanlari.az")
+                return pd.DataFrame(vacancies)
+            else:
+                print(f"Failed to retrieve data, status code: {response.status_code}")
+        except requests.RequestException as e:
+            print(f"Request failed: {e}")
+
     def get_data(self):
         abb_df = self.abb()
         azerconnect_df = self.azerconnect()
@@ -276,6 +307,8 @@ class JobScraper:
         boss_az_df = self.boss_az()
         ejob_az_df = self.ejob_az()
         vakansiya_az_df = self.vakansiya_az()
+        ishelanlari_az_df = self.ishelanlari_az()
+
 
         scrape_date = datetime.now()
 
@@ -288,6 +321,7 @@ class JobScraper:
         boss_az_df['scrape_date'] = scrape_date
         ejob_az_df['scrape_date'] = scrape_date
         vakansiya_az_df['scrape_date'] = scrape_date
+        ishelanlari_az_df['scrape_date'] = scrape_date
         self.data = pd.concat([pashabank_df,
                                azerconnect_df,
                                azercell_df,
@@ -296,6 +330,7 @@ class JobScraper:
                                hellojob_az_df,
                                boss_az_df,
                                ejob_az_df,
-                               vakansiya_az_df],
+                               vakansiya_az_df,
+                               ishelanlari_az_df],
                               ignore_index=True)
         return self.data
