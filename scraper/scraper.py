@@ -13,6 +13,7 @@ class JobScraper:
         self.data = None
 
     def azercell(self):
+        print("Started scraping Azercel")
         url = "https://www.azercell.com/az/about-us/career.html"
         response = requests.get(url)
         if response.status_code == 200:
@@ -32,6 +33,7 @@ class JobScraper:
                     "vacancy": job_titles,
                     "apply_link": job_links
                 })
+                print("Scraping completed Azercell")
                 return df
             else:
                 print("Vacancies section not found on the page.")
