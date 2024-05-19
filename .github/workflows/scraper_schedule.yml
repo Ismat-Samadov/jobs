@@ -2,7 +2,7 @@ name: Scheduled Scraper Job
 
 on:
   schedule:
-    - cron: '0 */15 * * *' # Runs every 4 hours
+    - cron: '0 */16 * * *' # Runs every 4 hours
 #    - cron: '*/5 * * * *' # Runs every 5 minutes
 
 
