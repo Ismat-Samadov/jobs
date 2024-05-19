@@ -408,31 +408,33 @@ class JobScraper:
 
     def smartjob_az(self):
         print("Started scraping SmartJob.az")
-        url = "https://smartjob.az/vacancies?page=5"
-        response = requests.get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, "html.parser")
-            job_listings = soup.find_all('div', class_='item-click')
-            jobs = []
-            for listing in job_listings:
-                title = listing.find('div', class_='brows-job-position').h3.a.text.strip()
-                company = listing.find('span', class_='company-title').a.text.strip()
-                location = listing.find('span', class_='location-pin').text.strip()
-                views = listing.find('span', class_='total-views').find('span', class_='number').text.strip()
-                job_type = listing.find('span', class_='job-type').text.strip()
-                posted_date = listing.find('div', class_='created-date').text.strip().replace('Yerləşdirilib ', '')
-                salary = listing.find('div', class_='salary-val').text.strip()
-                jobs.append({
-                    'company': company,
-                    'vacancy': title,
-                    'apply_link': listing.find('div', class_='brows-job-position').h3.a['href']
-                })
-            df = pd.DataFrame(jobs)
-            print("Scraping completed for SmartJob.az")
-            return df
-        else:
-            print("Failed to retrieve the page. Status code:", response.status_code)
-            return pd.DataFrame()
+        jobs = []
+
+        for page in range(1, 11):  # Iterate from page 1 to 10
+            url = f"https://smartjob.az/vacancies?page={page}"
+            response = requests.get(url)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, "html.parser")
+                job_listings = soup.find_all('div', class_='item-click')
+
+                if not job_listings:
+                    # No more job listings found on this page, continue to the next page
+                    continue
+
+                for listing in job_listings:
+                    title = listing.find('div', class_='brows-job-position').h3.a.text.strip()
+                    company = listing.find('span', class_='company-title').a.text.strip()
+                    jobs.append({
+                        'company': company,
+                        'vacancy': title,
+                        'apply_link': listing.find('div', class_='brows-job-position').h3.a['href']
+                    })
+            else:
+                print(f"Failed to retrieve page {page}. Status code:", response.status_code)
+
+        df = pd.DataFrame(jobs)
+        print("Scraping completed for SmartJob.az")
+        return df
 
     def get_data(self):
         abb_df = self.abb()
