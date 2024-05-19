@@ -406,6 +406,34 @@ class JobScraper:
         print("Banker.az completed")
         return df
 
+    def smartjob_az(self):
+        print("Started scraping SmartJob.az")
+        url = "https://smartjob.az/vacancies?page=5"
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, "html.parser")
+            job_listings = soup.find_all('div', class_='item-click')
+            jobs = []
+            for listing in job_listings:
+                title = listing.find('div', class_='brows-job-position').h3.a.text.strip()
+                company = listing.find('span', class_='company-title').a.text.strip()
+                location = listing.find('span', class_='location-pin').text.strip()
+                views = listing.find('span', class_='total-views').find('span', class_='number').text.strip()
+                job_type = listing.find('span', class_='job-type').text.strip()
+                posted_date = listing.find('div', class_='created-date').text.strip().replace('Yerləşdirilib ', '')
+                salary = listing.find('div', class_='salary-val').text.strip()
+                jobs.append({
+                    'company': company,
+                    'vacancy': title,
+                    'apply_link': listing.find('div', class_='brows-job-position').h3.a['href']
+                })
+            df = pd.DataFrame(jobs)
+            print("Scraping completed for SmartJob.az")
+            return df
+        else:
+            print("Failed to retrieve the page. Status code:", response.status_code)
+            return pd.DataFrame()
+
     def get_data(self):
         abb_df = self.abb()
         azerconnect_df = self.azerconnect()
@@ -420,6 +448,7 @@ class JobScraper:
         bank_of_baku_az_df = self.bank_of_baku_az()
         bank_respublika_df = self.bank_respublika()
         banker_az_df = self.banker_az()
+        smartjob_az_df = self.smartjob_az()
 
 
         scrape_date = datetime.now()
@@ -437,6 +466,7 @@ class JobScraper:
         bank_of_baku_az_df['scrape_date'] = scrape_date
         bank_respublika_df['scrape_date'] = scrape_date
         banker_az_df['scrape_date'] = scrape_date
+        smartjob_az_df['scrape_date'] = scrape_date
         self.data = pd.concat([pashabank_df,
                                azerconnect_df,
                                azercell_df,
@@ -449,6 +479,7 @@ class JobScraper:
                                ishelanlari_az_df,
                                bank_of_baku_az_df,
                                bank_respublika_df,
-                               banker_az_df],
+                               banker_az_df,
+                               smartjob_az_df],
                               ignore_index=True)
         return self.data

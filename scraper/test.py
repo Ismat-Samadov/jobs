@@ -1,60 +1,68 @@
-import requests
+import urllib3
 from bs4 import BeautifulSoup
 import pandas as pd
+import requests
+from datetime import datetime
 
-def scrape_banker_az(base_url, num_pages=10):
-    all_job_titles = []
-    all_company_names = []
-    all_apply_links = []
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    for page in range(1, num_pages + 1):
-        url = f"{base_url}/page/{page}/"
+
+class JobScraper:
+    def __init__(self):
+        self.data = None
+
+    def smartjob_az(self):
+        print("Started scraping SmartJob.az")
+        url = "https://smartjob.az/vacancies?page=5"
         response = requests.get(url)
-        soup = BeautifulSoup(response.content, 'html.parser')
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, "html.parser")
+            job_listings = soup.find_all('div', class_='item-click')
+            jobs = []
+            for listing in job_listings:
+                title = listing.find('div', class_='brows-job-position').h3.a.text.strip()
+                company = listing.find('span', class_='company-title').a.text.strip()
+                location = listing.find('span', class_='location-pin').text.strip()
+                views = listing.find('span', class_='total-views').find('span', class_='number').text.strip()
+                job_type = listing.find('span', class_='job-type').text.strip()
+                posted_date = listing.find('div', class_='created-date').text.strip().replace('Yerləşdirilib ', '')
+                salary = listing.find('div', class_='salary-val').text.strip()
+                jobs.append({
+                    'company': company,
+                    'vacancy': title,
+                    'location': location,
+                    'views': views,
+                    'job_type': job_type,
+                    'posted_date': posted_date,
+                    'salary': salary,
+                    'apply_link': listing.find('div', class_='brows-job-position').h3.a['href']
+                })
+            df = pd.DataFrame(jobs)
+            print("Scraping completed for SmartJob.az")
+            return df
+        else:
+            print("Failed to retrieve the page. Status code:", response.status_code)
+            return pd.DataFrame()
 
-        job_listings = soup.find_all('div', class_='list-data')
 
-        job_titles = []
-        company_names = []
-        apply_links = []
 
-        for job in job_listings:
-            # Extract job title and link
-            job_info = job.find('div', class_='job-info')
-            title_tag = job_info.find('a') if job_info else None
-            title = title_tag.text.strip() if title_tag else None
-            link = title_tag['href'] if title_tag else None
+    def get_data(self):
+        smartjob_az_df = self.smartjob_az()
+        scrape_date = datetime.now()
+        smartjob_az_df['scrape_date'] = scrape_date
+        self.data = pd.concat([
+            smartjob_az_df
+        ], ignore_index=True)
+        return self.data
 
-            # Extract company name from the alt attribute of the img tag within the company logo
-            company_logo = job.find('div', class_='company-logo')
-            company_img = company_logo.find('img') if company_logo else None
-            company = company_img.get('alt') if company_img else None
 
-            # Split the title and company if they are together
-            if title and '-' in title:
-                title_parts = title.split(' – ')
-                title = title_parts[0].strip()
-                if len(title_parts) > 1:
-                    company = title_parts[1].strip()
 
-            if title and company and link:
-                job_titles.append(title)
-                company_names.append(company)
-                apply_links.append(link)
+# Create an instance of the JobScraper
+job_scraper = JobScraper()
 
-        all_job_titles.extend(job_titles)
-        all_company_names.extend(company_names)
-        all_apply_links.extend(apply_links)
+# Get the data
+data = job_scraper.get_data()
 
-    df = pd.DataFrame({
-        'company': all_company_names,
-        'vacancy': all_job_titles,
-        'apply_link': all_apply_links
-    })
-
-    return df
-
-# Example usage
-base_url = 'https://banker.az/vakansiyalar'
-scraped_data = scrape_banker_az(base_url)
-print(scraped_data.head())
+# Save the data to an Excel file
+data.to_excel('job_listings.xlsx', index=False)
+print("Data has been saved to job_listings.xlsx")
