@@ -345,10 +345,66 @@ class JobScraper:
             jobs.append({
                 "company": 'Bank_Respublika',
                 "vacancy": title,
-                "link": link
+                "apply_link": link
             })
         print("Scraping completed for Bank Respublika")
         return pd.DataFrame(jobs)
+
+    def banker_az(self):
+        print("Banker.az")
+        base_url = 'https://banker.az/vakansiyalar'
+        num_pages = 5
+
+        all_job_titles = []
+        all_company_names = []
+        all_apply_links = []
+
+        for page in range(1, num_pages + 1):
+            url = f"{base_url}/page/{page}/"
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, 'html.parser')
+
+            job_listings = soup.find_all('div', class_='list-data')
+
+            job_titles = []
+            company_names = []
+            apply_links = []
+
+            for job in job_listings:
+                # Extract job title and link
+                job_info = job.find('div', class_='job-info')
+                title_tag = job_info.find('a') if job_info else None
+                title = title_tag.text.strip() if title_tag else None
+                link = title_tag['href'] if title_tag else None
+
+                # Extract company name from the alt attribute of the img tag within the company logo
+                company_logo = job.find('div', class_='company-logo')
+                company_img = company_logo.find('img') if company_logo else None
+                company = company_img.get('alt') if company_img else None
+
+                # Split the title and company if they are together
+                if title and '-' in title:
+                    title_parts = title.split(' – ')
+                    title = title_parts[0].strip()
+                    if len(title_parts) > 1:
+                        company = title_parts[1].strip()
+
+                if title and company and link:
+                    job_titles.append(title)
+                    company_names.append(company)
+                    apply_links.append(link)
+
+            all_job_titles.extend(job_titles)
+            all_company_names.extend(company_names)
+            all_apply_links.extend(apply_links)
+
+        df = pd.DataFrame({
+            'company': all_company_names,
+            'vacancy': all_job_titles,
+            'apply_link': all_apply_links
+        })
+        print("Banker.az completed")
+        return df
 
     def get_data(self):
         abb_df = self.abb()
@@ -363,6 +419,7 @@ class JobScraper:
         ishelanlari_az_df = self.ishelanlari_az()
         bank_of_baku_az_df = self.bank_of_baku_az()
         bank_respublika_df = self.bank_respublika()
+        banker_az_df = self.banker_az()
 
 
         scrape_date = datetime.now()
@@ -379,6 +436,7 @@ class JobScraper:
         ishelanlari_az_df['scrape_date'] = scrape_date
         bank_of_baku_az_df['scrape_date'] = scrape_date
         bank_respublika_df['scrape_date'] = scrape_date
+        banker_az_df['scrape_date'] = scrape_date
         self.data = pd.concat([pashabank_df,
                                azerconnect_df,
                                azercell_df,
@@ -390,6 +448,7 @@ class JobScraper:
                                vakansiya_az_df,
                                ishelanlari_az_df,
                                bank_of_baku_az_df,
-                               bank_respublika_df],
+                               bank_respublika_df,
+                               banker_az_df],
                               ignore_index=True)
         return self.data
