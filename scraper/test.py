@@ -1,8 +1,8 @@
-import urllib3
+import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import requests
 from datetime import datetime
+import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -11,58 +11,52 @@ class JobScraper:
     def __init__(self):
         self.data = None
 
-    def smartjob_az(self):
-        print("Started scraping SmartJob.az")
-        jobs = []
+    def xalqbank(self):
+        print("Started scraping Xalqbank")
+        url = 'https://www.xalqbank.az/az/ferdi/bank/career'
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept-Encoding': 'gzip, deflate, br, zstd',
+            'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8,ru;q=0.7,az;q=0.6',
+            'Cache-Control': 'max-age=0',
+            'Referer': 'https://www.google.com/',
+            'Dnt': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'same-origin',
+            'Sec-Fetch-User': '?1',
+            'Upgrade-Insecure-Requests': '1',
+            'Cookie': '_gid=GA1.2.2120774294.1716196109; _ym_uid=1707748848536691364; _ym_d=1716196109; _ym_isad=2; _fbp=fb.1.1716196109680.1185575570; _ym_visorc=w; uslk_umm_1234_s=ewAiAHYAZQByAHMAaQBvAG4AIgA6ACIAMQAiACwAIgBkAGEAdABhACIAOgB7AH0AfQA=; _ga_Z2590XM715=GS1.1.1716196109.1.1.1716196497.60.0.0; _ga=GA1.1.544691763.1716196109'
+        }
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Ensure the request was successful
 
-        for page in range(1, 11):  # Iterate from page 1 to 10
-            url = f"https://smartjob.az/vacancies?page={page}"
-            response = requests.get(url)
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.text, "html.parser")
-                job_listings = soup.find_all('div', class_='item-click')
+        soup = BeautifulSoup(response.content, 'html.parser')
 
-                if not job_listings:
-                    # No more job listings found on this page, continue to the next page
-                    continue
+        vacancies = []
+        vacancy_items = soup.find_all('a', class_='vacancies__item')
 
-                for listing in job_listings:
-                    title = listing.find('div', class_='brows-job-position').h3.a.text.strip()
-                    company = listing.find('span', class_='company-title').a.text.strip()
-                    # location = listing.find('span', class_='location-pin').text.strip()
-                    # views = listing.find('span', class_='total-views').find('span', class_='number').text.strip()
-                    # job_type = listing.find('span', class_='job-type').text.strip()
-                    # posted_date = listing.find('div', class_='created-date').text.strip().replace('Yerləşdirilib ', '')
-                    # salary = listing.find('div', class_='salary-val').text.strip()
-                    jobs.append({
-                        'company': company,
-                        'vacancy': title,
-                        'apply_link': listing.find('div', class_='brows-job-position').h3.a['href']
-                    })
-            else:
-                print(f"Failed to retrieve page {page}. Status code:", response.status_code)
+        for item in vacancy_items:
+            category = item.find('span', class_='vacancies__category').text.strip()
+            title = item.find('h2', class_='vacancies__title').text.strip()
+            location = item.find('span', class_='vacancies__location').text.strip()
+            link = item['href']
+            vacancies.append([category, title, location, link])
 
-        df = pd.DataFrame(jobs)
-        print("Scraping completed for SmartJob.az")
+        df = pd.DataFrame(vacancies, columns=['company', 'vacancy', 'location', 'apply_link'])
+        df['company'] = 'xalqbank'
+        print("Scraping completed for Xalqbank")
         return df
 
     def get_data(self):
-        smartjob_az_df = self.smartjob_az()
+        xalqbank_df = self.xalqbank()
+
         scrape_date = datetime.now()
-        smartjob_az_df['scrape_date'] = scrape_date
-        self.data = pd.concat([
-            smartjob_az_df
-        ], ignore_index=True)
+
+        xalqbank_df['scrape_date'] = scrape_date
+
+        self.data = pd.concat([xalqbank_df],
+                              ignore_index=True)
         return self.data
 
-
-
-# Create an instance of the JobScraper
-job_scraper = JobScraper()
-
-# Get the data
-data = job_scraper.get_data()
-
-# Save the data to an Excel file
-data.to_excel('job_listings.xlsx', index=False)
-print("Data has been saved to job_listings.xlsx")
