@@ -31,7 +31,8 @@ def fetch_data(endpoint, params=None):
     except Exception as err:
         return None, str(err)
 
-def display_data(data):
+def display_data(data_placeholder, data):
+    data_placeholder.empty()  # Clear previous data
     if data:
         for item in data:
             company = item.get('company', 'Unknown Company')
@@ -47,7 +48,7 @@ def display_data(data):
 
             image_url = f"https://via.placeholder.com/100/FFA500/FFFFFF?text={first_letter}"
 
-            with st.container():
+            with data_placeholder.container():
                 col1, col2 = st.columns([1, 4])
                 with col1:
                     st.image(image_url, width=100)
@@ -67,29 +68,50 @@ def main():
         position = st.text_input("Position", key='position').strip()
         search = st.form_submit_button("Search")
 
-    page = st.number_input("Page Number", value=1, min_value=1, key='page_number')
-    page_size = st.selectbox("Results per page", options=[10, 20, 50], index=0, key='page_size')
-    fetch_data_button = st.button("Fetch Data", key='fetch_data_button')
+    data_placeholder = st.empty()  # Placeholder for job data
 
-    if search or fetch_data_button:
+    if search:
         with st.spinner("Fetching data..."):
-            query_params = {"page": page, "page_size": page_size}
+            query_params = {"page": 1, "page_size": 50}
             if company:
                 query_params["company"] = company
             if position:
                 query_params["position"] = position
+            st.write(f"Query Params: {query_params}")  # Debug: Check parameters
             data, error = fetch_data("", query_params)
+            st.write(f"API Response: {data}")  # Debug: Check API response
             if error:
                 st.error(f"Failed to fetch data: {error}")
             else:
-                display_data(data)
+                display_data(data_placeholder, data)
     else:
         with st.spinner("Loading initial data..."):
-            initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 10})
+            initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 50})
+            st.write(f"Initial API Response: {initial_data}")  # Debug: Check API response
             if initial_error:
                 st.error(f"Failed to fetch initial data: {initial_error}")
             else:
-                display_data(initial_data)
+                display_data(data_placeholder, initial_data)
+
+    # Pagination controls at the end of the page
+    st.write("### Pagination Controls")
+    page = st.number_input("Page Number", value=1, min_value=1, key='page_number')
+    fetch_data_button = st.button("Fetch Data", key='fetch_data_button')
+
+    if fetch_data_button:
+        with st.spinner("Fetching data..."):
+            query_params = {"page": page, "page_size": 50}
+            if company:
+                query_params["company"] = company
+            if position:
+                query_params["position"] = position
+            st.write(f"Query Params: {query_params}")  # Debug: Check parameters
+            data, error = fetch_data("", query_params)
+            st.write(f"API Response: {data}")  # Debug: Check API response
+            if error:
+                st.error(f"Failed to fetch data: {error}")
+            else:
+                display_data(data_placeholder, data)
 
 if __name__ == "__main__":
     main()
