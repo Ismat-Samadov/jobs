@@ -77,6 +77,7 @@ def main():
                 query_params["company"] = company
             if position:
                 query_params["position"] = position
+            st.write(f"Query Params: {query_params}")  # Debug: Check parameters
             data, error = fetch_data("", query_params)
             if error:
                 st.error(f"Failed to fetch data: {error}")
@@ -102,6 +103,7 @@ def main():
                 query_params["company"] = company
             if position:
                 query_params["position"] = position
+            st.write(f"Query Params: {query_params}")  # Debug: Check parameters
             data, error = fetch_data("", query_params)
             if error:
                 st.error(f"Failed to fetch data: {error}")
