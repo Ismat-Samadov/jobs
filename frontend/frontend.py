@@ -31,7 +31,8 @@ def fetch_data(endpoint, params=None):
     except Exception as err:
         return None, str(err)
 
-def display_data(data):
+def display_data(data_placeholder, data):
+    data_placeholder.empty()  # Clear previous data
     if data:
         for item in data:
             company = item.get('company', 'Unknown Company')
@@ -47,7 +48,7 @@ def display_data(data):
 
             image_url = f"https://via.placeholder.com/100/FFA500/FFFFFF?text={first_letter}"
 
-            with st.container():
+            with data_placeholder.container():
                 col1, col2 = st.columns([1, 4])
                 with col1:
                     st.image(image_url, width=100)
@@ -67,6 +68,8 @@ def main():
         position = st.text_input("Position", key='position').strip()
         search = st.form_submit_button("Search")
 
+    data_placeholder = st.empty()  # Placeholder for job data
+
     if search:
         with st.spinner("Fetching data..."):
             query_params = {"page": 1, "page_size": 50}
@@ -78,14 +81,14 @@ def main():
             if error:
                 st.error(f"Failed to fetch data: {error}")
             else:
-                display_data(data)
+                display_data(data_placeholder, data)
     else:
         with st.spinner("Loading initial data..."):
             initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 50})
             if initial_error:
                 st.error(f"Failed to fetch initial data: {initial_error}")
             else:
-                display_data(initial_data)
+                display_data(data_placeholder, initial_data)
 
     # Pagination controls at the end of the page
     st.write("### Pagination Controls")
@@ -103,7 +106,7 @@ def main():
             if error:
                 st.error(f"Failed to fetch data: {error}")
             else:
-                display_data(data)
+                display_data(data_placeholder, data)
 
 if __name__ == "__main__":
     main()
