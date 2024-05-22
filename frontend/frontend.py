@@ -79,7 +79,6 @@ def main():
                 st.error(f"Failed to fetch data: {error}")
             else:
                 display_data(data)
-
     else:
         with st.spinner("Loading initial data..."):
             initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 50})
@@ -91,12 +90,11 @@ def main():
     # Pagination controls at the end of the page
     st.write("### Pagination Controls")
     page = st.number_input("Page Number", value=1, min_value=1, key='page_number')
-    page_size = st.selectbox("Results per page", options=[10, 20, 50], index=2, key='page_size')
     fetch_data_button = st.button("Fetch Data", key='fetch_data_button')
 
     if fetch_data_button:
         with st.spinner("Fetching data..."):
-            query_params = {"page": page, "page_size": page_size}
+            query_params = {"page": page, "page_size": 50}
             if company:
                 query_params["company"] = company
             if position:
