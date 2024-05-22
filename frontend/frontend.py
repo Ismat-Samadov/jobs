@@ -190,7 +190,7 @@ def main():
     if search:
         st.session_state.page = 1
         with st.spinner("Fetching data..."):
-            query_params = {"page": st.session_state.page, "page_size": 50}
+            query_params = {"page": st.session_state.page, "page_size": 100}
             if company:
                 query_params["company"] = company
             if position:
