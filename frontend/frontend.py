@@ -34,21 +34,21 @@ def fetch_data(endpoint, params=None):
 def display_data(data_placeholder, data):
     data_placeholder.empty()  # Clear previous data
     if data:
-        for item in data:
-            company = item.get('company', 'Unknown Company')
-            position = item.get('vacancy', 'Unknown Position')
-            apply_link = item.get('apply_link', '#')
-            scrape_date_raw = item.get('scrape_date', 'No date available')
-            first_letter = company[0] if company else 'U'
-            try:
-                parsed_date = datetime.datetime.fromisoformat(scrape_date_raw[:-1])
-                scrape_date = parsed_date.strftime('%B %d, %Y at %H:%M:%S')
-            except ValueError:
-                scrape_date = scrape_date_raw
+        with data_placeholder.container():
+            for item in data:
+                company = item.get('company', 'Unknown Company')
+                position = item.get('vacancy', 'Unknown Position')
+                apply_link = item.get('apply_link', '#')
+                scrape_date_raw = item.get('scrape_date', 'No date available')
+                first_letter = company[0] if company else 'U'
+                try:
+                    parsed_date = datetime.datetime.fromisoformat(scrape_date_raw[:-1])
+                    scrape_date = parsed_date.strftime('%B %d, %Y at %H:%M:%S')
+                except ValueError:
+                    scrape_date = scrape_date_raw
 
-            image_url = f"https://via.placeholder.com/100/FFA500/FFFFFF?text={first_letter}"
+                image_url = f"https://via.placeholder.com/100/FFA500/FFFFFF?text={first_letter}"
 
-            with data_placeholder.container():
                 col1, col2 = st.columns([1, 4])
                 with col1:
                     st.image(image_url, width=100)
