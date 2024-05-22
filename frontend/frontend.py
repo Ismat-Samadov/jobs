@@ -31,24 +31,23 @@ def fetch_data(endpoint, params=None):
     except Exception as err:
         return None, str(err)
 
-def display_data(data_placeholder, data):
-    data_placeholder.empty()  # Clear previous data
+def display_data(data):
     if data:
-        with data_placeholder.container():
-            for item in data:
-                company = item.get('company', 'Unknown Company')
-                position = item.get('vacancy', 'Unknown Position')
-                apply_link = item.get('apply_link', '#')
-                scrape_date_raw = item.get('scrape_date', 'No date available')
-                first_letter = company[0] if company else 'U'
-                try:
-                    parsed_date = datetime.datetime.fromisoformat(scrape_date_raw[:-1])
-                    scrape_date = parsed_date.strftime('%B %d, %Y at %H:%M:%S')
-                except ValueError:
-                    scrape_date = scrape_date_raw
+        for item in data:
+            company = item.get('company', 'Unknown Company')
+            position = item.get('vacancy', 'Unknown Position')
+            apply_link = item.get('apply_link', '#')
+            scrape_date_raw = item.get('scrape_date', 'No date available')
+            first_letter = company[0] if company else 'U'
+            try:
+                parsed_date = datetime.datetime.fromisoformat(scrape_date_raw[:-1])
+                scrape_date = parsed_date.strftime('%B %d, %Y at %H:%M:%S')
+            except ValueError:
+                scrape_date = scrape_date_raw
 
-                image_url = f"https://via.placeholder.com/100/FFA500/FFFFFF?text={first_letter}"
+            image_url = f"https://via.placeholder.com/100/FFA500/FFFFFF?text={first_letter}"
 
+            with st.container():
                 col1, col2 = st.columns([1, 4])
                 with col1:
                     st.image(image_url, width=100)
@@ -68,37 +67,24 @@ def main():
         position = st.text_input("Position", key='position').strip()
         search = st.form_submit_button("Search")
 
-    data_placeholder = st.empty()  # Placeholder for job data
+    # Placeholder for job data
+    data_placeholder = st.empty()
 
-    if search:
-        with st.spinner("Fetching data..."):
-            query_params = {"page": 1, "page_size": 50}
-            if company:
-                query_params["company"] = company
-            if position:
-                query_params["position"] = position
-            st.write(f"Query Params: {query_params}")  # Debug: Check parameters
-            data, error = fetch_data("", query_params)
-            st.write(f"API Response: {data}")  # Debug: Check API response
-            if error:
-                st.error(f"Failed to fetch data: {error}")
-            else:
-                display_data(data_placeholder, data)
-    else:
-        with st.spinner("Loading initial data..."):
-            initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 50})
-            st.write(f"Initial API Response: {initial_data}")  # Debug: Check API response
-            if initial_error:
-                st.error(f"Failed to fetch initial data: {initial_error}")
-            else:
-                display_data(data_placeholder, initial_data)
+    # Load initial data
+    with st.spinner("Loading initial data..."):
+        initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 50})
+        if initial_error:
+            st.error(f"Failed to fetch initial data: {initial_error}")
+        else:
+            with data_placeholder.container():
+                display_data(initial_data)
 
     # Pagination controls at the end of the page
     st.write("### Pagination Controls")
     page = st.number_input("Page Number", value=1, min_value=1, key='page_number')
     fetch_data_button = st.button("Fetch Data", key='fetch_data_button')
 
-    if fetch_data_button:
+    if fetch_data_button or search:
         with st.spinner("Fetching data..."):
             query_params = {"page": page, "page_size": 50}
             if company:
@@ -111,7 +97,8 @@ def main():
             if error:
                 st.error(f"Failed to fetch data: {error}")
             else:
-                display_data(data_placeholder, data)
+                with data_placeholder.container():
+                    display_data(data)
 
 if __name__ == "__main__":
     main()
