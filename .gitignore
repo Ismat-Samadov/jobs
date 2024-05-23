@@ -1,3 +1,6 @@
+./scraper/test_save_db.py
+./scraper/test_scraper.py
+
 venv
 .vscode
 .idea

@@ -1,9 +1,8 @@
-# scraper/save_db.py
 import os
 import logging
 from sqlalchemy import create_engine, types
 from sqlalchemy.exc import SQLAlchemyError
-from scraper import JobScraper
+from test_scraper import JobScraper
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

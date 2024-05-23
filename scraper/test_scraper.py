@@ -1,4 +1,3 @@
-# scraper/scraper.py
 import urllib3
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -528,3 +527,10 @@ class JobScraper:
             self.data = pd.DataFrame(columns=['company', 'vacancy', 'apply_link', 'scrape_date'])
 
         return self.data
+
+
+# Usage
+if __name__ == "__main__":
+    scraper = JobScraper()
+    job_data = scraper.get_data()
+    print(job_data)
