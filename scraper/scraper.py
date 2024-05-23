@@ -6,6 +6,7 @@ import requests
 from datetime import datetime
 import logging
 import concurrent.futures
+import time
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -489,6 +490,65 @@ class JobScraper:
         logger.info("Scraping completed for offer.az")
         return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
 
+    def parse_isveren_az(self):
+        start_page = 1
+        end_page = 15
+        max_retries = 3
+        backoff_factor = 1
+        jobs = []
+        for page_num in range(start_page, end_page + 1):
+            retries = 0
+            while retries < max_retries:
+                try:
+                    logger.info(f"Scraping started for isveren.az page {page_num}")
+                    url = f"https://isveren.az/?page={page_num}"
+                    headers = {
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15',
+                    }
+
+                    response = requests.get(url, headers=headers, timeout=10)
+
+                    if response.status_code != 200:
+                        logger.error(f"Failed to retrieve page {page_num}. Status code: {response.status_code}")
+                        break
+
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    job_cards = soup.find_all('div', class_='job-card')
+
+                    for job_card in job_cards:
+                        try:
+                            title_element = job_card.find('h5', class_='job-title')
+                            company_element = job_card.find('p', class_='job-list')
+                            link_element = job_card.find('a', href=True)
+
+                            title = title_element.text.strip() if title_element else "No title provided"
+                            company = company_element.text.strip() if company_element else "No company provided"
+                            link = link_element['href'] if link_element else "No link provided"
+
+                            jobs.append({
+                                'company': company,
+                                'vacancy': title,
+                                'apply_link': link
+                            })
+                        except Exception as e:
+                            logger.error(f"Error parsing job card on page {page_num}: {e}")
+
+                    break  # Exit the retry loop if the request was successful
+                except (requests.exceptions.RequestException, requests.exceptions.Timeout) as e:
+                    retries += 1
+                    logger.warning(f"Attempt {retries} for page {page_num} failed: {e}")
+                    if retries < max_retries:
+                        sleep_time = backoff_factor * (2 ** (retries - 1))
+                        logger.info(f"Retrying page {page_num} in {sleep_time} seconds...")
+                        time.sleep(sleep_time)
+                    else:
+                        logger.error(f"Max retries exceeded for page {page_num}")
+
+        df = pd.DataFrame(jobs)
+        logger.info("Scraping completed for isveren.az")
+        return df
+
+
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -506,7 +566,8 @@ class JobScraper:
             self.parse_banker_az,
             self.parse_smartjob_az,
             self.parse_xalqbank,
-            self.parse_offer_az
+            self.parse_offer_az,
+            self.parse_isveren_az
         ]
 
         results = []
