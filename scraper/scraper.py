@@ -548,6 +548,31 @@ class JobScraper:
         logger.info("Scraping completed for isveren.az")
         return df
 
+    def parse_isqur(self):
+        start_page = 1
+        end_page = 5
+        logger.info("Started scraping isqur.com")
+        job_vacancies = []
+        base_url = "https://isqur.com/is-elanlari/sehife-"
+
+        for page_num in range(start_page, end_page + 1):
+            logger.info(f"Scraping page {page_num} for isqur.com")
+            url = f"{base_url}{page_num}"
+            response = self.fetch_url(url)
+            if response:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                job_cards = soup.find_all('div', class_='kart')
+                for job in job_cards:
+                    title = job.find('div', class_='basliq').text.strip()
+                    company = "Unknown"  # The provided HTML does not include a company name
+                    link = "https://isqur.com/" + job.find('a')['href']
+                    job_vacancies.append({'company': company, 'vacancy': title, 'apply_link': link})
+            else:
+                logger.error(f"Failed to retrieve page {page_num} for isqur.com")
+
+        logger.info("Scraping completed for isqur.com")
+        return pd.DataFrame(job_vacancies) if job_vacancies else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
 
     def get_data(self):
         methods = [
@@ -567,7 +592,8 @@ class JobScraper:
             self.parse_smartjob_az,
             self.parse_xalqbank,
             self.parse_offer_az,
-            self.parse_isveren_az
+            self.parse_isveren_az,
+            self.parse_isqur
         ]
 
         results = []
