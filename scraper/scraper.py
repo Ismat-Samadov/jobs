@@ -1346,7 +1346,6 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
-
     def get_data(self):
         methods = [
             self.parse_azercell,
