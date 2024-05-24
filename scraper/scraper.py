@@ -573,6 +573,42 @@ class JobScraper:
         logger.info("Scraping completed for isqur.com")
         return pd.DataFrame(job_vacancies) if job_vacancies else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
 
+    def parse_mktcotton(self):
+        logger.info("Fetching jobs from Glorri.az for MKT Cotton")
+        base_url = "https://atsapp.glorri.az/job-service/v2/company/mktcotton/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': job['company']['name'] if 'company' in job else 'MKT Cotton',
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/mktcotton/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
+
 
     def get_data(self):
         methods = [
@@ -593,7 +629,8 @@ class JobScraper:
             self.parse_xalqbank,
             self.parse_offer_az,
             self.parse_isveren_az,
-            self.parse_isqur
+            self.parse_isqur,
+            self.parse_mktcotton
         ]
 
         results = []
@@ -615,3 +652,4 @@ class JobScraper:
             self.data = pd.DataFrame(columns=['company', 'vacancy', 'apply_link', 'scrape_date'])
 
         return self.data
+

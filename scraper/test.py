@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 import logging
 import concurrent.futures
+import time
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -24,34 +25,47 @@ class JobScraper:
             logger.error(f"Request to {url} failed: {e}")
             return None
 
-    def parse_isqur(self, start_page=1, end_page=10):
-        logger.info("Started scraping isqur.com")
-        job_vacancies = []
-        base_url = "https://isqur.com/is-elanlari/sehife-"
+    def parse_mktcotton(self):
+        logger.info("Fetching jobs from Glorri.az for MKT Cotton")
+        base_url = "https://atsapp.glorri.az/job-service/v2/company/mktcotton/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
 
-        for page_num in range(start_page, end_page + 1):
-            logger.info(f"Scraping page {page_num} for isqur.com")
-            url = f"{base_url}{page_num}"
-            response = self.fetch_url(url)
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
             if response:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                job_cards = soup.find_all('div', class_='kart')
-                for job in job_cards:
-                    title = job.find('div', class_='basliq').text.strip()
-                    company = "Unknown"  # The provided HTML does not include a company name
-                    link = base_url + job.find('a')['href']
-                    job_vacancies.append({'company': company, 'vacancy': title, 'apply_link': link})
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
             else:
-                logger.error(f"Failed to retrieve page {page_num} for isqur.com")
+                logger.error("Failed to retrieve jobs data.")
+                break
 
-        logger.info("Scraping completed for isqur.com")
-        return pd.DataFrame(job_vacancies) if job_vacancies else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
 
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': job['company']['name'] if 'company' in job else 'MKT Cotton',
+                'vacancy': job['title'],
+                'location': job['location'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/mktcotton/{job['slug']}/apply",
+                'view_count': job.get('viewCount', 'N/A')
+            })
 
+        return pd.DataFrame(jobs_data)
 
     def get_data(self):
         methods = [
-            self.parse_isqur
+            self.parse_mktcotton  # Added the new parser to the methods list
         ]
 
         results = []
@@ -75,6 +89,15 @@ class JobScraper:
         return self.data
 
 
-job_scraper = JobScraper()
-data = job_scraper.get_data()
-print(data)
+def main():
+    scraper = JobScraper()
+
+    # Fetch data using all the parsers including the new MKT Cotton parser
+    data = scraper.get_data()
+    excel_file = 'scraped_jobs.xlsx'
+    data.to_excel(excel_file, index=False)
+    # Print the first few rows of the resulting dataframe
+    print(data.head())
+
+if __name__ == "__main__":
+    main()
