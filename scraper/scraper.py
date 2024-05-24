@@ -609,6 +609,265 @@ class JobScraper:
 
         return pd.DataFrame(jobs_data)
 
+    def parse_unibank(self):
+        company_name = 'unibank'
+        logger.info(f"Fetching jobs from Glorri.az for {company_name}")
+        base_url = f"https://atsapp.glorri.az/job-service/v2/company/{company_name}/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': company_name,
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
+
+    def parse_pashabank_glorri(self):
+        company_name = 'pashabank'
+        logger.info(f"Fetching jobs from Glorri.az for {company_name}")
+        base_url = f"https://atsapp.glorri.az/job-service/v2/company/{company_name}/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': company_name,
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
+
+    def parse_abc_telecom(self):
+        company_name = 'abc-telecom'
+        logger.info(f"Fetching jobs from Glorri.az for {company_name}")
+        base_url = f"https://atsapp.glorri.az/job-service/v2/company/{company_name}/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': company_name,
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
+
+    def parse_expressbank(self):
+        company_name = 'expressbank'
+        logger.info(f"Fetching jobs from Glorri.az for {company_name}")
+        base_url = f"https://atsapp.glorri.az/job-service/v2/company/{company_name}/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': company_name,
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
+
+    def parse_aztelekom(self):
+        company_name = 'aztelekom'
+        logger.info(f"Fetching jobs from Glorri.az for {company_name}")
+        base_url = f"https://atsapp.glorri.az/job-service/v2/company/{company_name}/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': company_name,
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
+
+    def parse_azerimed(self):
+        company_name = 'azerimed'
+        logger.info(f"Fetching jobs from Glorri.az for {company_name}")
+        base_url = f"https://atsapp.glorri.az/job-service/v2/company/{company_name}/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': company_name,
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
+
+    def parse_idda(self):
+        company_name = 'idda'
+        logger.info(f"Fetching jobs from Glorri.az for {company_name}")
+        base_url = f"https://atsapp.glorri.az/job-service/v2/company/{company_name}/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': company_name,
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
+
 
     def get_data(self):
         methods = [
@@ -630,7 +889,14 @@ class JobScraper:
             self.parse_offer_az,
             self.parse_isveren_az,
             self.parse_isqur,
-            self.parse_mktcotton
+            self.parse_mktcotton,
+            self.parse_unibank,
+            self.parse_pashabank_glorri,
+            self.parse_abc_telecom,
+            self.parse_expressbank,
+            self.parse_aztelekom,
+            self.parse_azerimed,
+            self.parse_idda,
         ]
 
         results = []
