@@ -1346,6 +1346,114 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    def parse_embawood(self):
+        company_name = 'embawood'
+        logger.info(f"Fetching jobs from Glorri.az for {company_name}")
+        base_url = f"https://atsapp.glorri.az/job-service/v2/company/{company_name}/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': company_name,
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
+    def parse_avromed(self):
+        company_name = 'avromed'
+        logger.info(f"Fetching jobs from Glorri.az for {company_name}")
+        base_url = f"https://atsapp.glorri.az/job-service/v2/company/{company_name}/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': company_name,
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
+    def parse_fincaazerbaijan(self):
+        company_name = 'fincaazerbaijan'
+        logger.info(f"Fetching jobs from Glorri.az for {company_name}")
+        base_url = f"https://atsapp.glorri.az/job-service/v2/company/{company_name}/jobs"
+        all_jobs = []
+        offset = 0
+        limit = 18
+
+        while True:
+            params = {'offset': offset, 'limit': limit}
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                data = response.json()
+                entities = data.get('entities', [])
+
+                if not entities:
+                    break
+
+                all_jobs.extend(entities)
+                offset += limit
+                logger.info(f"Fetched {len(entities)} jobs, total so far: {len(all_jobs)}")
+            else:
+                logger.error("Failed to retrieve jobs data.")
+                break
+
+        logger.info(f"Total jobs fetched: {len(all_jobs)}")
+
+        jobs_data = []
+        for job in all_jobs:
+            jobs_data.append({
+                'company': company_name,
+                'vacancy': job['title'],
+                'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
+            })
+
+        return pd.DataFrame(jobs_data)
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -1388,6 +1496,10 @@ class JobScraper:
             self.parse_bakusteel,
             self.parse_elitoptimal,
             self.parse_aztexgroup,
+            self.parse_embawood,
+            self.parse_avromed,
+            self.parse_fincaazerbaijan,
+
         ]
 
         results = []
