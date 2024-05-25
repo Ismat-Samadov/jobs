@@ -301,26 +301,6 @@ class JobScraper:
         else:
             logger.error("Failed to retrieve data for Bank of Baku.")
         return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
-    def parse_bank_respublika(self):
-        logger.info("Scraping started for Bank Respublika")
-        url = "https://www.bankrespublika.az/az/career"
-        response = self.fetch_url(url, verify=False)
-        if response:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            jobs = []
-
-            for job in soup.find_all("div", class_="vacancyItem whiteBox"):
-                title_element = job.find("a", class_="title")
-                title = title_element.text.strip() if title_element else "No title found"
-                link = title_element['href'] if title_element and 'href' in title_element.attrs else "No link available"
-
-                jobs.append({"company": 'Bank_Respublika', "vacancy": title, "apply_link": link})
-
-            logger.info("Scraping completed for Bank Respublika")
-            return pd.DataFrame(jobs) if jobs else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
-        else:
-            logger.error("Failed to retrieve data for Bank Respublika.")
-        return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
     def parse_banker_az(self):
         logger.info("Started scraping Banker.az")
         base_url = 'https://banker.az/vakansiyalar'
@@ -2727,7 +2707,6 @@ class JobScraper:
             self.parse_vakansiya_az,
             self.parse_ishelanlari_az,
             self.parse_bank_of_baku_az,
-            self.parse_bank_respublika,
             self.parse_banker_az,
             self.parse_smartjob_az,
             self.parse_xalqbank,
