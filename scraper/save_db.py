@@ -30,6 +30,7 @@ def main():
 
     # Build the database URL
     db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
     # Create a database engine
     db_engine = create_engine(db_url)
 
