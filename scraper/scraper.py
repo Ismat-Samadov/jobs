@@ -2720,6 +2720,7 @@ class JobScraper:
             logger.error("Failed to fetch data from Kapital Bank API.")
         return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
 
+
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -2799,7 +2800,7 @@ class JobScraper:
             self.parse_fbco,
             self.parse_hrcbaku,
             self.parse_alameta,
-            self.parse_kapitalbank
+            self.parse_kapitalbank,
         ]
 
         results = []
