@@ -3,6 +3,7 @@
 test_scraper
 test_save_db
 venv
+env
 .vscode
 .idea
 .env
