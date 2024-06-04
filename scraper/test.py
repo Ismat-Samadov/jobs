@@ -1,53 +1,54 @@
+import urllib3
+from bs4 import BeautifulSoup
+import pandas as pd
 import requests
+from datetime import datetime
+import logging
+import concurrent.futures
+import time
 
-def scrape_vakansiya_biz_vacancies(url, params):
-  """Scrapes vacancies from vakansiya.biz API.
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-  Args:
-      url (str): The base URL of the API endpoint.
-      params (dict): A dictionary containing query parameters.
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-  Returns:
-      list: A list of dictionaries, where each dictionary represents a vacancy.
+def parse_vakansiya_biz():
+    logger.info("Started scraping vakansiya.biz")
+    base_url = "https://api.vakansiya.biz/api/v1/vacancies/search"
+    job_vacancies = []
 
-  Raises:
-      requests.exceptions.RequestException: If an error occurs during the API request.
-  """
+    for page_num in range(1, 11):
+        params = {
+            "page": page_num,
+            "country_id": 108,
+            "city_id": 0,
+            "industry_id": 0,
+            "job_type_id": 0,
+            "work_type_id": 0,
+            "gender": -1,
+            "education_id": 0,
+            "experience_id": 0,
+            "min_salary": 0,
+            "max_salary": 0,
+            "title": ""
+        }
+        response = fetch_url(base_url, params=params)
+        if response:
+            page_data = response.json().get('data', {}).get('items', [])
+            if not page_data:
+                break
 
-  try:
-      response = requests.get(url, params=params)
-      response.raise_for_status()  # Raise an exception for non-2xx status codes
-      data = response.json()
+            for item in page_data:
+                job_vacancies.append({
+                    'company': item.get('company_name', 'N/A'),
+                    'vacancy': item.get('title', 'N/A'),
+                    'apply_link': item.get('url', 'N/A')
+                })
+        else:
+            logger.error(f"Failed to retrieve page {page_num} for vakansiya.biz")
 
-      if 'data' in data and data['data']:
-          vacancies = data['data']  # Extract vacancies from successful response
-          if len(vacancies) != 20:  # Check for expected vacancy count (adjust number if needed)
-              print("Warning: Expected 20 vacancies, but only fetched", len(vacancies))
-          return vacancies
-      else:
-          print("Warning: No vacancies found in the response.")
-          return []  # Return empty list if no vacancies found
-  except requests.exceptions.RequestException as e:
-      print(f"Error scraping vacancies: {e}")
-      return []  # Return empty list on error
+    logger.info("Scraping completed for vakansiya.biz")
+    return pd.DataFrame(job_vacancies) if job_vacancies else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
 
-# Example usage
-base_url = "https://api.vakansiya.biz/api/v1/vacancies/search"
-params = {
-  "page": 15,
-  "country_id": 108,  # Adjust country ID (Azerbaijan)
-  "city_id": 0,  # All cities (optional)
-  "industry_id": 0,  # All industries (optional)
-  # Add other parameters as needed (job type, work type, etc.)
-}
 
-vacancies = scrape_vakansiya_biz_vacancies(base_url, params)
-
-if vacancies:
-  for vacancy in vacancies:
-      # Process each vacancy dictionary here
-      print(f"Job Title: {vacancy.get('title')}")
-      print(f"Company: {vacancy.get('company_name')}")
-      # Extract and print other relevant details from the vacancy dictionary
-else:
-  print("No vacancies found for the given criteria.")
+print(parse_vakansiya_biz())

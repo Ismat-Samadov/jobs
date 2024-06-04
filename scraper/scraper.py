@@ -2762,7 +2762,51 @@ class JobScraper:
         df = pd.DataFrame(job_vacancies, columns=['company', 'vacancy', 'apply_link'])
         logger.info("Scraping completed for jobbox.az")
         return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
 
+    def parse_vakansiya_biz(self):
+        logger.info("Started scraping vakansiya.biz")
+        base_url = "https://api.vakansiya.biz/api/v1/vacancies/search"
+        job_vacancies = []
+
+        for page_num in range(1, 11):
+            params = {
+                "page": page_num,
+                "country_id": 108,
+                "city_id": 0,
+                "industry_id": 0,
+                "job_type_id": 0,
+                "work_type_id": 0,
+                "gender": -1,
+                "education_id": 0,
+                "experience_id": 0,
+                "min_salary": 0,
+                "max_salary": 0,
+                "title": ""
+            }
+            response = self.fetch_url(base_url, params=params)
+            if response:
+                try:
+                    page_data = response.json()
+                    if isinstance(page_data, list):
+                        for item in page_data:
+                            if isinstance(item, dict):
+                                job_vacancies.append({
+                                    'company': item.get('company_name', 'N/A'),
+                                    'vacancy': item.get('title', 'N/A'),
+                                    'apply_link': item.get('url', 'N/A')
+                                })
+                    else:
+                        logger.error(f"Unexpected data format on page {page_num}: {type(page_data)}")
+                except ValueError as e:
+                    logger.error(f"Error parsing JSON response on page {page_num}: {e}")
+            else:
+                logger.error(f"Failed to retrieve page {page_num} for vakansiya.biz")
+
+        logger.info("Scraping completed for vakansiya.biz")
+        return pd.DataFrame(job_vacancies) if job_vacancies else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -2843,7 +2887,8 @@ class JobScraper:
             self.parse_hrcbaku,
             self.parse_alameta,
             self.parse_kapitalbank,
-            self.parse_jobbox_az
+            self.parse_jobbox_az,
+            self.parse_vakansiya_biz
         ]
 
         results = []
