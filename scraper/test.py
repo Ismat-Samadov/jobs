@@ -1,54 +1,37 @@
-import urllib3
-from bs4 import BeautifulSoup
-import pandas as pd
 import requests
-from datetime import datetime
-import logging
-import concurrent.futures
-import time
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-def parse_vakansiya_biz():
-    logger.info("Started scraping vakansiya.biz")
-    base_url = "https://api.vakansiya.biz/api/v1/vacancies/search"
-    job_vacancies = []
-
-    for page_num in range(1, 11):
-        params = {
-            "page": page_num,
-            "country_id": 108,
-            "city_id": 0,
-            "industry_id": 0,
-            "job_type_id": 0,
-            "work_type_id": 0,
-            "gender": -1,
-            "education_id": 0,
-            "experience_id": 0,
-            "min_salary": 0,
-            "max_salary": 0,
-            "title": ""
+class JobScraper:
+    def __init__(self):
+        self.base_url = "https://api.vakansiya.biz/api/v1/vacancies/search"
+        self.headers = {
+            'Content-Type': 'application/json'
         }
-        response = fetch_url(base_url, params=params)
-        if response:
-            page_data = response.json().get('data', {}).get('items', [])
-            if not page_data:
+
+    def parse_vakansiya_biz(self):
+        page = 1
+        all_jobs = []
+
+        while True:
+            response = requests.get(f"{self.base_url}?page={page}&country_id=108&city_id=0&industry_id=0&job_type_id=0&work_type_id=0&gender=-1&education_id=0&experience_id=0&min_salary=0&max_salary=0&title=", headers=self.headers)
+
+            if response.status_code != 200:
+                print(f"Failed to fetch page {page}: {response.status_code}")
                 break
 
-            for item in page_data:
-                job_vacancies.append({
-                    'company': item.get('company_name', 'N/A'),
-                    'vacancy': item.get('title', 'N/A'),
-                    'apply_link': item.get('url', 'N/A')
-                })
-        else:
-            logger.error(f"Failed to retrieve page {page_num} for vakansiya.biz")
+            data = response.json()
+            jobs = data.get('data', [])
+            all_jobs.extend(jobs)
 
-    logger.info("Scraping completed for vakansiya.biz")
-    return pd.DataFrame(job_vacancies) if job_vacancies else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+            if not data.get('next_page_url'):
+                break
 
+            page += 1
 
-print(parse_vakansiya_biz())
+        return all_jobs
+
+# Creating an instance of the JobScraper class
+scraper = JobScraper()
+
+# Calling the parse_vakansiya_biz method on the instance
+data = scraper.parse_vakansiya_biz()
+print(data)
