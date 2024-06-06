@@ -2795,6 +2795,36 @@ class JobScraper:
         logger.info("Scraping completed for Vakansiya.biz")
         return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
 
+    def parse_its_gov(self):
+        start_page=1
+        end_page=20
+        logger.info(f"Scraping its.gov.az from page {start_page} to page {end_page}")
+        base_url = "https://its.gov.az/page/vakansiyalar?page="
+        all_vacancies = []
+
+        for page in range(start_page, end_page + 1):
+            url = f"{base_url}{page}"
+            logger.info(f"Fetching page {page}")
+            response = self.fetch_url(url)
+            if response:
+                soup = BeautifulSoup(response.text, "html.parser")
+                events = soup.find_all('div', class_='event')
+                if not events:
+                    logger.info(f"No job listings found on page {page}")
+                    break
+
+                for event in events:
+                    title_tag = event.find('a', class_='event__link')
+                    if title_tag:
+                        title = title_tag.get_text(strip=True)
+                        link = title_tag['href']
+                        deadline_tag = event.find('span', class_='event__time')
+                        deadline = deadline_tag.get_text(strip=True) if deadline_tag else 'N/A'
+                        all_vacancies.append({'company': 'Icbari tibbi sigorta', 'vacancy': title, 'apply_link': link})
+            else:
+                logger.warning(f"Failed to retrieve page {page}")
+
+        return pd.DataFrame(all_vacancies)
     
             
     def get_data(self):
@@ -2878,7 +2908,8 @@ class JobScraper:
             self.parse_alameta,
             self.parse_kapitalbank,
             self.parse_jobbox_az,
-            self.parse_vakansiya_biz
+            self.parse_vakansiya_biz,
+            self.parse_its_gov
         ]
 
         results = []
