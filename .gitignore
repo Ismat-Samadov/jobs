@@ -1,5 +1,3 @@
-./scraper/test_save_db.py
-./scraper/test_scraper.py
 test_scraper
 test_save_db
 venv
@@ -7,6 +5,8 @@ env
 .vscode
 .idea
 .env
+.venv
 .pytest_cache
 __pycache__
 set.txt
+.setenv
