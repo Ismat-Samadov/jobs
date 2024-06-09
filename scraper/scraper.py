@@ -2826,7 +2826,91 @@ class JobScraper:
 
         return pd.DataFrame(all_vacancies)
     
-            
+    def parse_career_ady_az(self):
+        logger.info("Started scraping career.ady.az")
+        print("------------------------------------")
+        print("------------------------------------")
+        print("------------------------------------")
+        print("------------------------------------")
+        print("------------------------------------")
+
+        url = "https://career.ady.az/"
+        response = self.fetch_url(url)
+        if response:
+            soup = BeautifulSoup(response.content, "html.parser")
+            job_listings = []
+
+            table = soup.find("table", {"id": "tbl_vacation"})
+            if table:
+                rows = table.find_all("tr", class_="job-listing")
+
+                for row in rows:
+                    job_title = row.find("td", class_="job-title-sec").find("a").text.strip()
+                    company = row.find("td", class_="job-title-sec").find("span").text.strip()
+                    location = row.find("td", class_="job-lctn").text.strip()
+                    end_date = row.find("td", class_="job-enddate").text.strip()
+                    job_url = row.find("a", class_="job-is")["href"]
+
+                    job_listings.append({
+                        "company": "ADY-Azərbaycan Dəmir Yolları",
+                        "vacancy": job_title,
+                        "apply_link": "https://career.ady.az"+job_url
+                    })
+
+                df = pd.DataFrame(job_listings)
+                logger.info("Scraping completed for career.ady.az")
+                return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+        logger.warning("Failed to scrape career.ady.az")
+        print("------------------------------------")
+        print("------------------------------------")
+        print("------------------------------------")
+        print("------------------------------------")
+        print("------------------------------------")
+
+        return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
+
+    def parse_is_elanlari_iilkin(self):
+        logger.info("Started scraping is-elanlari.iilkin.com")
+        base_url = 'http://is-elanlari.iilkin.com/vakansiyalar/'
+        job_listings = []
+
+        # Function to scrape a single page
+        def scrape_page(content):
+            soup = BeautifulSoup(content, 'html.parser')
+            main_content = soup.find('main', id='main', class_='site-main')
+            if main_content:
+                articles = main_content.find_all('article')
+                for job in articles:
+                    title_element = job.find('a', class_='home-title-links')
+                    company_element = job.find('p', class_='vacan-company-name')
+                    link_element = job.find('a', class_='home-title-links')
+
+                    job_listings.append({
+                        "vacancy": title_element.text.strip() if title_element else 'N/A',
+                        "company": company_element.text.strip() if company_element else 'N/A',
+                        "apply_link": link_element['href'] if link_element else 'N/A'
+                    })
+            else:
+                logger.warning("Main content not found")
+
+        for page_num in range(1, 4):
+            url = base_url if page_num == 1 else f'{base_url}{page_num}'
+            logger.info(f'Scraping page {page_num}...')
+            response = self.fetch_url(url)
+            if response:
+                scrape_page(response.content)
+        
+        if job_listings:
+            df = pd.DataFrame(job_listings)
+            logger.info("Scraping completed for is-elanlari.iilkin.com")
+            return df
+        else:
+            logger.warning("No job listings found")
+            return pd.DataFrame(columns=['vacancy', 'company', 'apply_link'])
+
+
+
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -2909,7 +2993,9 @@ class JobScraper:
             self.parse_kapitalbank,
             self.parse_jobbox_az,
             self.parse_vakansiya_biz,
-            self.parse_its_gov
+            self.parse_its_gov,
+            self.parse_career_ady_az,
+            self.parse_is_elanlari_iilkin,
         ]
 
         results = []
