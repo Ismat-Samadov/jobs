@@ -2,8 +2,8 @@ name: Scheduled Scraper Job
 
 on:
   schedule:
-    - cron: '0 */16 * * *' # Runs every 16 hours
-#    - cron: '*/5 * * * *' # Runs every 5 minutes
+    # - cron: '0 */16 * * *' # Runs every 16 hours
+   - cron: '*/5 * * * *' # Runs every 5 minutes
 
 
 jobs:
@@ -31,5 +31,5 @@ jobs:
         DB_NAME: ${{ secrets.DB_NAME }}
         EMAIL: ${{ secrets.EMAIL }}
         PASSWORD: ${{ secrets.PASSWORD }}
-      run: python scraper/save_db.py
+      run: python scraper/parser.py
 

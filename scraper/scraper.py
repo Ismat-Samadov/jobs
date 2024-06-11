@@ -7,6 +7,7 @@ from datetime import datetime
 import logging
 import concurrent.futures
 import time
+from dotenv import load_dotenv
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -16,6 +17,18 @@ logger = logging.getLogger(__name__)
 class JobScraper:
     def __init__(self):
         self.data = None
+        self.email = None
+        self.password = None
+        self.load_credentials()
+
+    def load_credentials(self):
+        load_dotenv()
+        self.email = os.getenv('EMAIL')
+        self.password = os.getenv('PASSWORD')
+        if not self.email or not self.password:
+            logger.error("Email or password not set in environment variables.")
+
+        
     def fetch_url(self, url, headers=None, params=None, verify=True):
         try:
             response = requests.get(url, headers=headers, params=params, verify=verify)
@@ -2910,7 +2923,84 @@ class JobScraper:
             return pd.DataFrame(columns=['vacancy', 'company', 'apply_link'])
 
 
+    def parse_djinni_co(self):
+        pages=5
+        logger.info(f"Started scraping djinni.co for first {pages} pages")
 
+        login_url = 'https://djinni.co/login?from=frontpage_main'
+        base_jobs_url = 'https://djinni.co/jobs/'
+
+        credentials = {
+            'email': self.email,
+            'password': self.password
+        }
+
+        session = requests.Session()
+        login_page = session.get(login_url)
+        soup = BeautifulSoup(login_page.text, 'html.parser')
+
+        csrf_token = soup.find('input', {'name': 'csrfmiddlewaretoken'})
+        if csrf_token:
+            credentials['csrfmiddlewaretoken'] = csrf_token['value']
+        else:
+            logger.error("CSRF token not found.")
+            return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
+        headers = {
+            'Referer': login_url
+        }
+
+        response = session.post(login_url, data=credentials, headers=headers)
+        if 'logout' in response.text:
+            logger.info("Login successful for djinni.co")
+        else:
+            logger.error("Login failed for djinni.co")
+            return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
+        jobs = []
+
+        def scrape_jobs_page(page_url):
+            response = session.get(page_url)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            job_items = soup.find_all('li', class_='list-jobs__item')
+            for job_item in job_items:
+                job = {}
+                job['id'] = job_item.get('id')
+                job['vacancy'] = job_item.find('a', class_='h3 job-list-item__link').text.strip()
+                job['company'] = job_item.find('a', class_='mr-2').text.strip()
+                location_tag = job_item.find('span', class_='location-text')
+                job['location'] = location_tag.text.strip() if location_tag else 'N/A'
+                experience_tag = job_item.find('span', class_='nobr')
+                job['experience'] = experience_tag.text.strip() if experience_tag else 'N/A'
+                job['description'] = job_item.find('div', class_='js-truncated-text').text.strip()
+                job['apply_link'] = 'https://djinni.co' + job_item.find('a', class_='h3 job-list-item__link')['href']
+                jobs.append(job)
+
+        for page in range(1, pages + 1):
+            logger.info(f"Scraping page {page} for djinni.co")
+            page_url = f"{base_jobs_url}?page={page}"
+            scrape_jobs_page(page_url)
+
+        df = pd.DataFrame(jobs, columns=['company', 'vacancy', 'apply_link'])
+        logger.info("Scraping completed for djinni.co")
+
+        if df.empty:
+            logger.warning("No jobs found during scraping.")
+            return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
+        for job in df.to_dict('records'):
+            logger.info(f"Job ID: {job['id']}")
+            logger.info(f"Title: {job['vacancy']}")
+            logger.info(f"Company: {job['company']}")
+            logger.info(f"Location: {job['location']}")
+            logger.info(f"Experience: {job['experience']}")
+            logger.info(f"Description: {job['description']}")
+            logger.info(f"Detailed Info Link: {job['apply_link']}")
+            logger.info("="*40)
+
+        return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -2996,6 +3086,7 @@ class JobScraper:
             self.parse_its_gov,
             self.parse_career_ady_az,
             self.parse_is_elanlari_iilkin,
+            self.parse_djinni_co,
         ]
 
         results = []
@@ -3017,4 +3108,3 @@ class JobScraper:
             self.data = pd.DataFrame(columns=['company', 'vacancy', 'apply_link', 'scrape_date'])
 
         return self.data
-
