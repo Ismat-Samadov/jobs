@@ -3027,7 +3027,7 @@ class JobScraper:
             for job in items:
                 tenant = job.get('tenant', 'N/A')
                 vacancy_url = job.get('vacancyUrl', '')
-                apply_link = f"https://talhunt.az/vacancies/{vacancy_url}"
+                apply_link = f"https://jobs.talhunt.az/{tenant}/{vacancy_url}"
                 job_vacancies.append({
                     'company': job.get('companyName', 'N/A'),
                     'vacancy': job.get('title', 'N/A'),
