@@ -2996,6 +2996,54 @@ class JobScraper:
 
         return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
 
+  
+    def parse_talhunt_az(self):
+        logger.info("Started scraping Talhunt.az")
+        base_url = "https://api.talhunt.az/jobs/Vacancy/All"
+        offset = 0
+        limit = 10
+        params = {
+            'offset': offset,
+            'limit': limit,
+            'lang': 'az',
+            'search': ''
+        }
+        job_vacancies = []
+
+        while True:
+            try:
+                response = requests.get(base_url, params=params)
+                response.raise_for_status()
+                data = response.json()
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Error fetching data from {base_url} with params {params}: {e}")
+                break
+
+            items = data.get('items', [])
+            
+            if not items:
+                break
+
+            for job in items:
+                tenant = job.get('tenant', 'N/A')
+                vacancy_url = job.get('vacancyUrl', '')
+                apply_link = f"https://talhunt.az/vacancies/{vacancy_url}"
+                job_vacancies.append({
+                    'company': job.get('companyName', 'N/A'),
+                    'vacancy': job.get('title', 'N/A'),
+                    'apply_link': apply_link
+                })
+            
+            if data.get('totalPage', 0) <= params['offset'] // limit + 1:
+                break
+            
+            params['offset'] += limit
+
+        df = pd.DataFrame(job_vacancies)
+        logger.info("Scraping completed for Talhunt.az")
+
+        return df
+
     
     def get_data(self):
         methods = [
@@ -3083,6 +3131,7 @@ class JobScraper:
             self.parse_career_ady_az,
             self.parse_is_elanlari_iilkin,
             self.parse_djinni_co,
+            self.parse_talhunt_az,
         ]
 
         results = []
