@@ -17,8 +17,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 class JobScraper:
     def __init__(self):
