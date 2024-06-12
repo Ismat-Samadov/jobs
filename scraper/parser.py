@@ -2928,7 +2928,7 @@ class JobScraper:
 
 
     def parse_djinni_co(self):
-        pages=5
+        pages=15
         logger.info(f"Started scraping djinni.co for first {pages} pages")
 
         login_url = 'https://djinni.co/login?from=frontpage_main'
