@@ -3116,6 +3116,37 @@ class JobScraper:
             logger.warning("No vacancies found in the API response.")
             return pd.DataFrame(columns=["company", "vacancy", "apply_link"])
 
+    def parse_azergold(self):
+        logger.info("Started scraping AzerGold")
+        url = "https://careers.azergold.az/"
+        response = self.fetch_url(url, verify=False)  # Added verify=False to handle SSL issues
+        if response:
+            soup = BeautifulSoup(response.text, "html.parser")
+            logger.info("Page fetched successfully")
+
+            # Locate the table containing the job listings
+            table = soup.find("table", class_="table-vacancy")
+            if table:
+                logger.info("Vacancies section found")
+                job_rows = table.find("tbody").find_all("tr")
+
+                job_titles = []
+                job_links = []
+
+                for row in job_rows:
+                    title_cell = row.find("td")
+                    if title_cell:
+                        title_link = title_cell.find("a")
+                        if title_link:
+                            job_titles.append(title_link.text.strip())
+                            job_links.append(title_link["href"])
+
+                df = pd.DataFrame({'company': 'AzerGold', "vacancy": job_titles, "apply_link": job_links})
+                logger.info("Scraping completed for AzerGold")
+                return df
+            else:
+                logger.warning("Vacancies section not found on the AzerGold page.")
+        return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
 
     def get_data(self):
         methods = [
@@ -3206,6 +3237,7 @@ class JobScraper:
             self.parse_talhunt_az,
             self.parse_tabib_vacancies,
             self.parse_projobs_vacancies,
+            self.parse_azergold,
         ]
 
         results = []
