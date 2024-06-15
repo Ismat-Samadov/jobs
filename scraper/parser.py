@@ -11,6 +11,7 @@ import os
 import logging
 from sqlalchemy import create_engine, types
 from sqlalchemy.exc import SQLAlchemyError
+import re
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -3297,6 +3298,62 @@ class JobScraper:
         })
         logger.info("Scraping completed for ASCO")
         return df
+    def parse_cbar(self):
+        logger.info("Started scraping CBAR")
+        url = "https://www.cbar.az/hr/f?p=100:106"
+        response = self.fetch_url(url, verify=False)
+        if response:
+            soup = BeautifulSoup(response.text, "html.parser")
+            logger.info("Page fetched successfully")
+
+            all_job_numbers = []
+            all_job_titles = []
+            all_job_start_dates = []
+            all_job_end_dates = []
+            all_job_links = []
+
+            # Locate the blocks containing the job listings
+            table = soup.find("table", class_="a-IRR-table")
+            if table:
+                rows = table.find_all("tr")[1:]  # Skip header row
+                for row in rows:
+                    cols = row.find_all("td")
+                    job_number = cols[0].text.strip() if cols[0] else None
+                    job_title = cols[1].text.strip() if cols[1] else None
+                    job_start_date = cols[2].text.strip() if cols[2] else None
+                    job_end_date = cols[3].text.strip() if cols[3] else None
+                    job_link_tag = cols[1].find("a", href=True)
+                    job_link = job_link_tag["href"] if job_link_tag else None
+
+                    if job_link and 'javascript:' in job_link:
+                        match = re.search(r"P50_VACANCY_ID,P50_POSITION_ID:([^,]+),([^&]+)", job_link)
+                        if match:
+                            job_vacancy_id = match.group(1)
+                            job_position_id = match.group(2)
+                            job_link = f"https://www.cbar.az/hr/f?p=100:50::::50:P50_VACANCY_ID,P50_POSITION_ID:{job_vacancy_id},{job_position_id}"
+
+                    if None in [job_number, job_title, job_start_date, job_end_date, job_link]:
+                        logger.warning(f"Missing elements in row: number={job_number}, title={job_title}, start_date={job_start_date}, end_date={job_end_date}, link={job_link}")
+                        continue
+
+                    all_job_numbers.append(job_number)
+                    all_job_titles.append(job_title)
+                    all_job_start_dates.append(job_start_date)
+                    all_job_end_dates.append(job_end_date)
+                    all_job_links.append(job_link)
+            else:
+                logger.warning("Job listings table not found on the page.")
+
+            df = pd.DataFrame({
+                'company': 'CBAR',
+                'vacancy': all_job_titles,
+                'apply_link': 'https://www.cbar.az/hr/f?p=100:106'
+            })
+            logger.info("Scraping completed for CBAR")
+            return df
+        else:
+            logger.error("Failed to fetch the page.")
+            return None
 
 
     def get_data(self):
@@ -3392,6 +3449,7 @@ class JobScraper:
             self.parse_konsis,
             self.parse_baku_electronics,
             self.parse_asco,
+            self.parse_cbar,
         ]
 
         results = []
