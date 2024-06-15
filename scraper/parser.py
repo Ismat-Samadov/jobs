@@ -3042,7 +3042,30 @@ class JobScraper:
 
         return df
 
-    
+    def parse_tabib_vacancies(self):
+        logger.info("Started scraping TABIB vacancies")
+        url = "https://tabib.gov.az/_next/data/VVczvdjPBoUR2khOC7cCO/az/vetendashlar-ucun/vakansiyalar.json"
+        response = self.fetch_url(url)
+
+        if response:
+            data = response.json()
+            vacancies = data.get("pageProps", {}).get("vacancies", [])
+            if vacancies:
+                vacancy_list = []
+                for vacancy in vacancies:
+                    vacancy_info = {
+                        "company": "TABIB",
+                        "vacancy": vacancy["title"],
+                        "apply_link": f"https://tabib.gov.az/vetendashlar-ucun/vakansiyalar/{vacancy['id']}"
+                    }
+                    vacancy_list.append(vacancy_info)
+                df = pd.DataFrame(vacancy_list)
+                logger.info("Scraping completed for TABIB")
+                return df
+            else:
+                logger.warning("No vacancies found in the API response.")
+        return pd.DataFrame(columns=["company", "vacancy", "apply_link"])
+
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -3130,6 +3153,7 @@ class JobScraper:
             self.parse_is_elanlari_iilkin,
             self.parse_djinni_co,
             self.parse_talhunt_az,
+            self.parse_tabib_vacancies,
         ]
 
         results = []
