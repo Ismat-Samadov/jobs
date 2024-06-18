@@ -2,9 +2,8 @@ name: Scheduled Scraper Job
 
 on:
   schedule:
-    # - cron: '0 */16 * * *' # Runs every 16 hours
     - cron: '*/1 * * * *' # Runs every 5 minutes
-
+    # - cron: '0 */16 * * *' # Runs every 16 hours
 
 jobs:
   scrape:
@@ -19,8 +18,16 @@ jobs:
       with:
         python-version: '3.8'
 
-    - name: Install dependencies
-      run: pip install -r scraper/requirements.txt
+    - name: Install virtualenv
+      run: pip install virtualenv
+
+    - name: Create virtual environment
+      run: virtualenv venv
+
+    - name: Activate virtual environment and install dependencies
+      run: |
+        source venv/bin/activate
+        pip install -r scraper/requirements.txt
 
     - name: Run scraper and save to database
       env:
@@ -31,5 +38,6 @@ jobs:
         DB_NAME: ${{ secrets.DB_NAME }}
         EMAIL: ${{ secrets.EMAIL }}
         PASSWORD: ${{ secrets.PASSWORD }}
-      run: python scraper/parser.py
-
+      run: |
+        source venv/bin/activate
+        python scraper/parser.py

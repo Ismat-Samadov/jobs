@@ -3212,7 +3212,7 @@ class JobScraper:
         all_job_deadlines = []
         all_job_links = []
 
-        for page in range(1, 3):  # Iterate through the first two pages
+        for page in range(1, 3):  
             url = f"{base_url}{page}"
             response = self.fetch_url(url, verify=False)
             if response:
@@ -3266,7 +3266,7 @@ class JobScraper:
         all_job_deadlines = []
         all_job_links = []
 
-        for page in range(1, 4):  # Iterate through the first two pages
+        for page in range(1, 4):  
             url = f"{base_url}{page}"
             response = self.fetch_url(url, verify=False)
             if response:
@@ -3362,11 +3362,11 @@ class JobScraper:
             logger.error("Failed to fetch the page.")
             return None
 
-    def parse_classic_jobsearch_az(self):
+    def parse_classic_jobsearch_az():
         logger.info("Started scraping classic.jobsearch.az")
         
         chrome_options = Options()
-        chrome_options.add_argument("--headless")  # Ensure GUI is off
+        chrome_options.add_argument("--headless") 
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
 
@@ -3375,7 +3375,7 @@ class JobScraper:
         driver.get("https://classic.jobsearch.az/vacancies?date=&salary=&ads=&job_type=&location=&seniority=&ordering=&q=")
 
         def scroll_page(driver, max_scrolls):
-            scroll_pause_time = 2  # Adjust to allow time for loading
+            scroll_pause_time = 5  # Adjust to allow time for loading
             scrolls = 0
             last_height = driver.execute_script("return document.body.scrollHeight")
             
@@ -3397,6 +3397,7 @@ class JobScraper:
         jobs = []
         elements = driver.find_elements(By.CLASS_NAME, 'vacancies__item')
         seen_titles = set()
+
         for index, element in enumerate(elements):
             try:
                 title_element = element.find_element(By.CSS_SELECTOR, 'h2.vacancies__title > a')
@@ -3421,6 +3422,7 @@ class JobScraper:
         df = pd.DataFrame(jobs)
         logger.info("Scraping completed for classic.jobsearch.az")
         return df
+
 
     def get_data(self):
         methods = [
