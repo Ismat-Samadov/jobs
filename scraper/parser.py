@@ -3362,7 +3362,7 @@ class JobScraper:
             logger.error("Failed to fetch the page.")
             return None
 
-    def parse_classic_jobsearch_az():
+    def parse_classic_jobsearch_az(self):
         logger.info("Started scraping classic.jobsearch.az")
         
         chrome_options = Options()
