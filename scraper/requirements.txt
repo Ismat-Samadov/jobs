@@ -165,7 +165,7 @@ Scrapy
 scrapy-playwright
 scrapy-splash
 seaborn
-selenium
+selenium==4.21.0
 service-identity
 setuptools
 shellingham
