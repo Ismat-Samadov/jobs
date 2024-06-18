@@ -74,7 +74,6 @@ idna
 importlib_metadata
 incremental
 iniconfig
-internetdownloadmanager==0.0.2
 ipykernel
 ipython
 itemadapter
@@ -123,7 +122,7 @@ playwright
 pluggy
 prompt_toolkit
 Protego
-protobuf
+protobuf==3.20.3
 psutil
 psycopg2-binary
 ptyprocess
@@ -169,7 +168,7 @@ selenium==4.21.0
 service-identity
 setuptools
 shellingham
-six
+six==1.16.0
 smart-open
 smmap
 sniffio
