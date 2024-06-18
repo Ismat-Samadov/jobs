@@ -3052,7 +3052,6 @@ class JobScraper:
         return df
 
     def parse_tabib_vacancies(self):
-        print('Started scraping TABIB vacancies')
         logger.info("Started scraping TABIB vacancies")
         url = "https://tabib.gov.az/_next/data/VVczvdjPBoUR2khOC7cCO/az/vetendashlar-ucun/vakansiyalar.json"
         response = self.fetch_url(url)

@@ -74,7 +74,7 @@ idna
 importlib_metadata
 incremental
 iniconfig
-internetdownloadmanager
+internetdownloadmanager==0.0.2
 ipykernel
 ipython
 itemadapter
@@ -198,7 +198,7 @@ tzdata
 tzlocal
 ujson
 update
-urllib3
+urllib3==2.2.2
 uvicorn
 uvloop
 validators
