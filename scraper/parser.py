@@ -14,6 +14,7 @@ from sqlalchemy.exc import SQLAlchemyError
 import re
 from datetime import datetime
 import time
+import pytz
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
@@ -3536,7 +3537,8 @@ class JobScraper:
 
         if results:
             self.data = pd.concat(results, ignore_index=True)
-            self.data['scrape_date'] = datetime.now()
+            local_time = datetime.now(pytz.timezone('Asia/Baku'))  # Set your local time zone here
+            self.data['scrape_date'] = local_time
         else:
             self.data = pd.DataFrame(columns=['company', 'vacancy', 'apply_link', 'scrape_date'])
 
