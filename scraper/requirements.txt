@@ -203,6 +203,7 @@ wcwidth
 webencodings
 websockets
 Werkzeug
+webdriver-manager
 wrapt
 wsproto
 XlsxWriter
