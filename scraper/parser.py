@@ -3555,6 +3555,9 @@ def main():
         logger.warning("No data scraped to save to the database.")
         return
 
+    # Print data before saving
+    logger.info(f"Data to be saved: {data}")
+
     db_host = os.environ.get('DB_HOST')
     db_port = os.environ.get('DB_PORT')
     db_user = os.environ.get('DB_USER')
