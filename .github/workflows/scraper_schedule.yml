@@ -29,19 +29,6 @@ jobs:
         source venv/bin/activate
         pip install -r scraper/requirements.txt
 
-    - name: Run parser and save to database
-      env:
-        DB_HOST: ${{ secrets.DB_HOST }}
-        DB_PORT: ${{ secrets.DB_PORT }}
-        DB_USER: ${{ secrets.DB_USER }}
-        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        DB_NAME: ${{ secrets.DB_NAME }}
-        EMAIL: ${{ secrets.EMAIL }}
-        PASSWORD: ${{ secrets.PASSWORD }}
-      run: |
-        source venv/bin/activate
-        python scraper/parser.py
-
     - name: Run jobsearch_az and save to database
       env:
         DB_HOST: ${{ secrets.DB_HOST }}
