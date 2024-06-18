@@ -28,7 +28,7 @@ headers = {
 all_records = []
 
 # Loop through the range of IDs
-for i in range(1, 1370):
+for i in range(1, 1500):
     api_url = f"{base_api_url}{i}"
     response = requests.get(api_url, headers=headers)
     
