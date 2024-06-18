@@ -3537,8 +3537,7 @@ class JobScraper:
 
         if results:
             self.data = pd.concat(results, ignore_index=True)
-            local_time = datetime.now(pytz.timezone('Asia/Baku'))  # Set your local time zone here
-            self.data['scrape_date'] = local_time
+            self.data['scrape_date'] = datetime.now()
         else:
             self.data = pd.DataFrame(columns=['company', 'vacancy', 'apply_link', 'scrape_date'])
 
