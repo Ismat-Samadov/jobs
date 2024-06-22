@@ -3723,7 +3723,36 @@ class JobScraper:
         df = pd.DataFrame(job_data)
         return df
 
-    
+    def scrape_arti(self):
+        logger.info("Scraping started for ARTI")
+        base_url = "https://arti.edu.az/media/vakansiyalar"
+        pages = 5
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+
+        job_data = []
+
+        for page in range(1, pages + 1):
+            url = f"{base_url}/page/{page}/"
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+
+            soup = BeautifulSoup(response.content, 'html.parser')
+            cards = soup.find_all('a', {'class': 'card card-bordered card-transition h-100'})
+
+            for card in cards:
+                job_title = card.find('h4', {'class': 'card-title'}).get_text(strip=True)
+                job_link = card['href']
+                job_description = card.find('p', {'class': 'card-text text-body'}).get_text(strip=True)
+                job_data.append({
+                    'company':'Azərbaycan Respublikasının Təhsil İnstitutu',
+                    'vacancy': job_title,
+                    'apply_link': job_link
+                })
+
+        logger.info("Scraping completed for ARTI")
+        return pd.DataFrame(job_data)
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -3826,6 +3855,7 @@ class JobScraper:
             self.scrape_ekaryera,
             self.scrape_bravosupermarket,
             self.scrape_mdm,
+            self.scrape_arti,
         ]
 
         results = []
