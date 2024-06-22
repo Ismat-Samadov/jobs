@@ -3753,6 +3753,38 @@ class JobScraper:
 
         logger.info("Scraping completed for ARTI")
         return pd.DataFrame(job_data)
+    
+    
+    def scrape_ziraat(self):
+        base_url = 'https://ziraatbank.az'
+        response = requests.get('https://ziraatbank.az/az/vacancies2')
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        jobs = []
+
+        # Find all job listings
+        job_cards = soup.find_all('div', class_='landing-item-box')
+
+        for card in job_cards:
+            title_tag = card.find('h2')
+            title = title_tag.get_text(strip=True)
+
+            link_tag = card.find('a')
+            link = link_tag['href']
+            
+            # Encode the link correctly
+            encoded_link = quote(link, safe='/:%')
+
+            full_link = urljoin(base_url, encoded_link)
+            
+            jobs.append({
+                'company':'Ziraat Bank',
+                'vacancy': title,
+                'apply_link': full_link
+            })
+
+        return jobs
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -3856,6 +3888,7 @@ class JobScraper:
             self.scrape_bravosupermarket,
             self.scrape_mdm,
             self.scrape_arti,
+            self.scrape_ziraat,
         ]
 
         results = []
