@@ -3570,6 +3570,44 @@ class JobScraper:
 
         return pd.DataFrame(all_job_data)
     
+    def scrape_regulator(self):
+        url = "https://regulator.gov.az/az/vakansiyalar/vakansiyalar_611"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+
+        response = requests.get(url, headers=headers, verify=False)  # Bypassing SSL verification
+        response.raise_for_status()  # Check if the request was successful
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        table = soup.find('table', {'border': '1'})
+
+        if not table:
+            print("No table found on the page.")
+            return pd.DataFrame(columns=['Title', 'Location', 'Field', 'Deadline', 'Apply Link'])
+
+        rows = table.find_all('tr')[1:]  # Skip the header row
+        job_data = []
+
+        for row in rows:
+            cols = row.find_all('td')
+            title_tag = cols[0].find('a')
+            title = title_tag.text.strip() if title_tag else 'N/A'
+            location = cols[1].text.strip()
+            field = cols[2].text.strip()
+            deadline = cols[3].text.strip()
+            apply_link = title_tag['href'] if title_tag else 'N/A'
+
+            job_data.append({
+                'company': 'Azerbaijan Energy Regulatory Agency',
+                'vacancy': title,
+                'apply_link': apply_link
+            })
+
+        df = pd.DataFrame(job_data)
+        return df
+    
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -3668,7 +3706,7 @@ class JobScraper:
             self.parse_linkedin,
             self.parse_ada,
             self.parse_jobfinder,
-            
+            self.scrape_regulator,
         ]
 
         results = []
