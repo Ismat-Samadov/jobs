@@ -3426,6 +3426,84 @@ class JobScraper:
         df = pd.DataFrame(jobs)
         logger.info("Scraping completed for classic.jobsearch.az")
         return df
+    
+
+    def parse_linkedin(self):
+        logger.info("Started scraping LinkedIn")
+
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        # Add custom headers
+        chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+        chrome_options.add_argument("accept-language=en-US,en;q=0.9")
+
+        service = ChromeService(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+
+        job_data = []
+
+        try:
+            page_num = 0
+            while True:
+                # Open LinkedIn jobs search page for the current page
+                url = f"https://www.linkedin.com/jobs/search?keywords=&location=Azerbaijan&geoId=&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum={page_num}"
+                driver.get(url)
+
+                # Wait for job listings to load
+                try:
+                    WebDriverWait(driver, 10).until(
+                        EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'ul.jobs-search__results-list li'))
+                    )
+                except Exception as e:
+                    logger.info(f"No more jobs found on page {page_num}. Exiting.")
+                    break
+
+                # Scrape the job listings
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                jobs = soup.select('ul.jobs-search__results-list li')
+
+                if not jobs:
+                    logger.info(f"No jobs found on page {page_num}. Exiting.")
+                    break  # Exit the loop if no jobs are found on the current page
+
+                for job in jobs:
+                    title_tag = job.find('h3', class_='base-search-card__title')
+                    company_tag = job.find('h4', class_='base-search-card__subtitle')
+                    link_tag = job.find('a', class_='base-card__full-link')
+
+                    if title_tag and company_tag and link_tag:
+                        title = title_tag.text.strip()
+                        company = company_tag.text.strip()
+                        link = link_tag['href']
+                        job_data.append({
+                            'company': company,
+                            'vacancy': title,
+                            'apply_link': link
+                        })
+
+                logger.info(f"Scraped page {page_num} with {len(jobs)} jobs.")
+                page_num += 1
+
+                # Introduce a delay to avoid being blocked
+                time.sleep(2)
+
+            df = pd.DataFrame(job_data)
+            logger.info("Scraping completed for LinkedIn")
+            return df
+
+        except Exception as e:
+            logger.error(f"Error scraping LinkedIn: {e}")
+            return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
+        finally:
+            driver.quit()
+
+    
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -3520,7 +3598,8 @@ class JobScraper:
             self.parse_baku_electronics,
             self.parse_asco,
             self.parse_cbar,
-            self.parse_classic_jobsearch_az
+            self.parse_classic_jobsearch_az,
+            self.parse_linkedin,
         ]
 
         results = []
