@@ -3502,7 +3502,73 @@ class JobScraper:
         finally:
             driver.quit()
 
-    
+
+    def parse_ada(self):
+        logger.info("Started scraping ADA University")
+
+        url = "https://ada.edu.az/jobs"
+        response = requests.get(url)
+        response.raise_for_status()  # Check if the request was successful
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Find the table containing the job listings
+        table = soup.find('table', class_='table-job')
+        jobs = []
+
+        # Loop through each row in the table body
+        for row in table.find('tbody').find_all('tr'):
+            title_tag = row.find('td', class_='name').find('a')
+            category_tag = row.find_all('td')[1].find('span', class_='bold')
+            status_tag = row.find('td', class_='status')
+            date_tag = row.find('td', class_='date')
+            view_link_tag = row.find('td', class_='view').find('a')
+
+            job = {
+                'company': 'ADA University',
+                'vacancy': title_tag.text.strip(),
+                'apply_link': view_link_tag['href']
+            }
+            jobs.append(job)
+
+        df = pd.DataFrame(jobs)
+        logger.info("Scraping completed for ADA University")
+        return df
+
+    def parse_jobfinder(self):
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        all_job_data = []
+        
+        start_page = 1
+        end_page = 10
+
+        for page_number in range(start_page, end_page + 1):
+
+            url = f"https://jobfinder.az/job?page={page_number}"
+            response = requests.get(url, headers=headers)
+            
+            if response.status_code != 200:
+                print(f"Failed to retrieve page {page_number}")
+                continue
+
+            soup = BeautifulSoup(response.content, 'html.parser')
+            job_listings = soup.find_all('div', class_='content_list_item job_list_item clearfix')
+
+            for job in job_listings:
+                title_tag = job.find('h3', class_='value').find('a')
+                company_tag = job.find('div', class_='jobListCompany')
+                salary_tag = job.find('div', class_='salaryBox')
+                job_infos = job.find('div', class_='jobInfos').find_all('span', class_='jobSchedule')
+
+                all_job_data.append({
+                    'company': company_tag.find('img')['alt'] if company_tag and company_tag.find('img') else 'N/A',
+                    'vacancy': title_tag.text.strip() if title_tag else 'N/A',
+                    'apply_link': 'https://jobfinder.az' + title_tag['href'] if title_tag else 'N/A'
+                })
+
+        return pd.DataFrame(all_job_data)
     
     def get_data(self):
         methods = [
@@ -3600,6 +3666,9 @@ class JobScraper:
             self.parse_cbar,
             self.parse_classic_jobsearch_az,
             self.parse_linkedin,
+            self.parse_ada,
+            self.parse_jobfinder,
+            
         ]
 
         results = []
