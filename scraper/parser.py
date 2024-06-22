@@ -3642,6 +3642,35 @@ class JobScraper:
         df = pd.DataFrame(job_data)
         return df
     
+    def scrape_bravosupermarket(self):
+        base_url = "https://www.bravosupermarket.az/career/all-vacancies/"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+
+        job_data = []
+
+        response = requests.get(base_url, headers=headers, verify=True)  
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        job_list = soup.find('div', {'class': 'vacancies_grid'}).find_all('article')
+
+        for job in job_list:
+            job_title = job.find('h3').text.strip()
+            location = job.find('footer').find('p').text.strip()
+            apply_link = "https://www.bravosupermarket.az" + job.find('a')['href']
+
+            job_data.append({
+                'company': 'Azerbaijan Supermarket',
+                'vacancy': job_title,
+                'apply_link': apply_link
+            })
+
+        df = pd.DataFrame(job_data)
+        return df
+    
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -3742,6 +3771,7 @@ class JobScraper:
             self.parse_jobfinder,
             self.scrape_regulator,
             self.scrape_ekaryera,
+            self.scrape_bravosupermarket,
         ]
 
         results = []
