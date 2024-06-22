@@ -3670,6 +3670,59 @@ class JobScraper:
         df = pd.DataFrame(job_data)
         return df
     
+    def scrape_mdm(self):
+        base_url = "https://www.mdm.gov.az/karyera"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+
+        job_data = []
+        response = requests.get(base_url, headers=headers, verify=False)  
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        content = soup.find('div', {'class': 'content'})
+        paragraphs = content.find_all('p')
+
+        job_title = None
+        job_description = ""
+        email = "hr@mdm.gov.az"
+
+        for p in paragraphs:
+            text = p.get_text().strip()
+            if text.startswith("Vəzifə :"):
+                if job_title:
+                    job_data.append({
+                'company': 'Milli Depozit Mərkəzi',
+                'vacancy': job_title.strip(),
+                'apply_link': 'https://www.mdm.gov.az/karyera'
+                    })
+                job_title = text.replace("Vəzifə :", "").strip()
+                job_description = ""
+            elif text.startswith("Vəzifə:"):
+                if job_title:
+                    job_data.append({
+                'company': 'Milli Depozit Mərkəzi',
+                'vacancy': job_title.strip(),
+                'apply_link': 'https://www.mdm.gov.az/karyera'
+                    })
+                job_title = text.replace("Vəzifə:", "").strip()
+                job_description = ""
+            elif text.startswith("Əsas tələblər:") or text.startswith("Vəzifə və öhdəliklər:"):
+                job_description += " " + text
+            else:
+                job_description += " " + text
+
+        if job_title:
+            job_data.append({
+                'company': 'Milli Depozit Mərkəzi',
+                'vacancy': job_title.strip(),
+                'apply_link': 'https://www.mdm.gov.az/karyera'
+            })
+
+        df = pd.DataFrame(job_data)
+        return df
+
     
     def get_data(self):
         methods = [
@@ -3772,6 +3825,7 @@ class JobScraper:
             self.scrape_regulator,
             self.scrape_ekaryera,
             self.scrape_bravosupermarket,
+            self.scrape_mdm,
         ]
 
         results = []
