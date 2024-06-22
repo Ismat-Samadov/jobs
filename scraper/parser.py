@@ -3606,7 +3606,41 @@ class JobScraper:
 
         df = pd.DataFrame(job_data)
         return df
-    
+
+    def scrape_ekaryera(self):
+        page_limit=5
+        base_url = "https://www.ekaryera.az/vakansiyalar?page="
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+
+        job_data = []
+
+        for page in range(1, page_limit + 1):
+            url = base_url + str(page)
+            response = requests.get(url, headers=headers, verify=False)  # Bypassing SSL verification
+            response.raise_for_status()  # Check if the request was successful
+
+            soup = BeautifulSoup(response.content, 'html.parser')
+            job_list = soup.find('div', {'class': 'job-listings-sec'}).find_all('div', {'class': 'job-listing'})
+
+            for job in job_list:
+                job_title = job.find('h3').find('a').text.strip()
+                company = job.find('span', text=True).text.strip() if job.find('span', text=True) else 'CompanyName'  # Correctly targeting company name
+                location = job.find('div', {'class': 'job-lctn'}).text.strip()
+                employment_type = job.find('span', {'class': 'job-is'}).text.strip()
+                experience = job.find('i').text.strip()
+                apply_link = job.find('a')['href']
+
+                job_data.append({
+                    'company': company,
+                    'vacancy': job_title,
+                    'apply_link': apply_link
+                })
+            print(f"Scraped page {page}")
+
+        df = pd.DataFrame(job_data)
+        return df
     
     def get_data(self):
         methods = [
@@ -3707,6 +3741,7 @@ class JobScraper:
             self.parse_ada,
             self.parse_jobfinder,
             self.scrape_regulator,
+            self.scrape_ekaryera,
         ]
 
         results = []
