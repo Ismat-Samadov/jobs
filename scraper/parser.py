@@ -3967,6 +3967,34 @@ class JobScraper:
         else:
             print(f"Failed to retrieve the webpage. Status code: {response.status_code}")
             return pd.DataFrame(columns=['vacancy', 'company', 'apply_link'])
+        
+    def scrape_superjobs_az(self):
+        base_url = 'https://superjobs.az/jobs-list/page/{}'
+        job_listings = []
+
+        for page in range(1, 4):
+            url = base_url.format(page)
+            response = requests.get(url)
+            
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                job_cards = soup.find_all('div', class_='pxp-jobs-card-1-container')
+                
+                for job in job_cards:
+                    vacancy = job.find('a', class_='pxp-jobs-card-1-title').get_text(strip=True)
+                    company = job.find('a', class_='pxp-jobs-card-1-company').get_text(strip=True)
+                    apply_link = job.find('a', class_='pxp-jobs-card-1-title')['href']
+                    
+                    job_listings.append({
+                        'company': company,
+                        'vacancy': vacancy,
+                        'apply_link': apply_link
+                    })
+            else:
+                print(f"Failed to retrieve the webpage for page {page}. Status code: {response.status_code}")
+
+        df = pd.DataFrame(job_listings)
+        return df
 
     
     def get_data(self):
@@ -4075,6 +4103,7 @@ class JobScraper:
             self.scrape_ziraat,
             self.scrape_staffy,
             self.scrape_position_az,
+            self.scrape_superjobs_az,
         ]
 
         results = []
