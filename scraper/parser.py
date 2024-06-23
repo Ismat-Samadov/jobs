@@ -4129,6 +4129,36 @@ class JobScraper:
         df = pd.DataFrame(job_listings)
         return df
 
+    def scrape_oilfund_jobs(self):
+        url = 'https://oilfund.az/fund/career-opportunities/vacancy'
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, verify=False)
+        
+        if response.status_code != 200:
+            print(f"Failed to retrieve the webpage. Status code: {response.status_code}")
+            return None
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        job_listings = []
+        
+        job_cards = soup.find_all('div', class_='oil-q-box')
+        
+        for job in job_cards:
+            title_tag = job.find('a', class_='font-gotham-book')
+            if title_tag:
+                title = title_tag.get_text(strip=True)
+                apply_link = title_tag['href']
+                job_listings.append({
+                    'company':'Azərbaycan Respublikasının Dövlət Neft Fondu',
+                    'vacancy': title,
+                    'apply_link': apply_link
+                })
+        
+        df = pd.DataFrame(job_listings)
+        return df
+
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -4237,6 +4267,7 @@ class JobScraper:
             self.scrape_position_az,
             self.scrape_superjobs_az,
             self.scrape_hrin_co,
+            self.scrape_oilfund_jobs,
         ]
 
         results = []
