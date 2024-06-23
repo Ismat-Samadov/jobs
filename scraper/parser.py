@@ -24,7 +24,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-
+from selenium.webdriver.chrome.service import Service
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -4159,6 +4159,64 @@ class JobScraper:
         df = pd.DataFrame(job_listings)
         return df
 
+    
+
+    def scrape_bayraktartech_jobs(self):
+        url = 'https://career.bayraktartech.az/az/basvuru/acik-pozisyonlar/'
+        
+        # Set up the WebDriver using webdriver-manager
+        service = Service(ChromeDriverManager().install())
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')  # Run headless Chrome for efficiency
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument(f"user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+        
+        # Add headers to mimic a real browser
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_argument('--disable-gpu')
+        
+        driver = webdriver.Chrome(service=service, options=options)
+        
+        try:
+            driver.get(url)
+            
+            # Wait until the job listings are loaded
+            WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.ID, 'myUL'))
+            )
+            
+            # Allow some time for all job listings to be populated
+            time.sleep(5)
+            
+            # Find the job listings container
+            job_container = driver.find_element(By.ID, 'myUL')
+            job_listings = job_container.find_elements(By.CLASS_NAME, 'liProgram')
+            print(f"Found {len(job_listings)} job cards")
+            
+            job_data = []
+            for job in job_listings:
+                title_element = job.find_element(By.TAG_NAME, 'a')
+                title = ' '.join(title_element.text.strip().split('\n'))
+                relative_link = title_element.get_attribute('href')
+                apply_link = relative_link
+                category_element = job.find_element(By.CLASS_NAME, 'position-category')
+                category = category_element.text.strip() if category_element else 'N/A'
+                
+                job_data.append({
+                    'company':'Bayraktar',
+                    'vacancy': title.replace('\n', ', '),
+                    'apply_link': apply_link,
+                })
+            
+            df = pd.DataFrame(job_data)
+            return df
+        
+        finally:
+            driver.quit()
+
+
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -4268,6 +4326,7 @@ class JobScraper:
             self.scrape_superjobs_az,
             self.scrape_hrin_co,
             self.scrape_oilfund_jobs,
+            self.scrape_bayraktartech_jobs,
         ]
 
         results = []
