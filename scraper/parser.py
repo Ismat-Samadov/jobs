@@ -4218,6 +4218,160 @@ class JobScraper:
             driver.quit()
 
 
+    def scrape_pasha_holding(self):
+        url = 'https://pasha-holding.az/az/career/vacancies/'
+        
+        # Set up the WebDriver using webdriver-manager
+        service = Service(ChromeDriverManager().install())
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')  # Run headless Chrome for efficiency
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument(f"user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+        
+        # Add headers to mimic a real browser
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_argument('--disable-gpu')
+        
+        driver = webdriver.Chrome(service=service, options=options)
+        
+        try:
+            driver.get(url)
+            
+            # Wait until the job listings are loaded
+            WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'vac_item'))
+            )
+            
+            # Allow some time for all job listings to be populated
+            time.sleep(5)
+            
+            # Find the job listings container
+            job_listings = driver.find_elements(By.CLASS_NAME, 'vac_item')
+            print(f"Found {len(job_listings)} job cards")
+            
+            job_data = []
+            base_url = 'https://pasha-holding.az'
+            for job in job_listings:
+                title_element = job.find_element(By.CLASS_NAME, 'vac_title')
+                title = title_element.find_element(By.TAG_NAME, 'h4').text.strip()
+                relative_link = job.find_element(By.CLASS_NAME, 'vac_link').get_attribute('href')
+                apply_link = base_url + relative_link if not relative_link.startswith('http') else relative_link
+                category_element = title_element.find_elements(By.CLASS_NAME, 'dates')
+                category = category_element[0].text.strip() if category_element else 'N/A'
+                
+                job_data.append({
+                    'company' : 'Pasha Holding',
+                    'vacancy' : title.replace('\n', ', '),
+                    'apply_link' : apply_link,
+                })
+            
+            df = pd.DataFrame(job_data)
+            return df
+        
+        finally:
+            driver.quit()
+
+    def scrape_pasha_insurance(self):
+        url = 'https://www.pasha-insurance.az/az/career#vacancies_list'
+        
+        # Set up the WebDriver using webdriver-manager
+        service = Service(ChromeDriverManager().install())
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')  # Run headless Chrome for efficiency
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument(f"user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+        
+        driver = webdriver.Chrome(service=service, options=options)
+        
+        try:
+            driver.get(url)
+            
+            # Wait until the job listings are loaded
+            WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'vac_list'))
+            )
+            
+            # Find the job listings container
+            job_container = driver.find_element(By.CLASS_NAME, 'vac_list')
+            job_listings = job_container.find_elements(By.CLASS_NAME, 'faq_item')
+            print(f"Found {len(job_listings)} job cards")
+            
+            job_data = []
+            for job in job_listings:
+                title_element = job.find_element(By.CLASS_NAME, 'question')
+                title = title_element.text.strip()
+                relative_link = title_element.get_attribute('href')
+                apply_link = relative_link  # It is "javascript:void(0)" so we will use this directly
+                location_element = job.find_element(By.CLASS_NAME, 'pin')
+                location = location_element.text.strip() if location_element else 'N/A'
+                dates_element = job.find_element(By.CLASS_NAME, 'time')
+                dates = dates_element.text.strip() if dates_element else 'N/A'
+                
+                job_data.append({
+                    'company':'Pasha Insurance',
+                    'vacancy': title,
+                    'apply_link': 'https://www.pasha-insurance.az/az/career',
+                })
+            
+            df = pd.DataFrame(job_data)
+            return df
+        
+        finally:
+            driver.quit()
+            
+        
+    def scrape_pasha_capital(self):
+        url = 'https://www.pashacapital.az/investment/az/about/career/'
+
+        # Set up the WebDriver using webdriver-manager
+        service = Service(ChromeDriverManager().install())
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')  # Run headless Chrome for efficiency
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument(f"user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+        
+        driver = webdriver.Chrome(service=service, options=options)
+        
+        try:
+            driver.get(url)
+            
+            # Wait until the job listings are loaded
+            WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'vacancies_list'))
+            )
+            
+            # Find the job listings container
+            job_container = driver.find_element(By.CLASS_NAME, 'vacancies_list')
+            job_listings = job_container.find_elements(By.TAG_NAME, 'article')
+            print(f"Found {len(job_listings)} job cards")
+            
+            job_data = []
+            for job in job_listings:
+                title_element = job.find_element(By.TAG_NAME, 'h3')
+                title = title_element.text.strip()
+                dates_element = job.find_element(By.TAG_NAME, 'p')
+                dates = dates_element.text.strip()
+                apply_link_element = job.find_element(By.TAG_NAME, 'a')
+                apply_link = apply_link_element.get_attribute('href')
+                location = "N/A"  # Location is not specified in the HTML structure, so default to 'N/A'
+                
+                job_data.append({
+                    'company':'Pasha Kapital',
+                    'vacancy': title,
+                    'apply_link': 'https://www.pashacapital.az/investment/az/about/career/',
+                })
+            
+            df = pd.DataFrame(job_data)
+            return df
+        
+        finally:
+            driver.quit()
+
+
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -4329,6 +4483,9 @@ class JobScraper:
             self.scrape_un_jobs,
             self.scrape_oilfund_jobs,
             self.scrape_bayraktartech_jobs,
+            self.scrape_pasha_holding,
+            self.scrape_pasha_insurance,
+            self.scrape_pasha_capital,
         ]
 
         results = []
