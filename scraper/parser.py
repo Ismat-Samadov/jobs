@@ -4090,8 +4090,45 @@ class JobScraper:
 
         df = pd.DataFrame(job_listings)
         return df
-
     
+    def scrape_un_jobs(self):
+        url = 'https://azerbaijan.un.org/az/jobs'
+        base_url = 'https://azerbaijan.un.org'
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code != 200:
+            print(f"Failed to retrieve the webpage. Status code: {response.status_code}")
+            return None
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        job_listings = []
+        
+        job_cards = soup.find_all('article', class_='node--view-mode-teaser')
+        
+        for job in job_cards:
+            date_posted = job.find('div', class_='node__content').find_all('div')[0].get_text(strip=True)
+            title_tag = job.find('a', data_once='submenu-reveal')
+            deadline_tag = job.find('div', class_='flex flex-row space-s-4 items-baseline').find_all('div')[1]
+            organization_tag = job.find('div', class_='text-un-gray-dark text-lg')
+            
+            title = title_tag.get_text(strip=True) if title_tag else 'N/A'
+            href = title_tag['href'] if title_tag else ''
+            apply_link = base_url + href if href else 'N/A'
+            deadline = deadline_tag.get_text(strip=True) if deadline_tag else 'N/A'
+            organization = organization_tag.get_text(strip=True) if organization_tag else 'N/A'
+            
+            job_listings.append({
+                'company': 'United Nations Azerbaijan',
+                'vacancy': title,
+                'apply_link': 'https://azerbaijan.un.org/az/jobs'
+            })
+        
+        df = pd.DataFrame(job_listings)
+        return df
+
     def get_data(self):
         methods = [
             self.parse_azercell,
