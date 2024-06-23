@@ -55,6 +55,7 @@ class JobScraper:
         except requests.RequestException as e:
             logger.error(f"Request to {url} failed: {e}")
             return None
+        
     def parse_azercell(self):
         logger.info("Started scraping Azercel")
         url = "https://www.azercell.com/az/about-us/career.html"
@@ -72,6 +73,7 @@ class JobScraper:
             else:
                 logger.warning("Vacancies section not found on the Azercel page.")
         return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_pashabank(self):
         logger.info("Scraping Pashabank")
         url = "https://careers.pashabank.az/az/page/vakansiyalar?q=&branch="
@@ -90,6 +92,7 @@ class JobScraper:
                 logger.info("Pashabank Scraping completed")
                 return df
         return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_azerconnect(self):
         logger.info("Started scraping of Azerconnect")
         url = "https://www.azerconnect.az/careers"
@@ -114,6 +117,7 @@ class JobScraper:
             logger.info("Scraping of Azerconnect completed")
             return df
         return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_abb(self):
         logger.info("Scraping starting for ABB")
         base_url = "https://careers.abb-bank.az/api/vacancy/v2/get"
@@ -142,6 +146,7 @@ class JobScraper:
         df = pd.DataFrame(job_vacancies)
         logger.info("ABB scraping completed")
         return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_busy_az(self):
         logger.info("Scraping started for busy.az")
         job_vacancies = []
@@ -163,10 +168,10 @@ class JobScraper:
                     job_vacancies.append({"company": company_name, "vacancy": job_title, "apply_link": apply_link})
             else:
                 logger.error(f"Failed to retrieve page {page_num}.")
-
         df = pd.DataFrame(job_vacancies)
         logger.info("Scraping completed for busy.az")
         return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_hellojob_az(self):
         logger.info("Started scraping of hellojob.az")
         job_vacancies = []
@@ -181,7 +186,6 @@ class JobScraper:
                 if not job_listings:
                     logger.info(f"No job listings found on page {page_number}.")
                     continue
-
                 for job in job_listings:
                     company_name = job.find('p', class_='vacancy_item_company').text.strip()
                     vacancy_title = job.find('h3').text.strip()
@@ -190,10 +194,10 @@ class JobScraper:
                     job_vacancies.append({"company": company_name, "vacancy": vacancy_title, "apply_link": apply_link})
             else:
                 logger.warning(f"Failed to retrieve page {page_number}")
-
         logger.info("Scraping completed for hellojob.az")
         return pd.DataFrame(job_vacancies) if job_vacancies else pd.DataFrame(
             columns=['company', 'vacancy', 'apply_link'])
+        
     def parse_boss_az(self):
         logger.info("Starting to scrape Boss.az...")
         job_vacancies = []
@@ -211,10 +215,10 @@ class JobScraper:
                 logger.info(f"Scraped {len(job_listings)} jobs from page {page_num}")
             else:
                 logger.warning(f"Failed to retrieve page {page_num}. Status code: {response.status_code}")
-
         logger.info("Scraping completed for boss.az")
         return pd.DataFrame(job_vacancies) if job_vacancies else pd.DataFrame(
             columns=['company', 'vacancy', 'apply_link'])
+        
     def parse_ejob_az(self):
         start_page = 1
         end_page = 20
@@ -247,6 +251,7 @@ class JobScraper:
 
         logger.info("Scraping completed for ejob.az")
         return pd.DataFrame(all_jobs) if all_jobs else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+   
     def parse_vakansiya_az(self):
         logger.info("Scraping started for vakansiya.az")
         url = 'https://www.vakansiya.az/az/'
@@ -274,6 +279,7 @@ class JobScraper:
         else:
             logger.error("Failed to retrieve the page.")
         return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_ishelanlari_az(self):
         logger.info("Scraping started for ishelanlari.az")
         url = "https://ishelanlari.az/az/vacancies//0/360/"
@@ -302,6 +308,7 @@ class JobScraper:
         else:
             logger.error("Failed to retrieve data for ishelanlari.az.")
         return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_bank_of_baku_az(self):
         logger.info("Scraping started for Bank of Baku")
         url = "https://careers.bankofbaku.com/az/vacancies"
@@ -332,6 +339,7 @@ class JobScraper:
         else:
             logger.error("Failed to retrieve data for Bank of Baku.")
         return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_banker_az(self):
         logger.info("Started scraping Banker.az")
         base_url = 'https://banker.az/vakansiyalar'
@@ -374,6 +382,7 @@ class JobScraper:
         df = pd.DataFrame({'company': all_company_names, 'vacancy': all_job_titles, 'apply_link': all_apply_links})
         logger.info("Scraping completed for Banker.az")
         return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_smartjob_az(self):
         logger.info("Started scraping SmartJob.az")
         jobs = []
@@ -401,6 +410,7 @@ class JobScraper:
 
         logger.info("Scraping completed for SmartJob.az")
         return pd.DataFrame(jobs) if jobs else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+   
     def parse_xalqbank(self):
         logger.info("Started scraping Xalqbank")
         url = 'https://www.xalqbank.az/az/ferdi/bank/career'
@@ -439,6 +449,7 @@ class JobScraper:
         else:
             logger.error("Failed to retrieve data for Xalqbank.")
         return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_offer_az(self):
         logger.info("Started scraping offer.az")
         headers = {
@@ -485,6 +496,7 @@ class JobScraper:
         df = pd.DataFrame(vacancies, columns=['company', 'vacancy', 'apply_link'])
         logger.info("Scraping completed for offer.az")
         return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_isveren_az(self):
         start_page = 1
         end_page = 15
@@ -542,6 +554,7 @@ class JobScraper:
         df = pd.DataFrame(jobs)
         logger.info("Scraping completed for isveren.az")
         return df
+    
     def parse_isqur(self):
         start_page = 1
         end_page = 5
@@ -566,6 +579,7 @@ class JobScraper:
 
         logger.info("Scraping completed for isqur.com")
         return pd.DataFrame(job_vacancies) if job_vacancies else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
     def parse_mktcotton(self):
         logger.info("Fetching jobs from Glorri.az for MKT Cotton")
         base_url = "https://atsapp.glorri.az/job-service/v2/company/mktcotton/jobs"
@@ -599,8 +613,8 @@ class JobScraper:
                 'vacancy': job['title'],
                 'apply_link': f"https://jobs.glorri.az/vacancies/mktcotton/{job['slug']}/apply"
             })
-
         return pd.DataFrame(jobs_data)
+    
     def parse_unibank(self):
         company_name = 'unibank'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -635,8 +649,8 @@ class JobScraper:
                 'vacancy': job['title'],
                 'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
             })
-
         return pd.DataFrame(jobs_data)
+    
     def parse_abc_telecom(self):
         company_name = 'abc-telecom'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -671,8 +685,8 @@ class JobScraper:
                 'vacancy': job['title'],
                 'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
             })
-
         return pd.DataFrame(jobs_data)
+    
     def parse_expressbank(self):
         company_name = 'expressbank'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -707,8 +721,8 @@ class JobScraper:
                 'vacancy': job['title'],
                 'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
             })
-
         return pd.DataFrame(jobs_data)
+    
     def parse_aztelekom(self):
         company_name = 'aztelekom'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -743,8 +757,8 @@ class JobScraper:
                 'vacancy': job['title'],
                 'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
             })
-
         return pd.DataFrame(jobs_data)
+    
     def parse_azerimed(self):
         company_name = 'azerimed'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -781,6 +795,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_idda(self):
         company_name = 'idda'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -817,6 +832,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_agagroup(self):
         company_name = 'agagroup'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -851,8 +867,8 @@ class JobScraper:
                 'vacancy': job['title'],
                 'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
             })
-
         return pd.DataFrame(jobs_data)
+    
     def parse_azercotton(self):
         company_name = 'azercotton'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -889,6 +905,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_accessbank(self):
         company_name = 'accessbank'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -925,6 +942,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_landauschool(self):
         company_name = 'landauschool'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -961,6 +979,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_atb(self):
         company_name = 'atb'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -997,6 +1016,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_azal(self):
         company_name = 'azal'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1031,8 +1051,8 @@ class JobScraper:
                 'vacancy': job['title'],
                 'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
             })
-
         return pd.DataFrame(jobs_data)
+    
     def parse_bankrespublika(self):
         company_name = 'bankrespublika'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1067,8 +1087,8 @@ class JobScraper:
                 'vacancy': job['title'],
                 'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
             })
-
         return pd.DataFrame(jobs_data)
+    
     def parse_ateshgah(self):
         company_name = 'ateshgah'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1103,8 +1123,8 @@ class JobScraper:
                 'vacancy': job['title'],
                 'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
             })
-
         return pd.DataFrame(jobs_data)
+    
     def parse_rabitabank(self):
         company_name = 'rabitabank'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1139,8 +1159,8 @@ class JobScraper:
                 'vacancy': job['title'],
                 'apply_link': f"https://jobs.glorri.az/vacancies/{company_name}/{job['slug']}/apply"
             })
-
         return pd.DataFrame(jobs_data)
+    
     def parse_matanata(self):
         company_name = 'matanata'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1177,6 +1197,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_fmg(self):
         company_name = 'fmg'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1213,6 +1234,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_pashaproperty(self):
         company_name = 'pashaproperty'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1249,6 +1271,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_bakusteel(self):
         company_name = 'bakusteel'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1285,6 +1308,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_elitoptimal(self):
         company_name = 'elitoptimal'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1321,6 +1345,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_aztexgroup(self):
         company_name = 'aztexgroup'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1357,6 +1382,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_embawood(self):
         company_name = 'embawood'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1393,6 +1419,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_avromed(self):
         company_name = 'avromed'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1429,6 +1456,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_fincaazerbaijan(self):
         company_name = 'fincaazerbaijan'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1465,6 +1493,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_autoluxaz(self):
         company_name = 'autolux-az'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1501,6 +1530,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_pmdprojects(self):
         company_name = 'pmdprojects'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1537,6 +1567,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_itv(self):
         company_name = 'itv'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1573,6 +1604,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_zafarbaglari(self):
         company_name = 'zafarbaglari'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1609,6 +1641,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_pmdgroup(self):
         company_name = 'pmdgroup'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1645,6 +1678,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_agilesolutions(self):
         company_name = 'agilesolutions'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1681,6 +1715,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_otomed(self):
         company_name = 'otomed'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1717,6 +1752,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_grandagro(self):
         company_name = 'grandagro'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1753,6 +1789,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_azrose(self):
         company_name = 'azrose'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1789,6 +1826,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_idealkredit(self):
         company_name = 'idealkredit'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1825,6 +1863,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_azbadam(self):
         company_name = 'azbadam'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1861,6 +1900,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_code(self):
         company_name = 'code'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1897,6 +1937,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_agrofoodinvest(self):
         company_name = 'agrofoodinvest'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1933,6 +1974,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_urc(self):
         company_name = 'urc'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -1969,6 +2011,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_agrarco(self):
         company_name = 'agrarco'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2005,6 +2048,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_hermese(self):
         company_name = 'hermese'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2041,6 +2085,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_ailab(self):
         company_name = 'ailab'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2077,6 +2122,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_vipgroup(self):
         company_name = 'vipgroup'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2113,6 +2159,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_saluspharma(self):
         company_name = 'saluspharma'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2149,6 +2196,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_coolab(self):
         company_name = 'coolab'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2185,6 +2233,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_ecologistics(self):
         company_name = 'eco-logistics'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2221,6 +2270,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_grandagroinvitro(self):
         company_name = 'grandagroinvitro'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2257,6 +2307,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_glorri(self):
         company_name = 'glorri'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2293,6 +2344,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_bakuagropark(self):
         company_name = 'bakuagropark'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2329,6 +2381,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_agroparkyalama(self):
         company_name = 'agroparkyalama'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2365,6 +2418,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_sofcons(self):
         company_name = 'sofcons'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2401,6 +2455,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_bakertilly(self):
         company_name = 'bakertilly'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2437,6 +2492,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_butafarm(self):
         company_name = 'butafarm'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2473,6 +2529,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_deligy(self):
         company_name = 'deligy'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2509,6 +2566,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_absheronport(self):
         company_name = 'absheronport'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2545,6 +2603,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_bpgconsulting(self):
         company_name = 'bpgconsulting'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2581,6 +2640,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_pashadevelopment(self):
         company_name = 'pashadevelopment'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2617,6 +2677,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_fbco(self):
         company_name = 'fbco'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2653,6 +2714,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_hrcbaku(self):
         company_name = 'hrcbaku'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2689,6 +2751,7 @@ class JobScraper:
             })
 
         return pd.DataFrame(jobs_data)
+    
     def parse_alameta(self):
         company_name = 'alameta'
         logger.info(f"Fetching jobs from Glorri.az for {company_name}")
@@ -2793,6 +2856,7 @@ class JobScraper:
         df = pd.DataFrame(job_vacancies, columns=['company', 'vacancy', 'apply_link'])
         logger.info("Scraping completed for jobbox.az")
         return df if not df.empty else pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_vakansiya_biz(self):
         logger.info("Started scraping Vakansiya.biz")
         base_url = "https://api.vakansiya.biz/api/v1/vacancies/search"
@@ -3160,6 +3224,7 @@ class JobScraper:
             else:
                 logger.warning("Vacancies section not found on the AzerGold page.")
         return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+    
     def parse_konsis(self):
         logger.info("Started scraping Konsis")
         url = "https://konsis.az/karyera-vakansiya/"
@@ -3263,6 +3328,7 @@ class JobScraper:
         })
         logger.info("Scraping completed for Baku Electronics")
         return df
+    
     def parse_asco(self):
         logger.info("Started scraping ASCO")
         base_url = "https://www.asco.az/az/pages/6/65?page="
@@ -3310,6 +3376,7 @@ class JobScraper:
         })
         logger.info("Scraping completed for ASCO")
         return df
+    
     def parse_cbar(self):
         logger.info("Started scraping CBAR")
         url = "https://www.cbar.az/hr/f?p=100:106"
@@ -3918,9 +3985,6 @@ class JobScraper:
         # Return only the specific columns with renamed columns
         result_df = jobs_df[['company', 'vacancy', 'apply_link']]
         return result_df
-
-
-    
 
     def scrape_position_az(self):
         # URL of the website to scrape
