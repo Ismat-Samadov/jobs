@@ -4060,6 +4060,37 @@ class JobScraper:
         df = pd.DataFrame(job_listings)
         return df
 
+    def scrape_hrin_co(self):
+        base_url = 'https://hrin.co/?page={}'
+        job_listings = []
+
+        for page in range(1, 6):  # Scraping pages 1 to 5
+            url = base_url.format(page)
+            response = requests.get(url)
+            
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                job_cards = soup.find_all('div', class_='vacancy-list-item')
+                
+                for job in job_cards:
+                    company_tag = job.find('a', class_='company')
+                    vacancy_tag = job.find('a', class_='title')
+                    
+                    company = company_tag.get_text(strip=True) if company_tag else 'N/A'
+                    vacancy = vacancy_tag.get_text(strip=True) if vacancy_tag else 'N/A'
+                    apply_link = vacancy_tag['href'] if vacancy_tag else 'N/A'
+                    
+                    job_listings.append({
+                        'company': company,
+                        'vacancy': vacancy,
+                        'apply_link': apply_link
+                    })
+            else:
+                print(f"Failed to retrieve the webpage for page {page}. Status code: {response.status_code}")
+
+        df = pd.DataFrame(job_listings)
+        return df
+
     
     def get_data(self):
         methods = [
@@ -4168,6 +4199,7 @@ class JobScraper:
             self.scrape_staffy,
             self.scrape_position_az,
             self.scrape_superjobs_az,
+            self.scrape_hrin_co,
         ]
 
         results = []
