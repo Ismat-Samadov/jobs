@@ -4092,6 +4092,7 @@ class JobScraper:
         return df
     
     def scrape_un_jobs(self):
+        logger.info("Scraping started for UN")
         url = 'https://azerbaijan.un.org/az/jobs'
         base_url = 'https://azerbaijan.un.org'
         headers = {
@@ -4127,6 +4128,7 @@ class JobScraper:
             })
         
         df = pd.DataFrame(job_listings)
+        logger.info("Scraping completed for UN")
         return df
 
     def scrape_oilfund_jobs(self):
@@ -4216,7 +4218,6 @@ class JobScraper:
             driver.quit()
 
 
-    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -4325,6 +4326,7 @@ class JobScraper:
             self.scrape_position_az,
             self.scrape_superjobs_az,
             self.scrape_hrin_co,
+            self.scrape_un_jobs,
             self.scrape_oilfund_jobs,
             self.scrape_bayraktartech_jobs,
         ]
