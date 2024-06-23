@@ -1,11 +1,7 @@
-https://www.rsm.global/azerbaijan/az/vakansiyalar
-https://flostore.az/vakansiyalar/
 https://career.bayraktartech.az/az/basvuru/acik-pozisyonlar/
 https://oilfund.az/fund/career-opportunities/vacancy
 https://azerbaijan.un.org/az/jobs
-https://hrin.co/
-https://superjobs.az/
+https://hrin.co/?page=18
+https://superjobs.az/jobs-list/page/2/
 https://position.az/
-https://staffy.az/
-https://aznotary.az/az/page/media/xeberler/vakansiyalar
-https://ziraatbank.az/az/vacancies2
+https://staffy.az/jobs?page=5

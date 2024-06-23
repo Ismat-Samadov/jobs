@@ -1,5 +1,6 @@
 # scraper/parser.py
 import urllib3
+from urllib.parse import urljoin, quote
 from bs4 import BeautifulSoup
 import pandas as pd
 import requests
@@ -3783,7 +3784,7 @@ class JobScraper:
                 'apply_link': full_link
             })
 
-        return jobs
+        return pd.DataFrame(jobs)
     
     def get_data(self):
         methods = [
