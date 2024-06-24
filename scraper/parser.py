@@ -4371,6 +4371,82 @@ class JobScraper:
             driver.quit()
 
 
+    def scrape_cv_land(self):
+        # Set up Selenium options
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")  # Run headless Chrome
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        # Set up the WebDriver using webdriver_manager
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+        # Base URL of the job listings page
+        base_url = "https://cv-land.az/vakansiyalar/?jb-page[1]="
+
+        # List to store job data
+        job_data = []
+
+        # Iterate through pages 1 to 5
+        for page_number in range(1, 6):
+            # Construct the URL for the current page
+            url = f"{base_url}{page_number}"
+
+            # Open the webpage
+            driver.get(url)
+
+            # Allow time for the page to load
+            time.sleep(3)
+
+            # Get the page source and parse with BeautifulSoup
+            page_content = driver.page_source
+            soup = BeautifulSoup(page_content, 'html.parser')
+
+            # Find the job listings container
+            job_listings_wrapper = soup.find('div', class_='jb-jobs-wrapper')
+
+            # Check if the job listings wrapper is found
+            if job_listings_wrapper:
+                # Find all job listings within the container
+                job_listings = job_listings_wrapper.find_all('div', class_='jb-job-list-row')
+
+                # Iterate through the job listings and extract required information
+                for job in job_listings:
+                    job_title_element = job.find('div', class_='jb-job-title')
+                    job_title = job_title_element.find('a').text.strip() if job_title_element else 'N/A'
+                    job_link = job_title_element.find('a')['href'] if job_title_element else 'N/A'
+
+                    company_name_element = job.find('div', class_='company')
+                    company_name = company_name_element.find('span').text.strip() if company_name_element else 'N/A'
+
+                    location_element = job.find('div', class_='location')
+                    job_location = location_element.find('a').text.strip() if location_element else 'N/A'
+
+                    category_element = job.find('div', class_='category')
+                    job_category = category_element.find('a').text.strip() if category_element else 'N/A'
+
+                    posted_date_element = job.find('div', class_='jb-responsive date')
+                    posted_date = posted_date_element.text.strip() if posted_date_element else 'N/A'
+
+                    expiry_date_element = job.find('div', class_='expires')
+                    expiry_date = expiry_date_element.text.strip() if expiry_date_element else 'N/A'
+
+                    job_type_element = job.find('div', class_='jb-job-types')
+                    job_type = job_type_element.find('div', class_='jb-job-type').text.strip() if job_type_element else 'N/A'
+
+                    # Append the extracted information to the job_data list
+                    job_data.append({
+                        "company": company_name,
+                        "vacancy": job_title,
+                        "apply_link": job_link
+                    })
+
+        # Close the browser
+        driver.quit()
+
+        # Convert the job_data list to a DataFrame
+        df = pd.DataFrame(job_data)
+        return df
     
     def get_data(self):
         methods = [
@@ -4486,6 +4562,7 @@ class JobScraper:
             self.scrape_pasha_holding,
             self.scrape_pasha_insurance,
             self.scrape_pasha_capital,
+            self.scrape_cv_land,
         ]
 
         results = []
