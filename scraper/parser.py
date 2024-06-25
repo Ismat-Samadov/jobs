@@ -4448,6 +4448,43 @@ class JobScraper:
         df = pd.DataFrame(job_data)
         return df
     
+    def scrape_isbu(self):
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        base_url = "https://isbu.az/vakansiyalar?page="
+        
+        job_data = []
+        for page_number in range(1, 6):
+            url = f"{base_url}{page_number}"
+            driver.get(url)
+            time.sleep(3)
+            page_content = driver.page_source
+            soup = BeautifulSoup(page_content, 'html.parser')
+            job_listings = soup.find_all('a', class_='vacancies__item')
+
+            for job in job_listings:
+                job_title = job.find('h3').text.strip() if job.find('h3') else 'N/A'
+                job_link = job['href'] if job else 'N/A'
+                company_name = job.find('p').text.strip() if job.find('p') else 'N/A'
+                job_location = 'N/A'  # Location not provided in the example HTML
+                job_category = 'N/A'  # Category not provided in the example HTML
+                posted_date = job.find_all('span')[1].text.strip() if job.find_all('span') else 'N/A'
+                job_type = 'N/A'  # Job type not provided in the example HTML
+                salary = job.find('span', class_='vacancies__price').text.strip() if job.find('span', class_='vacancies__price') else 'N/A'
+                job_data.append({
+                    "company": company_name,
+                    "vacancy": job_title,
+                    "apply_link": f"https://isbu.az{job_link}"
+                })
+        driver.quit()
+        df = pd.DataFrame(job_data)
+        return df
+        
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -4563,6 +4600,7 @@ class JobScraper:
             self.scrape_pasha_insurance,
             self.scrape_pasha_capital,
             self.scrape_cv_land,
+            self.scrape_isbu,
         ]
 
         results = []
