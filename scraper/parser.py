@@ -4484,6 +4484,42 @@ class JobScraper:
         df = pd.DataFrame(job_data)
         return df
         
+
+    def scrape_metro(self):
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        base_url = "https://metro.gov.az/az/page/karyera/vakansiyalar?page="
+
+        job_data = []
+        for page_number in range(1, 6):  # Change the range as needed
+            url = f"{base_url}{page_number}"
+            driver.get(url)
+            time.sleep(3)
+            page_content = driver.page_source
+            soup = BeautifulSoup(page_content, 'html.parser')
+            job_listings = soup.find_all('div', class_='col-md-4')
+
+            for job in job_listings:
+                job_title_element = job.find('span', class_='administration__title')
+                job_title = job_title_element.text.strip() if job_title_element else 'N/A'
+                job_link_element = job.find('a', class_='administration__item')
+                job_link = job_link_element['href'] if job_link_element else 'N/A'
+                job_description_element = job.find('span', class_='administration__position')
+                job_description = job_description_element.text.strip() if job_description_element else 'N/A'
+                job_data.append({
+                    'company':'Bakı Metropoliteni',
+                    "vacancy": job_title,
+                    "apply_link": f"https://metro.gov.az{job_link}"
+                })
+
+        driver.quit()
+        df = pd.DataFrame(job_data)
+        return df
+   
     
     def get_data(self):
         methods = [
@@ -4601,6 +4637,7 @@ class JobScraper:
             self.scrape_pasha_capital,
             self.scrape_cv_land,
             self.scrape_isbu,
+            self.scrape_metro,
         ]
 
         results = []
