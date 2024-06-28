@@ -79,7 +79,7 @@ async def get_data_by_position(position: str = Query(..., description="Position 
 @app.get("/data/")
 async def get_data(
     company: str = Query(None, description="Company name to search for (partial match)"),
-    position: str = Query("data,analyst,analitik,scientist,reporter,hesabat,sql,power bi,python", description="Position name to search for (default: multiple data-related terms)"),
+    position: str = Query(None, description="Position name to search for"),
     page: int = Query(1, description="Page number"),
     page_size: int = Query(10, description="Number of items per page"),
     db=Depends(connect_to_postgres)
@@ -93,14 +93,18 @@ async def get_data(
         filters.append("company ILIKE $1")
         params.append(f"%{company}%")
     if position:
-        position_terms = position.split(',')
-        filters.append(" OR ".join([f"vacancy ILIKE ${i+2}" for i in range(len(position_terms))]))
-        params.extend([f"%{term}%" for term in position_terms])
+        filters.append("vacancy ILIKE $2")
+        params.append(f"%{position}%")
+    else:
+        # Default data-related terms
+        data_related_terms = ['data', 'analyst', 'analitik', 'scientist', 'reporter', 'hesabat', 'sql', 'power bi', 'python']
+        filters.append("(" + " OR ".join([f"vacancy ILIKE $3{i+1}" for i in range(len(data_related_terms))]) + ")")
+        params.extend([f"%{term}%" for term in data_related_terms])
 
     if filters:
         query += " AND " + " AND ".join(filters)
 
-    query += " ORDER BY scrape_date DESC OFFSET $3 LIMIT $4;"
+    query += " ORDER BY scrape_date DESC OFFSET $1 LIMIT $2;"
     params.extend([offset, page_size])
 
     rows = await db.fetch(query, *params)

@@ -120,7 +120,7 @@ def main():
 
     with st.form("search_form"):
         company = st.text_input("Company Name", key='company').strip()
-        position = st.text_input("Position", key='position', value='data,analyst,analitik,scientist,reporter,hesabat,sql,power bi,python').strip()
+        position = st.text_input("Position", key='position').strip()
         search = st.form_submit_button("Search")
 
     data_placeholder = st.empty()  # Placeholder for job data
@@ -143,7 +143,7 @@ def main():
                 display_data(data_placeholder, data)
     else:
         with st.spinner("Loading initial data..."):
-            initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 50, "position": "data,analyst,analitik,scientist,reporter,hesabat,sql,power bi,python"})
+            initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 50})
             if initial_error:
                 st.error(f"Failed to fetch initial data: {initial_error}")
             else:
