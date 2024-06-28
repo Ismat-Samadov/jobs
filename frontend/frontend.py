@@ -59,13 +59,68 @@ def display_data(data_placeholder, data):
     else:
         st.error("No data available for the given query.")
 
+# def main():
+#     hide_streamlit_style()
+#     st.title("Job Search")
+
+#     with st.form("search_form"):
+#         company = st.text_input("Company Name", key='company').strip()
+#         position = st.text_input("Position", key='position').strip()
+#         search = st.form_submit_button("Search")
+
+#     data_placeholder = st.empty()  # Placeholder for job data
+
+#     if 'page' not in st.session_state:
+#         st.session_state.page = 1
+
+#     if search:
+#         st.session_state.page = 1
+#         with st.spinner("Fetching data..."):
+#             query_params = {"page": st.session_state.page, "page_size": 100}
+#             if company:
+#                 query_params["company"] = company
+#             if position:
+#                 query_params["position"] = position
+#             data, error = fetch_data("", query_params)
+#             if error:
+#                 st.error(f"Failed to fetch data: {error}")
+#             else:
+#                 display_data(data_placeholder, data)
+#     else:
+#         with st.spinner("Loading initial data..."):
+#             initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 50})
+#             if initial_error:
+#                 st.error(f"Failed to fetch initial data: {initial_error}")
+#             else:
+#                 display_data(data_placeholder, initial_data)
+
+#     # Pagination controls at the end of the page
+#     st.write("### Pagination Controls")
+#     col1, col2 = st.columns([1, 10])
+#     with col1:
+#         if st.button("Next", key='next_button'):
+#             st.session_state.page += 1
+#             with st.spinner("Fetching data..."):
+#                 query_params = {"page": st.session_state.page, "page_size": 50}
+#                 if company:
+#                     query_params["company"] = company
+#                 if position:
+#                     query_params["position"] = position
+#                 data, error = fetch_data("", query_params)
+#                 if error:
+#                     st.error(f"Failed to fetch data: {error}")
+#                 else:
+#                     display_data(data_placeholder, data)
+
+# if __name__ == "__main__":
+#     main()
 def main():
     hide_streamlit_style()
     st.title("Job Search")
 
     with st.form("search_form"):
         company = st.text_input("Company Name", key='company').strip()
-        position = st.text_input("Position", key='position').strip()
+        position = st.text_input("Position", key='position', value='data,analyst,analitik,scientist,reporter,hesabat,sql,power bi,python').strip()
         search = st.form_submit_button("Search")
 
     data_placeholder = st.empty()  # Placeholder for job data
@@ -76,7 +131,7 @@ def main():
     if search:
         st.session_state.page = 1
         with st.spinner("Fetching data..."):
-            query_params = {"page": st.session_state.page, "page_size": 100}
+            query_params = {"page": st.session_state.page, "page_size": 50}
             if company:
                 query_params["company"] = company
             if position:
@@ -88,13 +143,12 @@ def main():
                 display_data(data_placeholder, data)
     else:
         with st.spinner("Loading initial data..."):
-            initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 50})
+            initial_data, initial_error = fetch_data("", {"page": 1, "page_size": 50, "position": "data,analyst,analitik,scientist,reporter,hesabat,sql,power bi,python"})
             if initial_error:
                 st.error(f"Failed to fetch initial data: {initial_error}")
             else:
                 display_data(data_placeholder, initial_data)
 
-    # Pagination controls at the end of the page
     st.write("### Pagination Controls")
     col1, col2 = st.columns([1, 10])
     with col1:
