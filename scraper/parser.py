@@ -4519,7 +4519,75 @@ class JobScraper:
         driver.quit()
         df = pd.DataFrame(job_data)
         return df
-   
+    
+    
+    
+    def scrape_tezbazar(self):
+        pages=5
+        # Set up the WebDriver options for headless mode
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-gpu')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+
+        # Initialize the WebDriver
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+        # List to store job data
+        all_jobs_data = []
+
+        # Loop through the specified number of pages
+        for page in range(1, pages + 1):
+            # URL of the page to scrape
+            url = f'https://tezbazar.az/is-elanlari/?start={page - 1}'
+            print(f'scraping: {url}')
+            # Navigate to the URL
+            driver.get(url)
+
+            # Wait for the page to load completely
+            time.sleep(5)  # Adjust the sleep time if needed
+
+            # Get the page source and create a BeautifulSoup object
+            page_source = driver.page_source
+            soup = BeautifulSoup(page_source, 'html.parser')
+
+            # Find the job listings container
+            jobs_container = soup.find('div', {'id': 'prodwrap'})
+
+            # Check if jobs_container is found
+            if not jobs_container:
+                print(f"Job listings container not found on page {page}")
+                continue
+
+            # Loop through each job listing
+            for job in jobs_container.find_all('div', class_='nobj prod prodbig'):
+                job_info = {}
+                job_info['company'] = '-'
+                # Get the job title
+                job_title_element = job.find('div', class_='prodname').a
+                job_info['vacancy'] = job_title_element.text.strip()
+                job_info['apply_link'] = 'https://tezbazar.az' + job_title_element['href']
+                
+                # # Get the job description
+                # job_info['description'] = job.find('p', class_='prodful').text.strip()
+                
+                # # Get the job price
+                # job_info['price'] = job.find('span', class_='sprice').text.strip()
+                
+                # # Get the image link
+                # image_element = job.find('div', class_='holderimg').a.img
+                # job_info['image'] = 'https://tezbazar.az' + image_element['src']
+                
+                
+                all_jobs_data.append(job_info)
+
+        # Close the WebDriver
+        driver.quit()
+
+        # Create a DataFrame from the job data
+        df = pd.DataFrame(all_jobs_data)
+        return df
     
     def get_data(self):
         methods = [
@@ -4638,6 +4706,7 @@ class JobScraper:
             self.scrape_cv_land,
             self.scrape_isbu,
             self.scrape_metro,
+            self.scrape_tezbazar,
         ]
 
         results = []
