@@ -4589,6 +4589,68 @@ class JobScraper:
         df = pd.DataFrame(all_jobs_data)
         return df
     
+    def scrape_hh1(self):
+        print("Starting the script...")
+        
+        # Set up Selenium in headless mode
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        
+        # Use WebDriver Manager to download and set up ChromeDriver
+        service = ChromeService(executable_path=ChromeDriverManager().install())
+        
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        
+        url = "https://hh1.az/search/vacancy?text=engineer"
+        driver.get(url)
+        
+        # Wait for the page to load
+        time.sleep(5)
+        
+        job_listings = driver.find_elements(By.CLASS_NAME, "vacancy-search-item__card")
+        
+        print(f"Found {len(job_listings)} job listings.")
+        
+        jobs = []
+        
+        for job in job_listings:
+            try:
+                title_element = job.find_element(By.CLASS_NAME, "vacancy-name--c1Lay3KouCl7XasYakLk")
+                company_element = job.find_element(By.CSS_SELECTOR, "a.bloko-link.bloko-link_kind-secondary")
+                location_element = job.find_element(By.CLASS_NAME, "fake-magritte-primary-text--Hdw8FvkOzzOcoR4xXWni")
+                apply_link_element = job.find_element(By.CLASS_NAME, "serp-item__title-link-wrapper").find_element(By.TAG_NAME, "a")
+                
+                title = title_element.text
+                company = company_element.text
+                location = location_element.text
+                apply_link = apply_link_element.get_attribute("href")
+                
+                job_data = {
+                    "company": company,
+                    "vacancy": title,
+                    "apply_link": apply_link
+                }
+                
+                jobs.append(job_data)
+                
+                print(f"Job Title: {title}")
+                print(f"Company: {company}")
+                print(f"Apply Link: {apply_link}")
+                print("----------")
+            except Exception as e:
+                print(f"Error parsing job: {e}")
+        
+        # Save the data to a CSV file
+        df = pd.DataFrame(jobs)    
+        print("Script finished successfully.")
+        driver.quit()
+    
+        return df
+
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -4707,6 +4769,7 @@ class JobScraper:
             self.scrape_isbu,
             self.scrape_metro,
             self.scrape_tezbazar,
+            self.scrape_hh1
         ]
 
         results = []
