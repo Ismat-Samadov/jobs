@@ -2,11 +2,11 @@ name: Scheduled Scraper Job
 
 on:
   schedule:
-    - cron: '0 11,18 * * *' # Runs at 11:00 AM and 6:00 PM every day
+    # - cron: '0 11,18 * * *' # Runs at 11:00 AM and 6:00 PM every day
 
     # - cron: '0 */16 * * *' # Runs every 16 hours
 
-    # - cron: '*/1 * * * *' # Runs every minutes
+    - cron: '*/1 * * * *' # Runs every minutes
 
 
 jobs:
