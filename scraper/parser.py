@@ -4650,6 +4650,98 @@ class JobScraper:
     
         return df
 
+    def scrape_1is_az(self):
+        print('Scraping started for 1is.az')
+        pages=3
+        base_url = "https://1is.az/vsearch?expired=on&sort_by=1&page="
+        job_listings = []
+
+        for page in range(1, pages + 1):
+            url = base_url + str(page)
+            response = requests.get(url)
+            if response.status_code != 200:
+                print(f"Failed to fetch the page {page}. Status code: {response.status_code}")
+                continue
+
+            html_content = response.text
+            soup = BeautifulSoup(html_content, "html.parser")
+
+            all_vacancies = soup.find_all('div', class_='vac-card')
+            for vac in all_vacancies:
+                job = {}
+
+                vac_inner1 = vac.find('div', class_='vac-inner1')
+                if vac_inner1:
+                    category = vac_inner1.find('a', class_='vac-inner1-a')
+                    if category:
+                        job['category'] = category.text.strip()
+                    
+                    views = vac_inner1.find('span', class_='look-numb')
+                    if views:
+                        job['views'] = views.text.strip()
+
+                vac_inner2 = vac.find('div', class_='vac-inner2')
+                if vac_inner2:
+                    job_title = vac_inner2.find('a', class_='vac-name')
+                    if job_title:
+                        job['vacancy'] = job_title.text.strip()
+                        job['apply_link'] = job_title['href']
+
+                vac_inner3 = vac.find('div', class_='vac-inner3')
+                if vac_inner3:
+                    company_info = vac_inner3.find('div', class_='vac-inn1')
+                    if company_info:
+                        company = company_info.find('a', class_='comp-link')
+                        if company:
+                            job['company'] = company.text.strip()
+                            job['company_link'] = company['href']
+
+                if 'company' in job and 'vacancy' in job and 'apply_link' in job:
+                    job_listings.append(job)
+        print("Scraping completed for 1is.az")
+        
+        return pd.DataFrame(job_listings, columns=['company', 'vacancy', 'apply_link'])
+        
+        
+    
+
+    def scrape_themuse_api(self):
+        api_url = "https://www.themuse.com/api/search-renderer/jobs"
+        params = {
+            'ctsEnabled': 'false',
+            'latlng': '40.37767028808594,49.89200973510742',
+            'preference': 'bf2kq0pm0q8',
+            'limit': 100,
+            'query': '',
+            'timeout': 5000
+        }
+        
+        response = requests.get(api_url, params=params)
+        if response.status_code != 200:
+            print(f"Failed to fetch data. Status code: {response.status_code}")
+            return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
+        data = response.json()
+        
+        jobs = []
+        for hit in data.get('hits', []):
+            job_data = hit.get('hit', {})
+            company_name = job_data.get('company', {}).get('name', '')
+            vacancy_title = job_data.get('title', '')
+            company_short_name = job_data.get('company', {}).get('short_name', '')
+            short_title = job_data.get('short_title', '')
+            apply_link = f"https://www.themuse.com/jobs/{company_short_name}/{short_title}"
+            
+            job = {
+                'company': company_name,
+                'vacancy': vacancy_title,
+                'apply_link': apply_link
+            }
+            jobs.append(job)
+
+        return pd.DataFrame(jobs, columns=['company', 'vacancy', 'apply_link'])
+        
+        
     
     def get_data(self):
         methods = [
@@ -4769,7 +4861,9 @@ class JobScraper:
             self.scrape_isbu,
             self.scrape_metro,
             self.scrape_tezbazar,
-            self.scrape_hh1
+            self.scrape_hh1,
+            self.scrape_1is_az,
+            self.scrape_themuse_api,
         ]
 
         results = []
