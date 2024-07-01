@@ -4590,7 +4590,7 @@ class JobScraper:
         return df
     
     def scrape_hh1(self):
-        print("Starting the script...")
+        print("Starting the script for hh1.az")
         
         # Set up Selenium in headless mode
         chrome_options = Options()
@@ -4645,7 +4645,7 @@ class JobScraper:
         
         # Save the data to a CSV file
         df = pd.DataFrame(jobs)    
-        print("Script finished successfully.")
+        print("Script finished successfully for hh1.az.")
         driver.quit()
     
         return df
@@ -4741,7 +4741,39 @@ class JobScraper:
 
         return pd.DataFrame(jobs, columns=['company', 'vacancy', 'apply_link'])
         
+    
+    
+    def scrape_dejobs(self):
+        url = "https://dejobs.org/aze/jobs/#1"
+        response = requests.get(url)
         
+        if response.status_code != 200:
+            print(f"Failed to fetch data. Status code: {response.status_code}")
+            return pd.DataFrame(columns=['company', 'vacancy', 'apply_link'])
+
+        # Parse the response text as HTML
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        jobs = []
+        job_listings = soup.find_all('li', class_='direct_joblisting')
+
+        for job in job_listings:
+            try:
+                vacancy = job.find('span', class_='resultHeader').text.strip()
+                apply_link = "https://dejobs.org" + job.find('a')['href'].strip()
+                company = job.find('b', class_='job-location-information').text.strip()
+
+                jobs.append({
+                    'company': company,
+                    'vacancy': vacancy,
+                    'apply_link': apply_link
+                })
+            except AttributeError as e:
+                # Skip if any of the required fields are not found
+                print(f"Error parsing job: {e}")
+                continue
+
+        return pd.DataFrame(jobs, columns=['company', 'vacancy', 'apply_link'])
     
     def get_data(self):
         methods = [
@@ -4864,6 +4896,7 @@ class JobScraper:
             self.scrape_hh1,
             self.scrape_1is_az,
             self.scrape_themuse_api,
+            self.scrape_dejobs,
         ]
 
         results = []
