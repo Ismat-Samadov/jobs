@@ -4775,6 +4775,36 @@ class JobScraper:
 
         return pd.DataFrame(jobs, columns=['company', 'vacancy', 'apply_link'])
     
+    
+
+
+    def scrape_hcb(self):
+        url = 'https://hcb.az/'
+        response = requests.get(url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        jobs = []
+        
+        table_rows = soup.select('.table-bg table tbody tr')
+        for row in table_rows:
+            columns = row.find_all('td')
+            if len(columns) >= 6:
+                apply_link = columns[0].find('a')['href']
+                date = columns[1].get_text(strip=True)
+                vacancy = columns[2].get_text(strip=True)
+                company = columns[3].get_text(strip=True)
+                apply_text = columns[5].get_text(strip=True)
+                
+                jobs.append({
+                    'company': company,
+                    'vacancy': vacancy,
+                    'apply_link': apply_link
+                })
+        
+        return pd.DataFrame(jobs)
+
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -4897,6 +4927,7 @@ class JobScraper:
             self.scrape_1is_az,
             self.scrape_themuse_api,
             self.scrape_dejobs,
+            self.scrape_hcb,
         ]
 
         results = []
