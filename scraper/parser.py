@@ -4962,8 +4962,65 @@ class JobScraper:
         else:
             print("No jobs data to save")
             return pd.DataFrame()
+    
+    
+
+    def scrape_rigzone(self):
+        # Set up Selenium with Chrome WebDriver using webdriver_manager
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")  # Ensure GUI is off
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
+
+        def get_rigzone_jobs():
+            url = "https://www.rigzone.com/oil/jobs/search/?sl=Baku%2C+Azerbaijan&radius=155&unit=MI&ll=40.40926%2C49.86709&NonSecureURLForMoreSearch=https%3A%2F%2Fwww.rigzone.com%2F&radius=155&unit=MI&page=1"
+            driver.get(url)
+            time.sleep(3)  # Let the page load completely
+
+            print(f"Request URL: {url}")
+
+            job_list = []
+            jobs_found = False
+
+            job_elements = driver.find_elements(By.CLASS_NAME, "update-block")
+            if job_elements:
+                jobs_found = True
+                for job in job_elements:
+                    title_element = job.find_element(By.CSS_SELECTOR, ".heading h3 a")
+                    title = title_element.text
+                    address_text = job.find_element(By.TAG_NAME, "address").text
+                    company, location = address_text.split('\n')
+                    posted_at = job.find_element(By.CSS_SELECTOR, "footer.details time").text.replace("Posted:", "").strip()
+                    description = job.find_element(By.CSS_SELECTOR, ".description .text p").text
+                    apply_url = title_element.get_attribute("href")
+
+                    job_list.append({
+                        "company": company.strip(),
+                        "vacancy": title,
+                        # "Location": location.strip(),
+                        # "Posted At": posted_at,
+                        # "Description": description,
+                        "apply_link": apply_url
+                    })
+
+            if not jobs_found:
+                print("No job listings found")
+
+            return job_list
+
+        jobs = get_rigzone_jobs()
+        driver.quit()
+
+        if jobs:
+            df = pd.DataFrame(jobs)
+            return df
+        else:
+            print("No jobs data to save")
+            return pd.DataFrame()
         
-        
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -5091,6 +5148,7 @@ class JobScraper:
             self.scrape_bfb,
             self.scrape_airswift,
             self.scrape_orion,
+            self.scrape_rigzone,
         ]
 
         results = []
