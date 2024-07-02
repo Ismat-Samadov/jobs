@@ -4866,6 +4866,58 @@ class JobScraper:
         })
     
     
+    
+    def scrape_airswift(self):
+        url = "https://www.airswift.com/jobs?search=&location=Baku&verticals_discipline=*&sector=*&employment_type=*&date_published=*"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        titles = []
+        locations = []
+        descriptions = []
+        dates_posted = []
+        employment_types = []
+        apply_links = []
+
+        job_cards = soup.select("div.jobs__card")
+
+        for card in job_cards:
+            title_tag = card.select_one("div.title")
+            title = title_tag.get_text(strip=True) if title_tag else "N/A"
+            titles.append(title)
+
+            location_tag = card.select_one("div.location")
+            location = location_tag.get_text(strip=True) if location_tag else "N/A"
+            locations.append(location)
+
+            description_tag = card.select_one("div.short")
+            description = description_tag.get_text(strip=True) if description_tag else "N/A"
+            descriptions.append(description)
+
+            date_posted_tag = card.select_one("span[style='float:right;']")
+            date_posted = date_posted_tag.get_text(strip=True) if date_posted_tag else "N/A"
+            dates_posted.append(date_posted)
+
+            employment_type_tag = card.select_one("span.jobs__card-top > span")
+            employment_type = employment_type_tag.get_text(strip=True) if employment_type_tag else "N/A"
+            employment_types.append(employment_type)
+
+            apply_link_tag = card.select_one("a.c-button.candidate-conversion-apply")
+            apply_link = apply_link_tag["href"] if apply_link_tag else "N/A"
+            apply_links.append(apply_link)
+
+        return pd.DataFrame({
+            # "Location": locations,
+            # "Description": descriptions,
+            # "Date Posted": dates_posted,
+            # "Employment Type": employment_types,
+            'company':  'Unknown',
+            'vacancy': titles,
+            "apply_link": apply_links
+        })
+
+        
+        
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -4991,6 +5043,7 @@ class JobScraper:
             self.scrape_hcb,
             self.scrape_impactpool,
             self.scrape_bfb,
+            self.scrape_airswift,
         ]
 
         results = []
