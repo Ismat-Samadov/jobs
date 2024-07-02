@@ -4835,6 +4835,36 @@ class JobScraper:
         
         return pd.DataFrame(jobs)
     
+    def scrape_bfb(self):
+        url = "https://www.bfb.az/en/careers"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        titles = []
+        descriptions = []
+        requirements = []
+
+        job_listings = soup.select("ul.page-list > li")
+
+        for listing in job_listings:
+            title_tag = listing.find("h3", class_="accordion-title")
+            title = title_tag.get_text(strip=True) if title_tag else "N/A"
+            titles.append(title)
+
+            description_tag = listing.find("div", class_="accordion-content")
+            description = description_tag.get_text(strip=True) if description_tag else "N/A"
+            descriptions.append(description)
+
+            requirement_tag = description_tag.find("ul")
+            requirement = requirement_tag.get_text(strip=True) if requirement_tag else "N/A"
+            requirements.append(requirement)
+
+        return pd.DataFrame({
+            'company': 'Baku Stock Exchange',
+            "vacancy": titles,
+            "apply_link" : 'https://www.bfb.az/en/careers',
+        })
+    
     
     def get_data(self):
         methods = [
@@ -4960,6 +4990,7 @@ class JobScraper:
             self.scrape_dejobs,
             self.scrape_hcb,
             self.scrape_impactpool,
+            self.scrape_bfb,
         ]
 
         results = []
