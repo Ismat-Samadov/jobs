@@ -4916,6 +4916,52 @@ class JobScraper:
             "apply_link": apply_links
         })
 
+    def scrape_orion(self):
+        def get_orion_jobs(page):
+            url = f"https://www.orionjobs.com/jobs/azerbaijan-office?page={page}"
+            response = requests.get(url)
+
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, "html.parser")
+                job_list = []
+
+                for job in soup.select("ul.results-list li.job-result-item"):
+                    title = job.select_one(".job-title a").get_text(strip=True)
+                    location = job.select_one(".results-job-location").get_text(strip=True)
+                    salary = job.select_one(".results-salary").get_text(strip=True)
+                    posted_at = job.select_one(".results-posted-at").get_text(strip=True).replace("Posted", "").strip()
+                    description = job.select_one(".job-description").get_text(strip=True)
+                    apply_url = job.select_one(".job-apply-now-link a")["href"]
+
+                    job_list.append({
+                        # "Location": location,
+                        # "Salary": salary,
+                        # "Posted At": posted_at,
+                        # "Description": description,
+                        "company":"Unknown",
+                        "vacancy": title,
+                        "apply_link": f"https://www.orionjobs.com{apply_url}"
+                    })
+
+                return job_list
+            else:
+                print(f"Failed to retrieve page {page}")
+                return []
+
+        all_jobs = []
+        for page in range(1, 6):  # Scrape pages 1 to 5
+            jobs = get_orion_jobs(page)
+            if jobs:
+                all_jobs.extend(jobs)
+            else:
+                print(f"No jobs found on page {page}")
+
+        if all_jobs:
+            df = pd.DataFrame(all_jobs)
+            return df
+        else:
+            print("No jobs data to save")
+            return pd.DataFrame()
         
         
     def get_data(self):
@@ -5044,6 +5090,7 @@ class JobScraper:
             self.scrape_impactpool,
             self.scrape_bfb,
             self.scrape_airswift,
+            self.scrape_orion,
         ]
 
         results = []
