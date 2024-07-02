@@ -5019,7 +5019,51 @@ class JobScraper:
         else:
             print("No jobs data to save")
             return pd.DataFrame()
+    
+    
+    
+    def scrape_hrcbaku(self):
+        url = "https://hrcbaku.com/jobs-1"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            print(f"Failed to retrieve the page. Status code: {response.status_code}")
+            return None
+
+        soup = BeautifulSoup(response.content, "html.parser")
         
+        jobs = []
+        job_containers = soup.find_all("div", class_="tn-elem")
+
+        for job_container in job_containers:
+            title_elem = job_container.find("a", href=True)
+            if title_elem and "vacancy" in title_elem['href']:
+                title = title_elem.get_text(strip=True)
+                apply_link = "https://hrcbaku.com" + title_elem['href']
+                description = title_elem.get_text(strip=True)
+                location = "Baku, Azerbaijan"
+
+                # Finding the company and any adjacent information if available
+                company = "Not specified"
+                company_elem = job_container.find_previous_sibling("div", class_="tn-elem")
+                if company_elem:
+                    company_text = company_elem.get_text(strip=True)
+                    if company_text and "Apply" not in company_text:
+                        company = company_text
+
+                if "Apply" not in title:
+                    jobs.append({
+                        # "Location": location,
+                        # "Description": description,
+                        "company": 'Unknown',
+                        "vacancy": title,
+                        "apply_link": apply_link
+                    })
+        
+        return pd.DataFrame(jobs)
     
     def get_data(self):
         methods = [
@@ -5149,6 +5193,7 @@ class JobScraper:
             self.scrape_airswift,
             self.scrape_orion,
             self.scrape_rigzone,
+            self.scrape_hrcbaku,
         ]
 
         results = []
