@@ -4805,6 +4805,37 @@ class JobScraper:
         return pd.DataFrame(jobs)
 
     
+    def scrape_impactpool(self):
+        url = 'https://www.impactpool.org/countries/Azerbaijan'
+        base_url = 'https://www.impactpool.org'
+        response = requests.get(url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        jobs = []
+        
+        job_listings = soup.select('#job_list .job')
+        for job in job_listings:
+            title_element = job.select_one('.job-title a.apply-link')
+            if title_element:
+                title = title_element.get_text(strip=True)
+                apply_link = base_url + title_element['href']
+            else:
+                title = "No title"
+                apply_link = "No link"
+            
+            organization = job.select_one('.job-organization').get_text(strip=True) if job.select_one('.job-organization') else "No organization"
+            location = job.select_one('.job-duty-stations').get_text(strip=True) if job.select_one('.job-duty-stations') else "No location"
+            
+            jobs.append({
+                'company': organization,
+                'vacancy': title,
+                'apply_link': apply_link
+            })
+        
+        return pd.DataFrame(jobs)
+    
+    
     def get_data(self):
         methods = [
             self.parse_azercell,
@@ -4928,6 +4959,7 @@ class JobScraper:
             self.scrape_themuse_api,
             self.scrape_dejobs,
             self.scrape_hcb,
+            self.scrape_impactpool,
         ]
 
         results = []
