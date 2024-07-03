@@ -7,7 +7,7 @@ on:
     # - cron: '0 */16 * * *' # Runs every 16 hours
 
     # - cron: '*/1 * * * *' # Runs every minutes
-    - cron: '00 11,18 * * *'
+    - cron: '00 15,22 * * *'
 
 
 jobs:
