@@ -61,7 +61,7 @@ def display_data(data_placeholder, data):
 
 def main():
     hide_streamlit_style()
-    st.title("Job Search")
+    st.title("CareerHorizon")
 
     with st.form("search_form"):
         company = st.text_input("Company Name", key='company').strip()
