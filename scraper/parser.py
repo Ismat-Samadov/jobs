@@ -5228,29 +5228,30 @@ class JobScraper:
 
         return self.data
 
-
+    
     def save_to_db(self, df, batch_size=100):
         conn = psycopg2.connect(**self.db_params)
         cur = conn.cursor()
 
         insert_query = sql.SQL("""
-            INSERT INTO jobs_jobpost (title, description, company, location, posted_by_id, is_scraped, is_premium, premium_days, priority_level, posted_at, deleted)
+            INSERT INTO jobs_jobpost (title, description, company, location, posted_by_id, is_scraped, is_premium, premium_days, priority_level, posted_at, deleted, apply_link)
             VALUES %s
         """)
 
         data_tuples = [
             (
-                row['vacancy'][:100],
-                'Description not available',  
-                row['company'][:100], 
-                'Location not specified',  
-                20, 
+                row['vacancy'][:100],  # Truncate title to 100 characters
+                'Description not available',  # Update this if you have a description
+                row['company'][:100],  # Truncate company to 100 characters
+                'Location not specified',  # Update this if you have location info
+                20,  # Assuming 'JobScraper' user has ID 20; update as needed
                 True,
                 False,
                 0,
                 0,
                 datetime.now(),
-                False  # Default value for 'deleted'
+                False,  # Default value for 'deleted'
+                row['apply_link'][:200]  # Truncate apply_link to 200 characters
             )
             for _, row in df.iterrows()
         ]
