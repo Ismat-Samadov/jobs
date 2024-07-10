@@ -25,6 +25,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+import psycopg2 
+from psycopg2 import sql, extras 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,6 +40,7 @@ class JobScraper:
         self.email = None
         self.password = None
         self.load_credentials()
+        self.db_params = self.load_db_credentials()
 
     def load_credentials(self):
         load_dotenv()
@@ -46,7 +49,16 @@ class JobScraper:
         if not self.email or not self.password:
             logger.error("Email or password not set in environment variables.")
 
-        
+    def load_db_credentials(self):
+        load_dotenv()
+        return {
+            'dbname': os.getenv('DB_NAME'),
+            'user': os.getenv('DB_USER'),
+            'password': os.getenv('DB_PASSWORD'),
+            'host': os.getenv('DB_HOST'),
+            'port': os.getenv('DB_PORT')
+        }
+
     def fetch_url(self, url, headers=None, params=None, verify=True):
         try:
             response = requests.get(url, headers=headers, params=params, verify=verify)
@@ -55,7 +67,7 @@ class JobScraper:
         except requests.RequestException as e:
             logger.error(f"Request to {url} failed: {e}")
             return None
-        
+   
     def parse_azercell(self):
         logger.info("Started scraping Azercel")
         url = "https://www.azercell.com/az/about-us/career.html"
@@ -5217,8 +5229,40 @@ class JobScraper:
         return self.data
 
 
+    def save_to_db(self, df, batch_size=100):
+        conn = psycopg2.connect(**self.db_params)
+        cur = conn.cursor()
+
+        insert_query = sql.SQL("""
+            INSERT INTO jobs_jobpost (title, description, company, location, posted_by_id, is_scraped, is_premium, premium_days, priority_level, posted_at, deleted)
+            VALUES %s
+        """)
+
+        data_tuples = [
+            (
+                row['vacancy'][:100],
+                'Description not available',  
+                row['company'][:100], 
+                'Location not specified',  
+                20, 
+                True,
+                False,
+                0,
+                0,
+                datetime.now(),
+                False  # Default value for 'deleted'
+            )
+            for _, row in df.iterrows()
+        ]
+
+        # Execute batch insert
+        extras.execute_values(cur, insert_query, data_tuples, template=None, page_size=batch_size)
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
 def main():
-    # Conditional loading of dotenv for local development
     if os.environ.get('ENV') == 'development':
         load_dotenv()
 
@@ -5229,36 +5273,9 @@ def main():
         logger.warning("No data scraped to save to the database.")
         return
 
-    # Print data before saving
     logger.info(f"Data to be saved: {data}")
 
-    db_host = os.environ.get('DB_HOST')
-    db_port = os.environ.get('DB_PORT')
-    db_user = os.environ.get('DB_USER')
-    db_password = os.environ.get('DB_PASSWORD')
-    db_name = os.environ.get('DB_NAME')
-
-    # Build the database URL
-    db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-
-    # Create a database engine
-    db_engine = create_engine(db_url)
-
-    try:
-        table_name = 'jobs'
-        data.to_sql(name=table_name,
-                    con=db_engine,
-                    index=False,
-                    if_exists='append',
-                    dtype={"categories": types.JSON},
-                    )
-        logger.info("Data saved to the database.")
-    except SQLAlchemyError as e:
-        # Improved error handling: log the exception without stopping the program
-        logger.error(f"An error occurred while saving data to the database: {str(e)}")
-    finally:
-        db_engine.dispose()  # Ensure the connection is closed properly
-        logger.info("Database connection closed.")
+    job_scraper.save_to_db(data)
 
 if __name__ == "__main__":
     main()
