@@ -5244,7 +5244,7 @@ class JobScraper:
                 '',
                 row['company'][:500],  
                 '', 
-                16,  
+                1,  
                 True,
                 False,
                 0,
