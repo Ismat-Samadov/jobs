@@ -5240,18 +5240,18 @@ class JobScraper:
 
         data_tuples = [
             (
-                row['vacancy'][:100],  # Truncate title to 100 characters
-                'Description not available',  # Update this if you have a description
-                row['company'][:100],  # Truncate company to 100 characters
-                'Location not specified',  # Update this if you have location info
-                20,  # Assuming 'JobScraper' user has ID 20; update as needed
+                row['vacancy'][:500],  
+                '',
+                row['company'][:500],  
+                '', 
+                16,  
                 True,
                 False,
                 0,
                 0,
                 datetime.now(),
-                False,  # Default value for 'deleted'
-                row['apply_link'][:200]  # Truncate apply_link to 200 characters
+                False,  
+                row['apply_link'][:1000] 
             )
             for _, row in df.iterrows()
         ]
