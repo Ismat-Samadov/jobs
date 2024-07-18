@@ -5248,7 +5248,7 @@ class JobScraper:
                 True,
                 False,
                 0,
-                0,
+                99,
                 datetime.now(),
                 False,  
                 row['apply_link'][:1000] 
