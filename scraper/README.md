@@ -49,7 +49,8 @@ python main.py
 scraper/
 ├── sources/
 │   ├── __init__.py
-│   └── evv_az_scraper.py    # EVV.AZ scraper
+│   ├── evv_az_scraper.py    # EVV.AZ scraper
+│   └── villa_az_scraper.py  # Villa.AZ scraper
 ├── scripts/
 │   ├── init_db.py            # Database initialization
 │   └── schema.sql            # Database schema
@@ -152,7 +153,15 @@ Located at `../.github/workflows/scraper.yml` (in repository root) - automatical
   - Type 1: Sale listings
   - Type 2: Rent listings
   - Type 3: Daily rent listings
-- **Default behavior**: `--all-types` scrapes all 3 types, 3 pages each (9 pages total)
+- **Default behavior**: Scrapes all 3 types, 3 pages each (9 pages total)
+
+### Villa.AZ (Real Estate)
+- Website: https://villa.az
+- Type: Real estate listings (villas, land, apartments)
+- Location: Azerbaijan
+- Extraction: Phone numbers from listing detail pages
+- Pagination: Standard page numbers (page=1, 2, 3...)
+- **Default behavior**: Scrapes first 3 pages
 
 ## Error Handling
 
