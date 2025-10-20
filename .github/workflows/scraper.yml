@@ -24,13 +24,13 @@ jobs:
       - name: Initialize database (if needed)
         working-directory: scraper
         run: |
-          docker-compose --profile init run init-db || echo "Database already initialized"
+          docker compose --profile init run init-db || echo "Database already initialized"
 
       - name: Run scraper
         working-directory: scraper
-        run: docker-compose up scraper
+        run: docker compose up scraper
 
       - name: Cleanup
         if: always()
         working-directory: scraper
-        run: docker-compose down
+        run: docker compose down
