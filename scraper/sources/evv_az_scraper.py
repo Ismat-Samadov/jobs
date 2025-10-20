@@ -73,7 +73,8 @@ class EvvAzScraperAsync:
             start (int): Start page for multi-page scraping
             end (int): End page for multi-page scraping
             listing_type (int): Listing type (1=Sale, 2=Rent, 3=Daily)
-            all_types (bool): Scrape all 3 types, 3 pages each
+            all_types (bool): Scrape all 3 types
+            pages_per_type (int): Number of pages per type when all_types=True (default: 3)
         """
         start_time = datetime.now()
         print(f"Started at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -81,9 +82,10 @@ class EvvAzScraperAsync:
         # Handle all-types scraping
         if kwargs.get('all_types', False):
             total_stats = {'total': 0, 'success': 0, 'failed': 0, 'saved': 0}
+            pages_per_type = kwargs.get('pages_per_type', 3)
 
             for listing_type in [1, 2, 3]:
-                urls = self.build_urls(listing_type, 1, 3)
+                urls = self.build_urls(listing_type, 1, pages_per_type)
                 stats = await self.scrape_multiple_pages(urls)
 
                 # Aggregate stats

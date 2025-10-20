@@ -153,7 +153,7 @@ Located at `../.github/workflows/scraper.yml` (in repository root) - automatical
   - Type 1: Sale listings
   - Type 2: Rent listings
   - Type 3: Daily rent listings
-- **Default behavior**: Scrapes all 3 types, 3 pages each (9 pages total)
+- **Default behavior**: Scrapes all 3 types, 5 pages each (15 pages total)
 
 ### Villa.AZ (Real Estate)
 - Website: https://villa.az
@@ -161,7 +161,7 @@ Located at `../.github/workflows/scraper.yml` (in repository root) - automatical
 - Location: Azerbaijan
 - Extraction: Phone numbers from listing detail pages
 - Pagination: Standard page numbers (page=1, 2, 3...)
-- **Default behavior**: Scrapes first 3 pages
+- **Default behavior**: Scrapes first 5 pages
 
 ## Error Handling
 
