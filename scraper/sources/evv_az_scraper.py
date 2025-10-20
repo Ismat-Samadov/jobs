@@ -76,20 +76,13 @@ class EvvAzScraperAsync:
             all_types (bool): Scrape all 3 types, 3 pages each
         """
         start_time = datetime.now()
-        print(f"\n{'='*60}")
-        print(f"EVV.AZ Lead Scraper")
         print(f"Started at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"{'='*60}\n")
 
         # Handle all-types scraping
         if kwargs.get('all_types', False):
             total_stats = {'total': 0, 'success': 0, 'failed': 0, 'saved': 0}
 
             for listing_type in [1, 2, 3]:
-                print(f"\n{'─'*60}")
-                print(f"Scraping Type {listing_type}: {self.LISTING_TYPES[listing_type]} Listings (3 pages)")
-                print(f"{'─'*60}\n")
-
                 urls = self.build_urls(listing_type, 1, 3)
                 stats = await self.scrape_multiple_pages(urls)
 
@@ -98,8 +91,6 @@ class EvvAzScraperAsync:
                 total_stats['success'] += stats['success']
                 total_stats['failed'] += stats['failed']
                 total_stats['saved'] += stats['saved']
-
-                print(f"\nType {listing_type} Summary: {stats['saved']} leads saved")
 
             stats = total_stats
 
@@ -126,22 +117,7 @@ class EvvAzScraperAsync:
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
 
-        print("\n" + "="*60)
-        print("FINAL SCRAPING SUMMARY")
-        print("="*60)
-        if kwargs.get('all_types', False):
-            print("Types scraped: Sale, Rent, Daily (3 pages each)")
-        print(f"Total listings found: {stats['total']}")
-        if stats['total'] > 0:
-            print(f"Successfully extracted: {stats['success']} ({stats['success']/stats['total']*100:.1f}%)")
-        else:
-            print("Successfully extracted: 0")
-        print(f"Failed to extract: {stats['failed']}")
-        print(f"Saved to database: {stats['saved']}")
-        print(f"Time taken: {duration:.2f} seconds")
-        if stats['total'] > 0:
-            print(f"Speed: {stats['total']/duration:.2f} listings/second")
-        print("="*60)
+        print(f"\nCompleted in {duration:.2f}s | Found: {stats['total']} | Saved: {stats['saved']} | Failed: {stats['failed']}")
 
         return stats
 
@@ -206,7 +182,7 @@ class EvvAzScraperAsync:
             return None
 
         except Exception as e:
-            print(f"✗ Error fetching phone for listing {listing_id}: {e}")
+            print(f"Error fetching phone number: {e}")
             return None
 
     def save_to_database(self, phone_number: str, source_url: str) -> bool:
@@ -250,15 +226,13 @@ class EvvAzScraperAsync:
                     time.sleep(retry_delay)
                     continue
                 else:
-                    print(f"✗ Error saving to database after {max_retries} attempts: {e}")
+                    print(f"Database error after {max_retries} attempts: {e}")
                     return False
 
         return False
 
     async def process_listing(self, session: aiohttp.ClientSession, listing: Dict[str, str], idx: int, total: int) -> Dict[str, any]:
         """Process a single listing"""
-        print(f"[{idx}/{total}] Processing listing {listing['id']}...")
-
         result = {
             'id': listing['id'],
             'url': listing['url'],
@@ -271,28 +245,20 @@ class EvvAzScraperAsync:
         phone = await self.get_phone_number(session, listing['id'], listing['url'])
 
         if phone:
-            print(f"  ✓ Phone: {phone}")
             result['phone'] = phone
             result['success'] = True
 
             # Save to database (sync operation)
             if self.save_to_database(phone, listing['url']):
-                print(f"  ✓ Saved to database")
                 result['saved'] = True
-            else:
-                print(f"  ✗ Failed to save to database")
-        else:
-            print(f"  ✗ Could not fetch phone number")
+        # Don't log individual failures - only exceptions
 
         return result
 
     async def scrape_listings(self, html_content: str) -> Dict[str, int]:
         """Main scraping function with async processing"""
-        print("Starting evv.az async scraper...")
-
         # Extract listing URLs
         listings = self.extract_listing_urls(html_content)
-        print(f"✓ Found {len(listings)} listings")
 
         stats = {
             'total': len(listings),
@@ -319,6 +285,7 @@ class EvvAzScraperAsync:
             for result in results:
                 if isinstance(result, Exception):
                     stats['failed'] += 1
+                    print(f"Exception during processing: {result}")
                 elif isinstance(result, dict):
                     if result['success']:
                         stats['success'] += 1
@@ -333,27 +300,21 @@ class EvvAzScraperAsync:
     async def scrape_from_url(self, url: str) -> Dict[str, int]:
         """Scrape listings from a URL"""
         try:
-            print(f"Fetching listings from: {url}")
-
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
                     if response.status == 200:
-                        print("✓ Successfully fetched page")
-                        # Use aiohttp's text() method which handles encoding automatically
                         html_content = await response.text(encoding='utf-8', errors='ignore')
                         return await self.scrape_listings(html_content)
                     else:
-                        print(f"✗ Failed to fetch page: {response.status}")
+                        print(f"Failed to fetch page (HTTP {response.status}): {url}")
                         return {'total': 0, 'success': 0, 'failed': 0, 'saved': 0}
 
         except Exception as e:
-            print(f"✗ Error fetching URL: {e}")
+            print(f"Error fetching URL: {e}")
             return {'total': 0, 'success': 0, 'failed': 0, 'saved': 0}
 
     async def scrape_multiple_pages(self, urls: List[str]) -> Dict[str, int]:
         """Scrape multiple pages concurrently"""
-        print(f"Scraping {len(urls)} pages concurrently...")
-
         total_stats = {
             'total': 0,
             'success': 0,
