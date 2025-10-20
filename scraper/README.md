@@ -138,7 +138,7 @@ The scraper can run automatically via GitHub Actions:
 
 ### Workflow File
 
-Located at `.github/workflows/scraper.yml` - automatically runs the scraper daily.
+Located at `../.github/workflows/scraper.yml` (in repository root) - automatically runs the scraper daily.
 
 ## Current Sources
 
