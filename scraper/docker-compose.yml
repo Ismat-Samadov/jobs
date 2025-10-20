@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  scraper:
+    build: .
+    container_name: lead_scraper
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python main.py
+    volumes:
+      - ./sources:/app/sources:ro
+      - ./logs:/app/logs
+    restart: "no"
+    network_mode: bridge
+
+  # One-off command to initialize database
+  init-db:
+    build: .
+    container_name: lead_scraper_init_db
+    env_file:
+      - .env
+    command: python scripts/init_db.py
+    profiles:
+      - init
+    network_mode: bridge
