@@ -1,2 +1,4 @@
 phone
-
+.env
+.claude
+scraper/__pycache__
