@@ -45,6 +45,10 @@ python main.py
   - Valid prefixes: 10, 50, 51, 55, 60, 70, 77, 99
   - 3rd digit cannot be 0 or 1
   - Unique constraint (no duplicates)
+- **Telegram notifications**: Automatic reports sent to Telegram channel after each scraping operation
+  - Detailed statistics (total, extracted, saved, failed)
+  - Performance metrics (duration, speed)
+  - Success rate indicators
 - **Database storage**: Saves leads to PostgreSQL with duplicate prevention
 - **Docker support**: One-command deployment
 - **Rate limiting**: Configurable concurrent request limits
@@ -61,7 +65,8 @@ scraper/
 ├── scripts/
 │   ├── init_db.py            # Database initialization
 │   ├── schema.sql            # Database schema
-│   └── validator.py          # Phone number validation
+│   ├── validator.py          # Phone number validation
+│   └── telegram.py           # Telegram notifications
 ├── main.py                   # Main entry point
 ├── requirements.txt          # Python dependencies
 ├── Dockerfile                # Docker image definition
@@ -165,8 +170,86 @@ __all__ = ['EvvAzScraperAsync', 'NewSiteScraperAsync']
 ## Environment Variables
 
 ```bash
-DATABASE_URL=postgresql://user:password@host:port/database  # Required
-PYTHONUNBUFFERED=1                                          # For Docker logs
+# Required
+DATABASE_URL=postgresql://user:password@host:port/database
+
+# Optional - Telegram Notifications
+TELEGRAM_BOT_TOKEN=your_bot_token_here    # Get from @BotFather
+TELEGRAM_CHAT_ID=your_chat_id_here        # Get from @userinfobot
+
+# Optional - Docker
+PYTHONUNBUFFERED=1                        # For Docker logs
+```
+
+## Telegram Notifications Setup
+
+To receive automated reports after each scraping operation:
+
+### 1. Create a Telegram Bot
+
+1. Open Telegram and search for `@BotFather`
+2. Send `/newbot` command
+3. Follow the instructions to create your bot
+4. Copy the **Bot Token** (looks like: `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`)
+
+### 2. Get Your Chat ID
+
+**For personal notifications:**
+1. Search for `@userinfobot` on Telegram
+2. Send `/start`
+3. Copy your **Chat ID** (numeric ID)
+
+**For channel notifications:**
+1. Add your bot to your channel as an administrator
+2. Send a message to your channel
+3. Visit: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+4. Find your channel's Chat ID in the response (looks like: `-100123456789`)
+
+### 3. Configure Environment Variables
+
+Add to your `.env` file:
+```bash
+TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
+TELEGRAM_CHAT_ID=123456789
+```
+
+### 4. Test Notification
+
+```bash
+python scripts/telegram.py
+```
+
+### Notification Format
+
+After each scraping run, you'll receive a detailed report including:
+- 📊 **Statistics**: Total listings, phones extracted, new saved, duplicates, failed
+- ⏱ **Performance**: Start time, duration, processing speed
+- 🎯 **Status**: Success indicator based on extraction rate
+- 📍 **By Source**: Individual metrics for each scraper (EVV.AZ, Villa.AZ)
+
+**Example Notification:**
+```
+✅ Multi-Source Scraping Report
+
+📊 Overall Statistics
+━━━━━━━━━━━━━━━━━━
+📋 Total Listings: 480
+📱 Phones Extracted: 420 (87.5%)
+💾 New Saved: 156 (37.1%)
+🔄 Duplicates/Invalid: 264
+❌ Failed: 60
+
+📍 By Source
+━━━━━━━━━━━━━━━━━━
+✅ EVV.AZ: 360/360 (100.0%) | Saved: 132
+⚠️ Villa.AZ: 60/120 (50.0%) | Saved: 24
+
+⏱ Performance
+━━━━━━━━━━━━━━━━━━
+⏳ Total Duration: 125.45s
+⚡ Overall Speed: 3.8 listings/sec
+
+🎯 Status: Excellent
 ```
 
 ## GitHub Actions Automation

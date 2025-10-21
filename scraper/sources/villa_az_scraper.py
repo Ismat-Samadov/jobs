@@ -67,6 +67,10 @@ class VillaAzScraperAsync:
 
         print(f"\nCompleted in {duration:.2f}s | Found: {stats['total']} | Saved: {stats['saved']} | Failed: {stats['failed']}")
 
+        # Add timing info to stats for main.py to use
+        stats['duration'] = duration
+        stats['start_time'] = start_time
+
         return stats
 
     def extract_listing_urls(self, html_content: str) -> List[Dict[str, str]]:
