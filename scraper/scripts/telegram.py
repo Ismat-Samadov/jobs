@@ -3,12 +3,19 @@ Telegram notification module for scraper results
 """
 import aiohttp
 import os
+import sys
 from typing import Dict, Optional
 from datetime import datetime
+from pathlib import Path
+
+# Load .env from parent directory (scraper/)
+from dotenv import load_dotenv
+env_path = Path(__file__).parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 
 class TelegramNotifier:
-    """Send scraping reports to Telegram channel"""
+    """Send scraping reports to Telegram channel(s)"""
 
     def __init__(self, bot_token: Optional[str] = None, chat_id: Optional[str] = None):
         """
@@ -16,50 +23,68 @@ class TelegramNotifier:
 
         Args:
             bot_token: Telegram Bot API token
-            chat_id: Telegram chat/channel ID
+            chat_id: Telegram chat/channel ID(s) - can be comma-separated for multiple recipients
         """
         self.bot_token = bot_token or os.getenv('TELEGRAM_BOT_TOKEN')
-        self.chat_id = chat_id or os.getenv('TELEGRAM_CHAT_ID')
+        chat_id_str = chat_id or os.getenv('TELEGRAM_CHAT_ID')
+
+        # Support multiple chat IDs (comma-separated)
+        if chat_id_str:
+            self.chat_ids = [cid.strip() for cid in chat_id_str.split(',') if cid.strip()]
+        else:
+            self.chat_ids = []
+
         self.api_url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
 
     def is_configured(self) -> bool:
         """Check if Telegram is properly configured"""
-        return bool(self.bot_token and self.chat_id)
+        return bool(self.bot_token and self.chat_ids)
 
     async def send_message(self, message: str, parse_mode: str = "HTML") -> bool:
         """
-        Send message to Telegram
+        Send message to Telegram (to all configured chat IDs)
 
         Args:
             message: Message text to send
             parse_mode: Message formatting (HTML or Markdown)
 
         Returns:
-            True if sent successfully, False otherwise
+            True if sent successfully to at least one chat, False otherwise
         """
         if not self.is_configured():
             print("Telegram not configured - skipping notification")
             return False
 
-        try:
-            payload = {
-                'chat_id': self.chat_id,
-                'text': message,
-                'parse_mode': parse_mode
-            }
+        success_count = 0
+        total_chats = len(self.chat_ids)
 
+        try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(self.api_url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                    if response.status == 200:
-                        return True
-                    else:
-                        error_text = await response.text()
-                        print(f"Telegram API error (HTTP {response.status}): {error_text}")
-                        return False
+                for chat_id in self.chat_ids:
+                    try:
+                        payload = {
+                            'chat_id': chat_id,
+                            'text': message,
+                            'parse_mode': parse_mode
+                        }
+
+                        async with session.post(self.api_url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                            if response.status == 200:
+                                success_count += 1
+                                print(f"✓ Sent to chat {chat_id}")
+                            else:
+                                error_text = await response.text()
+                                print(f"✗ Failed to send to chat {chat_id} (HTTP {response.status}): {error_text}")
+
+                    except Exception as e:
+                        print(f"✗ Error sending to chat {chat_id}: {e}")
 
         except Exception as e:
-            print(f"Failed to send Telegram notification: {e}")
+            print(f"Failed to send Telegram notifications: {e}")
             return False
+
+        print(f"Telegram: {success_count}/{total_chats} messages sent successfully")
+        return success_count > 0
 
     async def send_scraper_report(self, source: str, stats: Dict[str, int], duration: float, start_time: datetime) -> bool:
         """
