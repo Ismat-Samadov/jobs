@@ -11,12 +11,16 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-export default pool;
-
-// Test connection
-pool.on('connect', () => {
-  console.log('✓ Database connected successfully');
+// Set search path to leads schema
+pool.on('connect', (client) => {
+  client.query('SET search_path TO leads, public', (err) => {
+    if (err) {
+      console.error('Error setting search_path:', err);
+    }
+  });
 });
+
+export default pool;
 
 pool.on('error', (err) => {
   console.error('❌ Unexpected database error:', err);
