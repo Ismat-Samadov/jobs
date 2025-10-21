@@ -10,6 +10,7 @@ import sys
 from typing import List, Dict, Optional
 from datetime import datetime
 import time
+import json
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -198,7 +199,141 @@ class EvvAzScraperAsync:
             print(f"Error fetching phone: {listing_url} - {e}")
             return None
 
-    def save_to_database(self, phone_number: str, source_url: str) -> bool:
+    async def fetch_listing_details(self, session: aiohttp.ClientSession, listing_url: str) -> Optional[Dict]:
+        """Fetch and parse the full listing page to extract all details"""
+        try:
+            async with session.get(listing_url, headers=self.headers, timeout=aiohttp.ClientTimeout(total=15)) as response:
+                if response.status != 200:
+                    print(f"Failed to fetch listing page (HTTP {response.status}): {listing_url}")
+                    return None
+
+                html_content = await response.text(encoding='utf-8', errors='ignore')
+                soup = BeautifulSoup(html_content, 'lxml')
+
+                # Initialize full_data structure
+                full_data = {
+                    "listing_type": "real_estate",
+                    "title": None,
+                    "price": {},
+                    "property_details": {},
+                    "description": None,
+                    "seller": {},
+                    "listing_info": {},
+                    "images": [],
+                    "price_comparison": {}
+                }
+
+                # Extract title
+                title_elem = soup.find('h1', class_='prop_title')
+                if title_elem:
+                    full_data['title'] = title_elem.get_text(strip=True)
+
+                # Extract price information
+                price_elem = soup.find('div', class_='price')
+                if price_elem:
+                    price_text = price_elem.get_text(strip=True)
+                    # Parse price (e.g., "98 000 AZN")
+                    price_match = re.search(r'([\d\s]+)\s*([A-Z]+)', price_text)
+                    if price_match:
+                        amount_str = price_match.group(1).replace(' ', '').replace('\xa0', '')
+                        full_data['price']['amount'] = int(amount_str) if amount_str.isdigit() else None
+                        full_data['price']['currency'] = price_match.group(2)
+
+                # Extract price per sqm
+                price_per_sqm_elem = soup.find('div', class_='square')
+                if price_per_sqm_elem:
+                    price_per_sqm_text = price_per_sqm_elem.get_text(strip=True)
+                    # Parse "1 531 AZN/m²"
+                    price_per_sqm_match = re.search(r'([\d\s]+)', price_per_sqm_text)
+                    if price_per_sqm_match:
+                        per_sqm_str = price_per_sqm_match.group(1).replace(' ', '').replace('\xa0', '')
+                        full_data['price']['price_per_sqm'] = int(per_sqm_str) if per_sqm_str.isdigit() else None
+
+                # Extract property details - EVV.AZ uses divs with float-start/float-end spans
+                # Find all divs that contain property details
+                for div in soup.find_all('div'):
+                    # Look for divs with float-start and float-end spans
+                    label_span = div.find('span', class_='float-start')
+                    value_span = div.find('span', class_='float-end')
+
+                    if label_span and value_span:
+                        label = label_span.get_text(strip=True)
+                        value = value_span.get_text(strip=True)
+
+                        # Map Azerbaijani field names to English keys
+                        field_mapping = {
+                            'Şəhər': 'city',
+                            'Bina': 'property_type',
+                            'Ünvan': 'location',
+                            'Sənədi': 'document',
+                            'Mərtəbə': 'floor',
+                            'Sahəsi': 'area',
+                            'Otaq sayı': 'rooms',
+                            'İpoteka': 'mortgage'
+                        }
+
+                        english_key = field_mapping.get(label)
+                        if english_key:
+                            full_data['property_details'][english_key] = value
+
+                # Extract rooms from title if not in details
+                if 'rooms' not in full_data['property_details'] and full_data['title']:
+                    rooms_match = re.search(r'(\d+)\s*otaq', full_data['title'], re.IGNORECASE)
+                    if rooms_match:
+                        full_data['property_details']['rooms'] = int(rooms_match.group(1))
+
+                # Extract description from blockquote
+                description_elem = soup.find('blockquote', class_='mt-3')
+                if description_elem:
+                    # Remove script tags and get clean text
+                    for script in description_elem.find_all('script'):
+                        script.decompose()
+                    full_data['description'] = description_elem.get_text(strip=True)
+
+                # Extract seller information
+                seller_name_elem = soup.find('h5')  # Seller name is in h5
+                if seller_name_elem:
+                    full_data['seller']['name'] = seller_name_elem.get_text(strip=True)
+
+                seller_type_elem = soup.find('p', class_='text-muted')
+                if seller_type_elem:
+                    small_tag = seller_type_elem.find('small')
+                    if small_tag:
+                        full_data['seller']['type'] = small_tag.get_text(strip=True)
+
+                # Extract listing ID from URL
+                # URL format: /3-otaqli-menzil-yeni-tikili-satilir-xirdalan-51945
+                listing_id_match = re.search(r'-(\d+)$', listing_url)
+                if listing_id_match:
+                    full_data['listing_info']['ad_id'] = listing_id_match.group(1)
+
+                # Extract images from gallery
+                # Images are in <a class="estate_thumb_item" data-fancybox="gallery" href="...">
+                image_links = soup.find_all('a', {'data-fancybox': 'gallery'})
+                for link in image_links:
+                    href = link.get('href')
+                    if href and '/uploads/' in href:
+                        # Make sure URL is absolute
+                        if href.startswith('//'):
+                            href = 'https:' + href
+                        elif href.startswith('/'):
+                            href = self.base_url + href
+                        full_data['images'].append(href)
+
+                # Extract price comparison data if available
+                price_comparison_elem = soup.find('div', class_='price-comparison')
+                if price_comparison_elem:
+                    avg_price_elem = price_comparison_elem.find('span', class_='avg-price')
+                    if avg_price_elem:
+                        full_data['price_comparison']['average_price'] = avg_price_elem.get_text(strip=True)
+
+                return full_data
+
+        except Exception as e:
+            print(f"Error fetching listing details: {listing_url} - {e}")
+            return None
+
+    def save_to_database(self, phone_number: str, source_url: str, full_data: Optional[Dict] = None) -> bool:
         """
         Save lead to database with validation and connection pooling
 
@@ -208,6 +343,11 @@ class EvvAzScraperAsync:
         - First 2 digits: 10, 50, 51, 55, 60, 70, 77, 99
         - 3rd digit cannot be 0 or 1
         - Must be unique (handled by DB constraint)
+
+        Args:
+            phone_number: Phone number to save
+            source_url: URL of the listing
+            full_data: Complete listing data as JSON/dict
         """
         # Validate phone number before attempting to save
         validated_phone = PhoneValidator.validate_phone(phone_number)
@@ -226,16 +366,21 @@ class EvvAzScraperAsync:
                 conn = self.db_pool.getconn()
                 cur = conn.cursor()
 
-                # Insert lead (ignore duplicates by phone number)
+                # Insert lead with full_data (ignore duplicates by phone number)
                 query = """
-                    INSERT INTO leads.leads (phone_number, website, source)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO leads.leads (phone_number, website, source, full_data)
+                    VALUES (%s, %s, %s, %s)
                     ON CONFLICT (phone_number)
-                    DO NOTHING
+                    DO UPDATE SET
+                        full_data = EXCLUDED.full_data,
+                        source = EXCLUDED.source
                     RETURNING id
                 """
 
-                cur.execute(query, (validated_phone, 'evv.az', source_url))
+                # Convert full_data dict to JSON string
+                full_data_json = json.dumps(full_data) if full_data else None
+
+                cur.execute(query, (validated_phone, 'evv.az', source_url, full_data_json))
                 conn.commit()
 
                 result = cur.fetchone()
@@ -261,7 +406,7 @@ class EvvAzScraperAsync:
         return False
 
     async def process_listing(self, session: aiohttp.ClientSession, listing: Dict[str, str], idx: int, total: int) -> Dict[str, any]:
-        """Process a single listing"""
+        """Process a single listing - fetch phone number and full listing details"""
         result = {
             'id': listing['id'],
             'url': listing['url'],
@@ -270,15 +415,18 @@ class EvvAzScraperAsync:
             'saved': False
         }
 
-        # Fetch phone number
-        phone = await self.get_phone_number(session, listing['id'], listing['url'])
+        # Fetch phone number and listing details in parallel
+        phone_task = self.get_phone_number(session, listing['id'], listing['url'])
+        details_task = self.fetch_listing_details(session, listing['url'])
+
+        phone, full_data = await asyncio.gather(phone_task, details_task)
 
         if phone:
             result['phone'] = phone
             result['success'] = True
 
-            # Save to database (sync operation)
-            if self.save_to_database(phone, listing['url']):
+            # Save to database with full_data (sync operation)
+            if self.save_to_database(phone, listing['url'], full_data):
                 result['saved'] = True
         # Don't log individual failures - only exceptions
 
