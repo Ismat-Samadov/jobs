@@ -161,9 +161,11 @@ Located at `../.github/workflows/scraper.yml` (in repository root) - automatical
 - Website: https://villa.az
 - Type: Real estate listings (villas, land, apartments)
 - Location: Azerbaijan
-- Extraction: Phone numbers from listing detail pages
+- Extraction: Phone numbers from listing detail pages (supports multiple formats)
 - Pagination: Standard page numbers (page=1, 2, 3...)
 - **Default behavior**: Scrapes first 5 pages
+- **Concurrency**: 3 concurrent requests (optimized to avoid rate limiting)
+- **Success rate**: ~80% extraction success
 
 ## Error Handling
 

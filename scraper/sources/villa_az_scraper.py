@@ -90,34 +90,37 @@ class VillaAzScraperAsync:
             async with session.get(
                 listing_url,
                 headers=self.headers,
-                timeout=aiohttp.ClientTimeout(total=10)
+                timeout=aiohttp.ClientTimeout(total=15)
             ) as response:
                 if response.status == 200:
                     text = await response.text(encoding='utf-8', errors='ignore')
 
                     # Parse the phone numbers from response
                     soup = BeautifulSoup(text, 'lxml')
-                    phone_list = soup.find('ul', class_='elan-single-owner-phon-list')
 
-                    if not phone_list:
-                        return []
+                    # Find all phone links (tel: links with +994 country code)
+                    # Handle both formats: tel:+994XXXXXXXXX and tel:(+994) XX XXX XX XX
+                    phone_links = soup.find_all('a', href=re.compile(r'tel:.*\+994'))
 
                     phones = []
-                    phone_links = phone_list.find_all('a', href=re.compile(r'tel:\+994'))
-
                     for phone_link in phone_links:
-                        # Extract phone from href attribute (tel:+994506271539)
-                        phone_full = phone_link.get('href').replace('tel:+994', '')
+                        href = phone_link.get('href', '')
 
-                        # Skip if undefined or invalid
-                        if 'undefined' in phone_full or len(phone_full) < 9:
-                            continue
+                        # Extract all digits from the phone number
+                        # This handles both tel:+994558688686 and tel:(+994) 55 868 86 86
+                        digits_only = re.sub(r'\D', '', href)
 
-                        # Get last 9 digits only
-                        phone_formatted = phone_full[-9:]
+                        # Remove country code (994) to get the 9-digit number
+                        if digits_only.startswith('994') and len(digits_only) >= 12:
+                            phone_formatted = digits_only[3:]  # Remove '994' prefix
 
-                        if phone_formatted and phone_formatted not in phones:
-                            phones.append(phone_formatted)
+                            # Get last 9 digits only
+                            phone_formatted = phone_formatted[-9:]
+
+                            # Skip if undefined or invalid
+                            if len(phone_formatted) == 9 and phone_formatted.isdigit():
+                                if phone_formatted not in phones:
+                                    phones.append(phone_formatted)
 
                     return phones
                 else:

@@ -16,7 +16,8 @@ async def main():
         evv_scraper.close()
 
     # Villa.AZ Scraper - scrape first 5 pages
-    villa_scraper = VillaAzScraperAsync(max_concurrent=15)
+    # Use lower concurrency (3) to avoid rate limiting
+    villa_scraper = VillaAzScraperAsync(max_concurrent=3)
 
     try:
         await villa_scraper.scrape(pages=5)
