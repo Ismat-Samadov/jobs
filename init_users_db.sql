@@ -19,7 +19,7 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON leads.users(role);
 -- Password hash for 'admin123' using bcrypt
 INSERT INTO leads.users (username, password_hash, role, is_active)
 VALUES ('admin', '$2b$12$oaFdidvqh03o1BC3o86.dOpQpFFSURY5ZHfKlfXVf7S5i8Jolbuk.', 'admin', TRUE)
-ON CONFLICT (username) DO NOTHING;
+ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
 -- Sessions table for NextAuth
 CREATE TABLE IF NOT EXISTS leads.sessions (
