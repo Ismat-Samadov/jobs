@@ -27,14 +27,16 @@ export default function LoginPage() {
 
       if (result?.error) {
         setError(result.error);
+        setLoading(false);
       } else if (result?.ok) {
-        // Force a hard redirect to trigger middleware
-        window.location.href = '/admin';
+        // Wait a bit for the session cookie to be set, then redirect
+        setTimeout(() => {
+          window.location.href = '/admin';
+        }, 500);
       }
     } catch (err) {
       console.error('Login error:', err);
       setError('An unexpected error occurred');
-    } finally {
       setLoading(false);
     }
   };
