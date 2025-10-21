@@ -22,33 +22,29 @@ export async function GET(request: NextRequest) {
     // Get various statistics
     const [totalLeads, leadsToday, leadsThisWeek, leadsThisMonth] = await Promise.all([
       pool.query('SELECT COUNT(*) as count FROM leads.leads'),
-      pool.query('SELECT COUNT(*) as count FROM leads.leads WHERE scraped_at::date = CURRENT_DATE'),
-      pool.query('SELECT COUNT(*) as count FROM leads.leads WHERE scraped_at >= CURRENT_DATE - INTERVAL \'7 days\''),
-      pool.query('SELECT COUNT(*) as count FROM leads.leads WHERE scraped_at >= CURRENT_DATE - INTERVAL \'30 days\''),
+      pool.query('SELECT COUNT(*) as count FROM leads.leads WHERE created_at::date = CURRENT_DATE'),
+      pool.query('SELECT COUNT(*) as count FROM leads.leads WHERE created_at >= CURRENT_DATE - INTERVAL \'7 days\''),
+      pool.query('SELECT COUNT(*) as count FROM leads.leads WHERE created_at >= CURRENT_DATE - INTERVAL \'30 days\''),
     ]);
 
     // Get leads by source
     const leadsBySource = await pool.query(`
       SELECT
-        CASE
-          WHEN source_url LIKE '%evv.az%' THEN 'EVV.AZ'
-          WHEN source_url LIKE '%villa.az%' THEN 'Villa.AZ'
-          ELSE 'Other'
-        END as source,
+        website as source,
         COUNT(*) as count
       FROM leads.leads
-      GROUP BY source
+      GROUP BY website
       ORDER BY count DESC
     `);
 
     // Get recent scraping activity (last 7 days)
     const recentActivity = await pool.query(`
       SELECT
-        DATE(scraped_at) as date,
+        DATE(created_at) as date,
         COUNT(*) as count
       FROM leads.leads
-      WHERE scraped_at >= CURRENT_DATE - INTERVAL '7 days'
-      GROUP BY DATE(scraped_at)
+      WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
+      GROUP BY DATE(created_at)
       ORDER BY date DESC
     `);
 

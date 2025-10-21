@@ -6,8 +6,9 @@ import { useSession } from 'next-auth/react';
 interface Lead {
   id: number;
   phone_number: string;
-  source_url: string;
-  scraped_at: string;
+  website: string;
+  source: string;
+  created_at: string;
 }
 
 interface Stats {
@@ -212,10 +213,13 @@ export default function DashboardPage() {
                     Phone Number
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Website
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Source URL
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Scraped At
+                    Created At
                   </th>
                 </tr>
               </thead>
@@ -228,18 +232,21 @@ export default function DashboardPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {lead.phone_number}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {lead.website}
+                    </td>
                     <td className="px-6 py-4 text-sm text-blue-600 hover:text-blue-800">
                       <a
-                        href={lead.source_url}
+                        href={lead.source}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="truncate block max-w-md"
                       >
-                        {lead.source_url}
+                        {lead.source}
                       </a>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(lead.scraped_at).toLocaleString()}
+                      {new Date(lead.created_at).toLocaleString()}
                     </td>
                   </tr>
                 ))}

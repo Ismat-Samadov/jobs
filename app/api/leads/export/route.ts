@@ -25,18 +25,20 @@ export async function GET(request: NextRequest) {
       SELECT
         id,
         phone_number,
-        source_url,
-        scraped_at
+        website,
+        source,
+        created_at
       FROM leads.leads
-      ORDER BY scraped_at DESC
+      ORDER BY created_at DESC
     `);
 
     // Format data for Excel
     const data = result.rows.map(row => ({
       'ID': row.id,
       'Phone Number': row.phone_number,
-      'Source URL': row.source_url,
-      'Scraped At': new Date(row.scraped_at).toLocaleString(),
+      'Website': row.website,
+      'Source URL': row.source,
+      'Created At': new Date(row.created_at).toLocaleString(),
     }));
 
     // Create workbook and worksheet
@@ -47,8 +49,9 @@ export async function GET(request: NextRequest) {
     worksheet['!cols'] = [
       { wch: 8 },   // ID
       { wch: 15 },  // Phone Number
+      { wch: 15 },  // Website
       { wch: 50 },  // Source URL
-      { wch: 20 },  // Scraped At
+      { wch: 20 },  // Created At
     ];
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
