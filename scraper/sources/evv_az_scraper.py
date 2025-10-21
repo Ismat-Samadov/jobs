@@ -258,18 +258,24 @@ class EvvAzScraperAsync:
 
                     if label_span and value_span:
                         label = label_span.get_text(strip=True)
-                        value = value_span.get_text(strip=True)
+                        # Get value - it might be in an <a> tag or directly in the span
+                        value_link = value_span.find('a')
+                        if value_link:
+                            value = value_link.get_text(strip=True)
+                        else:
+                            value = value_span.get_text(strip=True)
 
                         # Map Azerbaijani field names to English keys
                         field_mapping = {
                             'Şəhər': 'city',
-                            'Bina': 'property_type',
+                            'Mülkün növü': 'property_type',
                             'Ünvan': 'location',
                             'Sənədi': 'document',
                             'Mərtəbə': 'floor',
                             'Sahəsi': 'area',
                             'Otaq sayı': 'rooms',
-                            'İpoteka': 'mortgage'
+                            'İpoteka': 'mortgage',
+                            'Təmir': 'repair'
                         }
 
                         english_key = field_mapping.get(label)
