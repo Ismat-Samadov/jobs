@@ -23,15 +23,16 @@ export default function LoginPage() {
         redirect: false,
       });
 
+      console.log('Sign in result:', result);
+
       if (result?.error) {
         setError(result.error);
-      } else {
-        // Let middleware handle the redirect based on user role
-        // This will redirect admins to /admin and regular users to /dashboard
-        router.push('/login');
-        router.refresh();
+      } else if (result?.ok) {
+        // Force a hard redirect to trigger middleware
+        window.location.href = '/admin';
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);

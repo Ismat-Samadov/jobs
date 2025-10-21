@@ -37,7 +37,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
  */
 export async function getUserByUsername(username: string): Promise<UserWithPassword | null> {
   const result = await pool.query(
-    'SELECT id, username, password_hash, role, created_at, last_login, is_active FROM users WHERE username = $1',
+    'SELECT id, username, password_hash, role, created_at, last_login, is_active FROM leads.users WHERE username = $1',
     [username]
   );
 
@@ -53,7 +53,7 @@ export async function getUserByUsername(username: string): Promise<UserWithPassw
  */
 export async function getUserById(id: number): Promise<User | null> {
   const result = await pool.query(
-    'SELECT id, username, role, created_at, last_login, is_active FROM users WHERE id = $1',
+    'SELECT id, username, role, created_at, last_login, is_active FROM leads.users WHERE id = $1',
     [id]
   );
 
@@ -69,7 +69,7 @@ export async function getUserById(id: number): Promise<User | null> {
  */
 export async function updateLastLogin(userId: number): Promise<void> {
   await pool.query(
-    'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
+    'UPDATE leads.users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
     [userId]
   );
 }
@@ -86,7 +86,7 @@ export async function createUser(
   const passwordHash = await hashPassword(password);
 
   const result = await pool.query(
-    `INSERT INTO users (username, password_hash, role, created_by, is_active)
+    `INSERT INTO leads.users (username, password_hash, role, created_by, is_active)
      VALUES ($1, $2, $3, $4, TRUE)
      RETURNING id, username, role, created_at, is_active`,
     [username, passwordHash, role, createdBy]
@@ -101,7 +101,7 @@ export async function createUser(
 export async function getAllUsers(): Promise<User[]> {
   const result = await pool.query(
     `SELECT id, username, role, created_at, last_login, is_active
-     FROM users
+     FROM leads.users
      ORDER BY created_at DESC`
   );
 
@@ -146,7 +146,7 @@ export async function updateUser(
   values.push(id);
 
   const result = await pool.query(
-    `UPDATE users
+    `UPDATE leads.users
      SET ${setClauses.join(', ')}
      WHERE id = $${paramIndex}
      RETURNING id, username, role, created_at, last_login, is_active`,
@@ -164,7 +164,7 @@ export async function updateUser(
  * Delete user
  */
 export async function deleteUser(id: number): Promise<void> {
-  const result = await pool.query('DELETE FROM users WHERE id = $1 AND role != $2', [id, 'admin']);
+  const result = await pool.query('DELETE FROM leads.users WHERE id = $1 AND role != $2', [id, 'admin']);
 
   if (result.rowCount === 0) {
     throw new Error('User not found or cannot delete admin');

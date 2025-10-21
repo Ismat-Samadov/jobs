@@ -10,10 +10,8 @@ export const metadata: Metadata = {
   keywords: ["lead generator", "real estate", "CRM", "leads management"],
   authors: [{ name: "Lead Generator Team" }],
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
-    ],
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
   manifest: '/manifest.json',
   themeColor: '#2563eb',
