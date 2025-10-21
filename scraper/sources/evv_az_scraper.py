@@ -6,9 +6,14 @@ from psycopg2 import pool
 from dotenv import load_dotenv
 import os
 import re
+import sys
 from typing import List, Dict, Optional
 from datetime import datetime
 import time
+
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scripts.validator import PhoneValidator
 
 # Load environment variables
 load_dotenv()
@@ -190,7 +195,23 @@ class EvvAzScraperAsync:
             return None
 
     def save_to_database(self, phone_number: str, source_url: str) -> bool:
-        """Save lead to database with connection pooling and retry logic"""
+        """
+        Save lead to database with validation and connection pooling
+
+        Validates phone number before insertion:
+        - Only numeric digits
+        - Exactly 9 digits (last 9)
+        - First 2 digits: 10, 50, 51, 55, 60, 70, 77, 99
+        - 3rd digit cannot be 0 or 1
+        - Must be unique (handled by DB constraint)
+        """
+        # Validate phone number before attempting to save
+        validated_phone = PhoneValidator.validate_phone(phone_number)
+
+        if not validated_phone:
+            # Phone number failed validation - do not insert
+            return False
+
         max_retries = 3
         retry_delay = 1  # seconds
 
@@ -210,7 +231,7 @@ class EvvAzScraperAsync:
                     RETURNING id
                 """
 
-                cur.execute(query, (phone_number, 'evv.az', source_url))
+                cur.execute(query, (validated_phone, 'evv.az', source_url))
                 conn.commit()
 
                 result = cur.fetchone()

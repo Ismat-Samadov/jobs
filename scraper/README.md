@@ -39,6 +39,12 @@ python main.py
 - **Async/Await with aiohttp**: Concurrent requests for maximum performance
 - **Multi-source support**: Modular design for adding new scrapers
 - **Automatic phone extraction**: Extracts phone numbers via API calls
+- **Phone validation**: Validates Azerbaijan phone numbers before database insertion
+  - Only numeric digits (auto-cleaned)
+  - Exactly 9 digits (takes last 9)
+  - Valid prefixes: 10, 50, 51, 55, 60, 70, 77, 99
+  - 3rd digit cannot be 0 or 1
+  - Unique constraint (no duplicates)
 - **Database storage**: Saves leads to PostgreSQL with duplicate prevention
 - **Docker support**: One-command deployment
 - **Rate limiting**: Configurable concurrent request limits
@@ -54,7 +60,8 @@ scraper/
 │   └── villa_az_scraper.py  # Villa.AZ scraper
 ├── scripts/
 │   ├── init_db.py            # Database initialization
-│   └── schema.sql            # Database schema
+│   ├── schema.sql            # Database schema
+│   └── validator.py          # Phone number validation
 ├── main.py                   # Main entry point
 ├── requirements.txt          # Python dependencies
 ├── Dockerfile                # Docker image definition
@@ -84,6 +91,42 @@ Extracted data includes:
 - **phone_number**: Last 9 digits (e.g., "506271539")
 - **website**: Source website (e.g., "evv.az")
 - **source**: Full listing URL
+
+## Phone Number Validation
+
+All phone numbers are validated before database insertion using `scripts/validator.py`:
+
+### Validation Rules
+
+1. **Extract digits only**: Removes all non-numeric characters
+2. **9-digit format**: Takes last 9 digits from the number
+3. **Valid prefixes**: First 2 digits must be one of:
+   - `10` - Azercell
+   - `50` - Azercell
+   - `51` - Azercell
+   - `55` - Bakcell
+   - `60` - Nar Mobile
+   - `70` - Nar Mobile
+   - `77` - Nar Mobile
+   - `99` - Azercell
+4. **Third digit validation**: Cannot be `0` or `1`
+5. **Uniqueness**: Database constraint ensures no duplicates
+
+### Examples
+
+```python
+# Valid numbers
+"994505551234"  → "505551234" ✓  # Valid prefix 50, 3rd digit 5
+"558688686"     → "558688686" ✓  # Valid prefix 55, 3rd digit 8
+"+994 70 555 12 34" → "705551234" ✓  # Valid with formatting
+
+# Invalid numbers
+"994500551234"  → Rejected ✗  # 3rd digit is 0
+"994405551234"  → Rejected ✗  # Invalid prefix 40
+"50555123"      → Rejected ✗  # Only 8 digits
+```
+
+**Note**: Invalid phone numbers are silently rejected and not inserted into the database.
 
 ## Adding New Scrapers
 
