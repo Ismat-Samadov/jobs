@@ -14,29 +14,39 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        console.log('🔐 Login attempt:', { username: credentials?.username });
+
         if (!credentials?.username || !credentials?.password) {
+          console.log('❌ Missing credentials');
           throw new Error('Username and password required');
         }
 
         const user = await getUserByUsername(credentials.username);
+        console.log('👤 User lookup:', user ? `Found: ${user.username}` : 'Not found');
 
         if (!user) {
+          console.log('❌ User not found');
           throw new Error('Invalid username or password');
         }
 
         if (!user.is_active) {
+          console.log('❌ Account disabled');
           throw new Error('Account is disabled');
         }
 
+        console.log('🔑 Verifying password...');
         const isValid = await verifyPassword(credentials.password, user.password_hash);
+        console.log('🔑 Password valid:', isValid);
 
         if (!isValid) {
+          console.log('❌ Invalid password');
           throw new Error('Invalid username or password');
         }
 
         // Update last login
         await updateLastLogin(user.id);
 
+        console.log('✅ Login successful:', user.username);
         return {
           id: user.id.toString(),
           name: user.username,
