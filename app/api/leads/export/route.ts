@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         phone_number,
         source_url,
         scraped_at
-      FROM leads
+      FROM leads.leads
       ORDER BY scraped_at DESC
     `);
 

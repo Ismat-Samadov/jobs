@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     // Build query with search filter
     let query = `
       SELECT id, phone_number, source_url, scraped_at
-      FROM leads
+      FROM leads.leads
     `;
 
     const queryParams: any[] = [];
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     queryParams.push(limit, offset);
 
     // Get total count
-    let countQuery = 'SELECT COUNT(*) as total FROM leads';
+    let countQuery = 'SELECT COUNT(*) as total FROM leads.leads';
     const countParams: any[] = [];
 
     if (search) {

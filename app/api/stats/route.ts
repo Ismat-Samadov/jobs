@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
 
     // Get various statistics
     const [totalLeads, leadsToday, leadsThisWeek, leadsThisMonth] = await Promise.all([
-      pool.query('SELECT COUNT(*) as count FROM leads'),
-      pool.query('SELECT COUNT(*) as count FROM leads WHERE scraped_at::date = CURRENT_DATE'),
-      pool.query('SELECT COUNT(*) as count FROM leads WHERE scraped_at >= CURRENT_DATE - INTERVAL \'7 days\''),
-      pool.query('SELECT COUNT(*) as count FROM leads WHERE scraped_at >= CURRENT_DATE - INTERVAL \'30 days\''),
+      pool.query('SELECT COUNT(*) as count FROM leads.leads'),
+      pool.query('SELECT COUNT(*) as count FROM leads.leads WHERE scraped_at::date = CURRENT_DATE'),
+      pool.query('SELECT COUNT(*) as count FROM leads.leads WHERE scraped_at >= CURRENT_DATE - INTERVAL \'7 days\''),
+      pool.query('SELECT COUNT(*) as count FROM leads.leads WHERE scraped_at >= CURRENT_DATE - INTERVAL \'30 days\''),
     ]);
 
     // Get leads by source
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
           ELSE 'Other'
         END as source,
         COUNT(*) as count
-      FROM leads
+      FROM leads.leads
       GROUP BY source
       ORDER BY count DESC
     `);
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       SELECT
         DATE(scraped_at) as date,
         COUNT(*) as count
-      FROM leads
+      FROM leads.leads
       WHERE scraped_at >= CURRENT_DATE - INTERVAL '7 days'
       GROUP BY DATE(scraped_at)
       ORDER BY date DESC
