@@ -23,8 +23,9 @@ docker-compose up scraper
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Configure environment (.env file)
-DATABASE_URL=postgresql://user:password@host:port/database
+# 2. Configure environment
+cp .env.example .env
+# Edit .env and add your DATABASE_URL
 
 # 3. Initialize database
 python scripts/init_db.py
@@ -58,7 +59,8 @@ scraper/
 ├── requirements.txt          # Python dependencies
 ├── Dockerfile                # Docker image definition
 ├── docker-compose.yml        # Docker compose configuration
-└── .env                      # Environment variables
+├── .env.example              # Environment variables template
+└── .env                      # Environment variables (create from .env.example)
 ```
 
 

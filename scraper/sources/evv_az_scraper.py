@@ -180,11 +180,13 @@ class EvvAzScraperAsync:
                         phone_formatted = phone_full[-9:]
 
                         return phone_formatted
+                else:
+                    print(f"Failed to get phone (HTTP {response.status}): {listing_url}")
 
             return None
 
         except Exception as e:
-            print(f"Error fetching phone number: {e}")
+            print(f"Error fetching phone: {listing_url} - {e}")
             return None
 
     def save_to_database(self, phone_number: str, source_url: str) -> bool:

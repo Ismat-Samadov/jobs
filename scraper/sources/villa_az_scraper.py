@@ -120,11 +120,13 @@ class VillaAzScraperAsync:
                             phones.append(phone_formatted)
 
                     return phones
+                else:
+                    print(f"Failed to get phone (HTTP {response.status}): {listing_url}")
 
             return []
 
         except Exception as e:
-            print(f"Error fetching phone number: {e}")
+            print(f"Error fetching phone: {listing_url} - {e}")
             return []
 
     def save_to_database(self, phone_number: str, source_url: str) -> bool:
