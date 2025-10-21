@@ -49,14 +49,76 @@ function LeadRow({ lead }: { lead: Lead }) {
   const [expanded, setExpanded] = useState(false);
   const fullData = lead.full_data;
 
+  // Get a smart preview of the data
+  const getDataPreview = () => {
+    if (!fullData) return 'No data';
+
+    // Try to create a meaningful preview from any data structure
+    const parts = [];
+    if (fullData.title) parts.push(fullData.title);
+    if (fullData.price?.amount) parts.push(`${fullData.price.amount} ${fullData.price.currency || ''}`);
+
+    if (parts.length > 0) return parts.join(' - ');
+
+    // Fallback: count keys
+    const keyCount = Object.keys(fullData).length;
+    return `${keyCount} field${keyCount !== 1 ? 's' : ''}`;
+  };
+
+  // Render any data structure nicely
+  const renderValue = (value: any, depth = 0): JSX.Element => {
+    if (value === null || value === undefined) {
+      return <span className="text-gray-400 italic">null</span>;
+    }
+
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return <span className="text-gray-400">[]</span>;
+      }
+      return (
+        <div className="space-y-1">
+          {value.map((item, idx) => (
+            <div key={idx} className="flex items-start">
+              <span className="text-gray-400 mr-2">[{idx}]</span>
+              <div className="flex-1">{renderValue(item, depth + 1)}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (typeof value === 'object') {
+      return (
+        <div className="space-y-1">
+          {Object.entries(value).map(([k, v]) => (
+            <div key={k} className="flex items-start">
+              <span className="text-gray-600 font-medium mr-2 min-w-[120px]">{k}:</span>
+              <div className="flex-1 text-gray-900">{renderValue(v, depth + 1)}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (typeof value === 'string' && value.startsWith('http')) {
+      return (
+        <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
+          {value}
+        </a>
+      );
+    }
+
+    return <span className="text-gray-900">{String(value)}</span>;
+  };
+
   return (
     <>
       <tr
-        className="hover:bg-gray-50 transition-colors cursor-pointer"
+        className="hover:bg-blue-50 transition-colors cursor-pointer border-b border-gray-200"
         onClick={() => setExpanded(!expanded)}
       >
-        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-          <button className="text-gray-400 hover:text-gray-600">
+        <td className="px-4 py-3 whitespace-nowrap">
+          <button className="text-gray-400 hover:text-gray-600 focus:outline-none">
             <svg
               className={`w-5 h-5 transition-transform ${expanded ? 'rotate-90' : ''}`}
               fill="none"
@@ -68,148 +130,95 @@ function LeadRow({ lead }: { lead: Lead }) {
           </button>
         </td>
         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-          {lead.id}
+          #{lead.id}
         </td>
         <td className="px-4 py-3 whitespace-nowrap">
           <a
             href={`tel:${lead.phone_number}`}
-            className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+            className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center"
             onClick={(e) => e.stopPropagation()}
           >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
             {lead.phone_number}
           </a>
         </td>
-        <td className="px-4 py-3 whitespace-nowrap text-sm">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            lead.website === 'evv.az' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+        <td className="px-4 py-3 whitespace-nowrap">
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+            lead.website === 'evv.az' ? 'bg-blue-100 text-blue-800' :
+            lead.website === 'villa.az' ? 'bg-purple-100 text-purple-800' :
+            'bg-gray-100 text-gray-800'
           }`}>
             {lead.website}
           </span>
         </td>
-        <td className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">
-          {fullData?.title || '-'}
+        <td className="px-4 py-3 text-sm text-gray-600 max-w-md truncate">
+          {getDataPreview()}
         </td>
-        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
-          {fullData?.price?.amount ? `${fullData.price.amount.toLocaleString()} ${fullData.price.currency}` : '-'}
-        </td>
-        <td className="px-4 py-3 text-sm text-gray-600">
-          {fullData?.property_details?.city || '-'}
-        </td>
-        <td className="px-4 py-3 text-sm text-gray-600">
-          {fullData?.property_details?.rooms || '-'}
-        </td>
-        <td className="px-4 py-3 text-sm text-gray-600">
-          {fullData?.property_details?.area_sqm || fullData?.property_details?.area || '-'}
+        <td className="px-4 py-3 whitespace-nowrap">
+          {fullData ? (
+            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              Has Data
+            </span>
+          ) : (
+            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+              No Data
+            </span>
+          )}
         </td>
         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-          {new Date(lead.created_at).toLocaleDateString()}
+          {new Date(lead.created_at).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
         </td>
       </tr>
 
       {/* Expanded Details Row */}
       {expanded && (
-        <tr className="bg-gray-50">
-          <td colSpan={10} className="px-4 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Property Details */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        <tr className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
+          <td colSpan={7} className="px-6 py-6">
+            <div className="space-y-4">
+              {/* Source URL */}
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                  <svg className="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
-                  Property Details
+                  Source URL
                 </h4>
-                <dl className="space-y-2">
-                  {fullData?.property_details && Object.entries(fullData.property_details).map(([key, value]) => (
-                    <div key={key} className="flex justify-between text-sm">
-                      <dt className="text-gray-600 capitalize">{key.replace(/_/g, ' ')}:</dt>
-                      <dd className="text-gray-900 font-medium">{value}</dd>
-                    </div>
-                  ))}
-                </dl>
+                <a
+                  href={lead.source}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 hover:underline text-sm break-all"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {lead.source}
+                </a>
               </div>
 
-              {/* Location & Contact */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  </svg>
-                  Location & Contact
-                </h4>
-                <dl className="space-y-2">
-                  {fullData?.address && (
-                    <div className="text-sm">
-                      <dt className="text-gray-600 mb-1">Address:</dt>
-                      <dd className="text-gray-900">{fullData.address}</dd>
-                    </div>
-                  )}
-                  {fullData?.seller?.name && (
-                    <div className="text-sm">
-                      <dt className="text-gray-600">Seller:</dt>
-                      <dd className="text-gray-900">{fullData.seller.name}
-                        {fullData.seller.type && <span className="text-gray-500 text-xs"> ({fullData.seller.type})</span>}
-                      </dd>
-                    </div>
-                  )}
-                  <div className="text-sm">
-                    <dt className="text-gray-600 mb-1">Source:</dt>
-                    <dd>
-                      <a
-                        href={lead.source}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 text-xs break-all"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {lead.source}
-                      </a>
-                    </dd>
+              {/* Full Data */}
+              {fullData && (
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                    <svg className="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Extracted Data
+                  </h4>
+                  <div className="bg-gray-50 rounded-md p-4 font-mono text-sm overflow-x-auto">
+                    {renderValue(fullData)}
                   </div>
-                </dl>
-              </div>
-
-              {/* Features & Stats */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Features & Stats
-                </h4>
-                {fullData?.features && fullData.features.length > 0 && (
-                  <div className="mb-3">
-                    <div className="text-xs text-gray-600 mb-2">Features:</div>
-                    <div className="flex flex-wrap gap-1">
-                      {fullData.features.map((feature, idx) => (
-                        <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-50 text-green-700 border border-green-200">
-                          {feature}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <dl className="space-y-2 text-sm">
-                  {fullData?.listing_info?.views && (
-                    <div className="flex justify-between">
-                      <dt className="text-gray-600">Views:</dt>
-                      <dd className="text-gray-900 font-medium">{fullData.listing_info.views}</dd>
-                    </div>
-                  )}
-                  {fullData?.listing_info?.ad_id && (
-                    <div className="flex justify-between">
-                      <dt className="text-gray-600">Ad ID:</dt>
-                      <dd className="text-gray-900 font-medium">{fullData.listing_info.ad_id}</dd>
-                    </div>
-                  )}
-                  {fullData?.images && (
-                    <div className="flex justify-between">
-                      <dt className="text-gray-600">Images:</dt>
-                      <dd className="text-gray-900 font-medium">{fullData.images.length} photos</dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
+                </div>
+              )}
             </div>
           </td>
         </tr>
@@ -521,41 +530,30 @@ export default function DashboardPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-12">
-
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left w-12"></th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                       ID
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Phone
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Phone Number
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Website
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Source
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Title
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Data Preview
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Price
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Status
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      City
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Rooms
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Area
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Date
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Created At
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white">
                   {leads.map((lead) => (
                     <LeadRow key={lead.id} lead={lead} />
                   ))}
