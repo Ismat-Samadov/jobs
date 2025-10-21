@@ -44,206 +44,177 @@ interface Stats {
   recentActivity: { date: string; count: string }[];
 }
 
-// Property Card Component
-function PropertyCard({ lead }: { lead: Lead }) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+// Expandable Row Component
+function LeadRow({ lead }: { lead: Lead }) {
+  const [expanded, setExpanded] = useState(false);
   const fullData = lead.full_data;
-  const images = fullData?.images || [];
-  const hasImages = images.length > 0;
-
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
-
-  // Format property details for display
-  const getPropertyDetailLabel = (key: string): string => {
-    const labels: { [key: string]: string } = {
-      city: 'City',
-      property_type: 'Property Type',
-      location: 'Location',
-      document: 'Document',
-      floor: 'Floor',
-      area: 'Area',
-      area_sqm: 'Area (m²)',
-      area_sot: 'Area (sot)',
-      rooms: 'Rooms',
-      mortgage: 'Mortgage',
-      repair: 'Repair',
-      country: 'Country',
-      category: 'Category',
-    };
-    return labels[key] || key.charAt(0).toUpperCase() + key.slice(1);
-  };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-      {/* Image Gallery */}
-      {hasImages ? (
-        <div className="relative h-64 bg-gray-200 group">
-          <img
-            src={images[currentImageIndex]}
-            alt={fullData?.title || 'Property'}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=No+Image';
-            }}
-          />
-
-          {/* Image Navigation */}
-          {images.length > 1 && (
-            <>
-              <button
-                onClick={prevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label="Previous image"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                onClick={nextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label="Next image"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-
-              {/* Image Counter */}
-              <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-                {currentImageIndex + 1} / {images.length}
-              </div>
-            </>
-          )}
-
-          {/* Website Badge */}
-          <div className="absolute top-3 left-3">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white shadow-lg">
-              {lead.website}
-            </span>
-          </div>
-        </div>
-      ) : (
-        <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-          <svg className="w-20 h-20 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <div className="absolute top-3 left-3">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white shadow-lg">
-              {lead.website}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="p-5">
-        {/* Price */}
-        {fullData?.price && (
-          <div className="mb-3">
-            <div className="text-3xl font-bold text-gray-900">
-              {fullData.price.amount?.toLocaleString()} {fullData.price.currency}
-            </div>
-          </div>
-        )}
-
-        {/* Title */}
-        {fullData?.title && (
-          <h3 className="text-lg font-semibold text-gray-800 mb-3 line-clamp-2 min-h-[3.5rem]">
-            {fullData.title}
-          </h3>
-        )}
-
-        {/* Address */}
-        {fullData?.address && (
-          <div className="flex items-start text-sm text-gray-600 mb-3">
-            <svg className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    <>
+      <tr
+        className="hover:bg-gray-50 transition-colors cursor-pointer"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+          <button className="text-gray-400 hover:text-gray-600">
+            <svg
+              className={`w-5 h-5 transition-transform ${expanded ? 'rotate-90' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            <span className="line-clamp-2">{fullData.address}</span>
-          </div>
-        )}
+          </button>
+        </td>
+        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+          {lead.id}
+        </td>
+        <td className="px-4 py-3 whitespace-nowrap">
+          <a
+            href={`tel:${lead.phone_number}`}
+            className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {lead.phone_number}
+          </a>
+        </td>
+        <td className="px-4 py-3 whitespace-nowrap text-sm">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            lead.website === 'evv.az' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+          }`}>
+            {lead.website}
+          </span>
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">
+          {fullData?.title || '-'}
+        </td>
+        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
+          {fullData?.price?.amount ? `${fullData.price.amount.toLocaleString()} ${fullData.price.currency}` : '-'}
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-600">
+          {fullData?.property_details?.city || '-'}
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-600">
+          {fullData?.property_details?.rooms || '-'}
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-600">
+          {fullData?.property_details?.area_sqm || fullData?.property_details?.area || '-'}
+        </td>
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+          {new Date(lead.created_at).toLocaleDateString()}
+        </td>
+      </tr>
 
-        {/* Property Details Grid */}
-        {fullData?.property_details && Object.keys(fullData.property_details).length > 0 && (
-          <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b border-gray-200">
-            {Object.entries(fullData.property_details).slice(0, 4).map(([key, value]) => (
-              <div key={key} className="bg-gray-50 rounded-lg p-2">
-                <div className="text-xs text-gray-500 mb-0.5">{getPropertyDetailLabel(key)}</div>
-                <div className="text-sm font-semibold text-gray-900 truncate">{value}</div>
+      {/* Expanded Details Row */}
+      {expanded && (
+        <tr className="bg-gray-50">
+          <td colSpan={10} className="px-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Property Details */}
+              <div className="bg-white rounded-lg p-4 shadow-sm">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  Property Details
+                </h4>
+                <dl className="space-y-2">
+                  {fullData?.property_details && Object.entries(fullData.property_details).map(([key, value]) => (
+                    <div key={key} className="flex justify-between text-sm">
+                      <dt className="text-gray-600 capitalize">{key.replace(/_/g, ' ')}:</dt>
+                      <dd className="text-gray-900 font-medium">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
-            ))}
-          </div>
-        )}
 
-        {/* Features */}
-        {fullData?.features && fullData.features.length > 0 && (
-          <div className="mb-4 pb-4 border-b border-gray-200">
-            <div className="flex flex-wrap gap-1.5">
-              {fullData.features.slice(0, 6).map((feature, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200"
-                >
-                  {feature}
-                </span>
-              ))}
-              {fullData.features.length > 6 && (
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
-                  +{fullData.features.length - 6} more
-                </span>
-              )}
+              {/* Location & Contact */}
+              <div className="bg-white rounded-lg p-4 shadow-sm">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  </svg>
+                  Location & Contact
+                </h4>
+                <dl className="space-y-2">
+                  {fullData?.address && (
+                    <div className="text-sm">
+                      <dt className="text-gray-600 mb-1">Address:</dt>
+                      <dd className="text-gray-900">{fullData.address}</dd>
+                    </div>
+                  )}
+                  {fullData?.seller?.name && (
+                    <div className="text-sm">
+                      <dt className="text-gray-600">Seller:</dt>
+                      <dd className="text-gray-900">{fullData.seller.name}
+                        {fullData.seller.type && <span className="text-gray-500 text-xs"> ({fullData.seller.type})</span>}
+                      </dd>
+                    </div>
+                  )}
+                  <div className="text-sm">
+                    <dt className="text-gray-600 mb-1">Source:</dt>
+                    <dd>
+                      <a
+                        href={lead.source}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 text-xs break-all"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {lead.source}
+                      </a>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* Features & Stats */}
+              <div className="bg-white rounded-lg p-4 shadow-sm">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Features & Stats
+                </h4>
+                {fullData?.features && fullData.features.length > 0 && (
+                  <div className="mb-3">
+                    <div className="text-xs text-gray-600 mb-2">Features:</div>
+                    <div className="flex flex-wrap gap-1">
+                      {fullData.features.map((feature, idx) => (
+                        <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-50 text-green-700 border border-green-200">
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <dl className="space-y-2 text-sm">
+                  {fullData?.listing_info?.views && (
+                    <div className="flex justify-between">
+                      <dt className="text-gray-600">Views:</dt>
+                      <dd className="text-gray-900 font-medium">{fullData.listing_info.views}</dd>
+                    </div>
+                  )}
+                  {fullData?.listing_info?.ad_id && (
+                    <div className="flex justify-between">
+                      <dt className="text-gray-600">Ad ID:</dt>
+                      <dd className="text-gray-900 font-medium">{fullData.listing_info.ad_id}</dd>
+                    </div>
+                  )}
+                  {fullData?.images && (
+                    <div className="flex justify-between">
+                      <dt className="text-gray-600">Images:</dt>
+                      <dd className="text-gray-900 font-medium">{fullData.images.length} photos</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* Contact Info */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <a
-              href={`tel:${lead.phone_number}`}
-              className="flex items-center text-blue-600 hover:text-blue-700 font-semibold"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              {lead.phone_number}
-            </a>
-          </div>
-
-          {/* Source Link & Date */}
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <a
-              href={lead.source}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-blue-600 flex items-center"
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              View Original
-            </a>
-            <span>{new Date(lead.created_at).toLocaleDateString()}</span>
-          </div>
-
-          {/* Seller Info */}
-          {fullData?.seller?.name && (
-            <div className="text-xs text-gray-600 bg-gray-50 rounded-lg p-2 mt-2">
-              <span className="font-medium">Seller:</span> {fullData.seller.name}
-              {fullData.seller.type && <span className="text-gray-500"> ({fullData.seller.type})</span>}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
@@ -529,14 +500,16 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Property Leads Grid */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Recent Leads ({leads.length} results)
-          </h2>
+        {/* Leads Data Table */}
+        <div className="bg-white shadow-lg rounded-xl overflow-hidden mb-6">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">
+              Leads Data ({leads.length} results)
+            </h2>
+          </div>
 
           {leads.length === 0 ? (
-            <div className="bg-white shadow-lg rounded-xl p-12 text-center">
+            <div className="p-12 text-center">
               <div className="flex flex-col items-center">
                 <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -546,13 +519,50 @@ export default function DashboardPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {leads.map((lead) => (
-                <PropertyCard key={lead.id} lead={lead} />
-              ))}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-12">
+
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Phone
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Website
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Title
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Price
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      City
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Rooms
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Area
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Date
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {leads.map((lead) => (
+                    <LeadRow key={lead.id} lead={lead} />
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-
         </div>
 
         {/* Pagination */}
