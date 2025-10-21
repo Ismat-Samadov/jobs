@@ -9,10 +9,6 @@ export const metadata: Metadata = {
   description: "Real estate lead generation and management system for EVV.AZ and Villa.AZ",
   keywords: ["lead generator", "real estate", "CRM", "leads management"],
   authors: [{ name: "Lead Generator Team" }],
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-  },
   manifest: '/manifest.json',
   themeColor: '#2563eb',
   viewport: {
