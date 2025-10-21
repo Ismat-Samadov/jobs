@@ -27,7 +27,8 @@ export async function GET(request: NextRequest) {
         phone_number,
         website,
         source,
-        created_at
+        created_at,
+        full_data
       FROM leads.leads
       ORDER BY created_at DESC
     `);

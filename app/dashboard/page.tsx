@@ -9,6 +9,7 @@ interface Lead {
   website: string;
   source: string;
   created_at: string;
+  full_data?: any; // JSON data with full listing details
 }
 
 interface Stats {

@@ -11,6 +11,7 @@ export interface Lead {
   website: string;
   source: string;
   created_at: string;
+  full_data?: any; // JSON data with full listing details
 }
 
 /**
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     // Build query with search filter
     let query = `
-      SELECT id, phone_number, website, source, created_at
+      SELECT id, phone_number, website, source, created_at, full_data
       FROM leads.leads
     `;
 
