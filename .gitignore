@@ -2,7 +2,7 @@ phone
 .env
 .claude
 scraper/__pycache__
-
+scraper/.backup_removed_files
 # Next.js
 /.next/
 /out/
