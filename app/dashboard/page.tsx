@@ -33,6 +33,7 @@ export default function DashboardPage() {
   const [websiteFilter, setWebsiteFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
   useEffect(() => {
     fetchLeads();
