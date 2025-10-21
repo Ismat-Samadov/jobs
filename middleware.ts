@@ -15,8 +15,13 @@ export async function middleware(request: NextRequest) {
 
   // Public routes
   if (pathname === '/login' || pathname.startsWith('/api/auth')) {
-    // If user is logged in and trying to access login, redirect to dashboard
+    // If user is logged in and trying to access login, redirect based on role
     if (token && pathname === '/login') {
+      const userRole = (token as any).role;
+      console.log('🔐 User logged in, redirecting from /login. Role:', userRole);
+      if (userRole === 'admin') {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      }
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return NextResponse.next();
@@ -24,14 +29,19 @@ export async function middleware(request: NextRequest) {
 
   // Protected routes - require authentication
   if (!token) {
+    console.log('❌ No token found, redirecting to login from:', pathname);
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // Admin-only routes
   if (pathname.startsWith('/admin')) {
-    if ((token as any).role !== 'admin') {
+    const userRole = (token as any).role;
+    console.log('🔍 Admin route access attempt. Path:', pathname, 'Role:', userRole);
+    if (userRole !== 'admin') {
+      console.log('⛔ Access denied to admin route. Role:', userRole);
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
+    console.log('✅ Admin access granted');
   }
 
   return NextResponse.next();

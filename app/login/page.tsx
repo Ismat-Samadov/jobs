@@ -26,7 +26,9 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
       } else {
-        router.push('/dashboard');
+        // Let middleware handle the redirect based on user role
+        // This will redirect admins to /admin and regular users to /dashboard
+        router.push('/login');
         router.refresh();
       }
     } catch (err) {

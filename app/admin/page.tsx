@@ -14,7 +14,7 @@ interface User {
 }
 
 export default function AdminPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,12 +30,34 @@ export default function AdminPage() {
   });
 
   useEffect(() => {
-    if (session?.user?.role !== 'admin') {
+    console.log('🔍 Admin page - Session status:', status, 'Session data:', {
+      hasSession: !!session,
+      user: session?.user,
+      role: session?.user?.role,
+    });
+
+    // Wait for session to load
+    if (status === 'loading') {
+      return;
+    }
+
+    // If not authenticated, redirect to login
+    if (status === 'unauthenticated' || !session) {
+      console.log('⛔ No session found, redirecting to login');
+      router.push('/login');
+      return;
+    }
+
+    // If not admin, redirect to dashboard
+    if (session.user?.role !== 'admin') {
+      console.log('⛔ User is not admin, redirecting to dashboard. Role:', session.user?.role);
       router.push('/dashboard');
       return;
     }
+
+    console.log('✅ Admin access confirmed, fetching users');
     fetchUsers();
-  }, [session]);
+  }, [session, status, router]);
 
   const fetchUsers = async () => {
     try {
@@ -160,7 +182,7 @@ export default function AdminPage() {
     });
   };
 
-  if (loading) {
+  if (loading || status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-xl">Loading...</div>
