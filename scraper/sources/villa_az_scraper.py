@@ -10,6 +10,7 @@ import sys
 from typing import List, Dict, Optional
 from datetime import datetime
 import time
+import json
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -141,7 +142,161 @@ class VillaAzScraperAsync:
             print(f"Error fetching phone: {listing_url} - {e}")
             return []
 
-    def save_to_database(self, phone_number: str, source_url: str) -> bool:
+    async def fetch_listing_details(self, session: aiohttp.ClientSession, listing_url: str) -> Optional[Dict]:
+        """Fetch and parse the full listing page to extract all details"""
+        try:
+            async with session.get(listing_url, headers=self.headers, timeout=aiohttp.ClientTimeout(total=15)) as response:
+                if response.status != 200:
+                    print(f"Failed to fetch listing page (HTTP {response.status}): {listing_url}")
+                    return None
+
+                html_content = await response.text(encoding='utf-8', errors='ignore')
+                soup = BeautifulSoup(html_content, 'lxml')
+
+                # Initialize full_data structure
+                full_data = {
+                    "listing_type": "real_estate",
+                    "title": None,
+                    "price": {},
+                    "property_details": {},
+                    "description": None,
+                    "seller": {},
+                    "listing_info": {},
+                    "images": [],
+                    "features": [],
+                    "address": None
+                }
+
+                # Extract title
+                title_elem = soup.find('h1', class_='elan-single-wrapper-top--title')
+                if title_elem:
+                    title_text = title_elem.get_text(strip=True)
+                    # Remove the ID part from title
+                    title_text = re.sub(r'\s*ID\s*#\s*\d+', '', title_text)
+                    full_data['title'] = title_text.strip()
+
+                    # Extract listing ID from title
+                    id_match = re.search(r'ID\s*#\s*(\d+)', title_elem.get_text())
+                    if id_match:
+                        full_data['listing_info']['ad_id'] = id_match.group(1)
+
+                # Extract price
+                price_elem = soup.find('div', class_='elan-single-wrapper-top--price')
+                if price_elem:
+                    price_text = price_elem.get_text(strip=True)
+                    # Parse "850 000 AZN"
+                    price_match = re.search(r'([\d\s]+)\s*([A-Z]+)', price_text)
+                    if price_match:
+                        amount_str = price_match.group(1).replace(' ', '').replace('\xa0', '')
+                        full_data['price']['amount'] = int(amount_str) if amount_str.isdigit() else None
+                        full_data['price']['currency'] = price_match.group(2)
+
+                # Extract property details from table
+                details_table = soup.find('table', class_='table-info-1')
+                if details_table:
+                    rows = details_table.find_all('tr')
+                    for row in rows:
+                        cells = row.find_all('td')
+                        if len(cells) == 2:
+                            key = cells[0].get_text(strip=True)
+                            value = cells[1].get_text(strip=True)
+
+                            # Map Azerbaijani field names to English keys
+                            field_mapping = {
+                                'Ölkə': 'country',
+                                'Şəhər': 'city',
+                                'Kateqoriya:': 'category',
+                                'Sahə, m²:': 'area_sqm',
+                                'Sahə, sot:': 'area_sot',
+                                'Otaq sayı:': 'rooms',
+                                'Mərtəbə:': 'floor',
+                                'Əmlak sənədi:': 'document'
+                            }
+
+                            english_key = field_mapping.get(key)
+                            if english_key:
+                                full_data['property_details'][english_key] = value
+
+                # Extract address
+                address_elem = soup.find('div', class_='elan-single-content--address')
+                if address_elem:
+                    # Get the text after "Ünvan:"
+                    address_text = address_elem.get_text(strip=True)
+                    address_text = re.sub(r'^Ünvan:\s*', '', address_text)
+                    full_data['address'] = address_text
+
+                # Extract date and views
+                info_table = soup.find('table', class_='table-info-2')
+                if info_table:
+                    cells = info_table.find_all('td')
+                    for cell in cells:
+                        text = cell.get_text(strip=True)
+                        # Extract date
+                        if 'Tarix:' in text:
+                            date_match = re.search(r'Tarix:\s*(.+)', text)
+                            if date_match:
+                                full_data['listing_info']['date_posted'] = date_match.group(1)
+                        # Extract views
+                        if 'Baxış sayı:' in text:
+                            views_match = re.search(r'Baxış sayı:\s*(\d+)', text)
+                            if views_match:
+                                full_data['listing_info']['views'] = int(views_match.group(1))
+
+                # Extract seller information
+                owner_wrapper = soup.find('div', class_='elan-single-owner-wrapper')
+                if owner_wrapper:
+                    # Find seller name
+                    owner_info = owner_wrapper.find('ul', class_='elan-single-owner-info')
+                    if owner_info:
+                        links = owner_info.find_all('a')
+                        if len(links) >= 1:
+                            full_data['seller']['name'] = links[0].get_text(strip=True)
+                        # Find seller type (Vasitəçi/Rieltor or Sahibindən)
+                        for li in owner_info.find_all('li'):
+                            text = li.get_text(strip=True)
+                            if 'Vasitəçi' in text or 'Sahibindən' in text:
+                                full_data['seller']['type'] = text
+
+                # Extract description
+                description_div = soup.find('div', class_='elan-single-description')
+                if description_div:
+                    # Get all paragraphs
+                    paragraphs = description_div.find_all('p')
+                    description_text = '\n\n'.join([p.get_text(strip=True) for p in paragraphs if p.get_text(strip=True)])
+                    full_data['description'] = description_text
+
+                # Extract features/specs
+                specs_list = soup.find('ul', class_='elan-single-specs-lists')
+                if specs_list:
+                    features = []
+                    for li in specs_list.find_all('li'):
+                        feature_text = li.get_text(strip=True)
+                        if feature_text:
+                            features.append(feature_text)
+                    full_data['features'] = features
+
+                # Extract images
+                # Villa.AZ uses both data-fancybox="gallery" and data-fancybox="images"
+                image_links = soup.find_all('a', {'data-fancybox': ['gallery', 'images']})
+                for link in image_links:
+                    href = link.get('href')
+                    if href and '/uploads/' in href:
+                        # Make sure URL is absolute
+                        if href.startswith('//'):
+                            href = 'https:' + href
+                        elif href.startswith('/'):
+                            href = self.base_url + href
+                        # Only add unique images
+                        if href not in full_data['images']:
+                            full_data['images'].append(href)
+
+                return full_data
+
+        except Exception as e:
+            print(f"Error fetching listing details: {listing_url} - {e}")
+            return None
+
+    def save_to_database(self, phone_number: str, source_url: str, full_data: Optional[Dict] = None) -> bool:
         """
         Save lead to database with validation and connection pooling
 
@@ -151,6 +306,11 @@ class VillaAzScraperAsync:
         - First 2 digits: 10, 50, 51, 55, 60, 70, 77, 99
         - 3rd digit cannot be 0 or 1
         - Must be unique (handled by DB constraint)
+
+        Args:
+            phone_number: Phone number to save
+            source_url: URL of the listing
+            full_data: Complete listing data as JSON/dict
         """
         # Validate phone number before attempting to save
         validated_phone = PhoneValidator.validate_phone(phone_number)
@@ -169,16 +329,21 @@ class VillaAzScraperAsync:
                 conn = self.db_pool.getconn()
                 cur = conn.cursor()
 
-                # Insert lead (ignore duplicates by phone number)
+                # Insert lead with full_data (update on conflict)
                 query = """
-                    INSERT INTO leads.leads (phone_number, website, source)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO leads.leads (phone_number, website, source, full_data)
+                    VALUES (%s, %s, %s, %s)
                     ON CONFLICT (phone_number)
-                    DO NOTHING
+                    DO UPDATE SET
+                        full_data = EXCLUDED.full_data,
+                        source = EXCLUDED.source
                     RETURNING id
                 """
 
-                cur.execute(query, (validated_phone, 'villa.az', source_url))
+                # Convert full_data dict to JSON string
+                full_data_json = json.dumps(full_data) if full_data else None
+
+                cur.execute(query, (validated_phone, 'villa.az', source_url, full_data_json))
                 conn.commit()
 
                 result = cur.fetchone()
@@ -204,7 +369,7 @@ class VillaAzScraperAsync:
         return False
 
     async def process_listing(self, session: aiohttp.ClientSession, listing: Dict[str, str], idx: int, total: int) -> Dict[str, any]:
-        """Process a single listing"""
+        """Process a single listing - fetch phone numbers and full listing details"""
         result = {
             'url': listing['url'],
             'phones': [],
@@ -212,16 +377,19 @@ class VillaAzScraperAsync:
             'saved': 0
         }
 
-        # Fetch phone numbers
-        phones = await self.get_phone_numbers(session, listing['url'])
+        # Fetch both phone numbers and listing details in parallel
+        phones_task = self.get_phone_numbers(session, listing['url'])
+        details_task = self.fetch_listing_details(session, listing['url'])
+
+        phones, full_data = await asyncio.gather(phones_task, details_task)
 
         if phones:
             result['phones'] = phones
             result['success'] = True
 
-            # Save each phone to database
+            # Save each phone to database with the same full_data
             for phone in phones:
-                if self.save_to_database(phone, listing['url']):
+                if self.save_to_database(phone, listing['url'], full_data):
                     result['saved'] += 1
 
         return result
