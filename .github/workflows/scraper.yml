@@ -19,6 +19,8 @@ jobs:
       - name: Create .env file
         run: |
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > scraper/.env
+          echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> scraper/.env
+          echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> scraper/.env
           echo "PYTHONUNBUFFERED=1" >> scraper/.env
 
       - name: Initialize database (if needed)
