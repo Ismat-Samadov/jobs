@@ -148,6 +148,7 @@ function LeadRow({ lead }: { lead: Lead }) {
           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
             lead.website === 'evv.az' ? 'bg-blue-100 text-blue-800' :
             lead.website === 'villa.az' ? 'bg-purple-100 text-purple-800' :
+            lead.website === 'bul.az' ? 'bg-green-100 text-green-800' :
             'bg-gray-100 text-gray-800'
           }`}>
             {lead.website}
@@ -514,6 +515,7 @@ export default function DashboardPage() {
                   <option value="all">All Websites</option>
                   <option value="evv.az">EVV.AZ</option>
                   <option value="villa.az">Villa.AZ</option>
+                  <option value="bul.az">Bul.AZ</option>
                 </select>
               </div>
 

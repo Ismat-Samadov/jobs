@@ -3,7 +3,7 @@ Main entry point for running all scrapers
 """
 import asyncio
 from datetime import datetime
-from sources import EvvAzScraperAsync, VillaAzScraperAsync
+from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync
 from scripts.telegram import TelegramNotifier
 
 
@@ -46,6 +46,23 @@ async def main():
         })
     finally:
         villa_scraper.close()
+
+    # Bul.AZ Scraper - scrape first 5 pages
+    print("\n" + "=" * 70)
+    print("Bul.AZ Scraper")
+    print("=" * 70)
+    bul_scraper = BulAzScraperAsync(max_concurrent=10)
+
+    try:
+        bul_stats = await bul_scraper.scrape(pages=5)
+        reports.append({
+            'source': 'Bul.AZ',
+            'stats': bul_stats,
+            'duration': bul_stats.get('duration', 0),
+            'start_time': bul_stats.get('start_time', overall_start)
+        })
+    finally:
+        bul_scraper.close()
 
     # Calculate overall duration
     overall_end = datetime.now()
