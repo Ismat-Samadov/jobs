@@ -1,5 +1,4 @@
 import Providers from '../providers';
-import Navbar from '@/components/Navbar';
 
 export default function AdminLayout({
   children,
@@ -8,10 +7,7 @@ export default function AdminLayout({
 }) {
   return (
     <Providers>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <main>{children}</main>
-      </div>
+      <main>{children}</main>
     </Providers>
   );
 }
