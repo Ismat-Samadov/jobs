@@ -44,6 +44,34 @@ interface Stats {
   recentActivity: { date: string; count: string }[];
 }
 
+// Helper function to get badge color based on website
+function getBadgeColor(website: string): string {
+  const colors: { [key: string]: string } = {
+    'evv.az': 'bg-blue-100 text-blue-800',
+    'villa.az': 'bg-purple-100 text-purple-800',
+    'bul.az': 'bg-green-100 text-green-800',
+  };
+
+  // Return predefined color if exists, otherwise generate a color based on hash
+  if (colors[website]) {
+    return colors[website];
+  }
+
+  // Generate color from website name hash
+  const colorVariants = [
+    'bg-indigo-100 text-indigo-800',
+    'bg-pink-100 text-pink-800',
+    'bg-yellow-100 text-yellow-800',
+    'bg-red-100 text-red-800',
+    'bg-teal-100 text-teal-800',
+    'bg-orange-100 text-orange-800',
+    'bg-cyan-100 text-cyan-800',
+  ];
+
+  const hash = website.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return colorVariants[hash % colorVariants.length];
+}
+
 // Expandable Row Component
 function LeadRow({ lead }: { lead: Lead }) {
   const [expanded, setExpanded] = useState(false);
@@ -145,12 +173,7 @@ function LeadRow({ lead }: { lead: Lead }) {
           </a>
         </td>
         <td className="px-4 py-3 whitespace-nowrap">
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-            lead.website === 'evv.az' ? 'bg-blue-100 text-blue-800' :
-            lead.website === 'villa.az' ? 'bg-purple-100 text-purple-800' :
-            lead.website === 'bul.az' ? 'bg-green-100 text-green-800' :
-            'bg-gray-100 text-gray-800'
-          }`}>
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getBadgeColor(lead.website)}`}>
             {lead.website}
           </span>
         </td>
@@ -240,10 +263,12 @@ export default function DashboardPage() {
   const [websiteFilter, setWebsiteFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [availableSources, setAvailableSources] = useState<string[]>([]);
 
   useEffect(() => {
     fetchLeads();
     fetchStats();
+    fetchSources();
   }, [page]);
 
   const fetchLeads = async () => {
@@ -288,6 +313,16 @@ export default function DashboardPage() {
       setStats(data);
     } catch (error) {
       console.error('Error fetching stats:', error);
+    }
+  };
+
+  const fetchSources = async () => {
+    try {
+      const response = await fetch('/api/sources');
+      const data = await response.json();
+      setAvailableSources(data.sources || []);
+    } catch (error) {
+      console.error('Error fetching sources:', error);
     }
   };
 
@@ -513,9 +548,11 @@ export default function DashboardPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   <option value="all">All Websites</option>
-                  <option value="evv.az">EVV.AZ</option>
-                  <option value="villa.az">Villa.AZ</option>
-                  <option value="bul.az">Bul.AZ</option>
+                  {availableSources.map((source) => (
+                    <option key={source} value={source}>
+                      {source.toUpperCase()}
+                    </option>
+                  ))}
                 </select>
               </div>
 
