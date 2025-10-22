@@ -34,24 +34,50 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '100');
     const search = searchParams.get('search') || '';
+    const website = searchParams.get('website') || '';
+    const dateFrom = searchParams.get('dateFrom') || '';
+    const dateTo = searchParams.get('dateTo') || '';
     const sortBy = searchParams.get('sortBy') || 'created_at';
     const sortOrder = searchParams.get('sortOrder') || 'DESC';
 
     const offset = (page - 1) * limit;
 
-    // Build query with search filter
+    // Build query with filters
     let query = `
       SELECT id, phone_number, website, source, created_at, full_data
       FROM leads.leads
     `;
 
     const queryParams: any[] = [];
+    const whereConditions: string[] = [];
     let paramIndex = 1;
 
     if (search) {
-      query += ` WHERE phone_number LIKE $${paramIndex} OR source LIKE $${paramIndex}`;
+      whereConditions.push(`(phone_number LIKE $${paramIndex} OR source LIKE $${paramIndex})`);
       queryParams.push(`%${search}%`);
       paramIndex++;
+    }
+
+    if (website && website !== 'all') {
+      whereConditions.push(`website = $${paramIndex}`);
+      queryParams.push(website);
+      paramIndex++;
+    }
+
+    if (dateFrom) {
+      whereConditions.push(`created_at >= $${paramIndex}`);
+      queryParams.push(dateFrom);
+      paramIndex++;
+    }
+
+    if (dateTo) {
+      whereConditions.push(`created_at <= $${paramIndex}`);
+      queryParams.push(dateTo + ' 23:59:59'); // Include full day
+      paramIndex++;
+    }
+
+    if (whereConditions.length > 0) {
+      query += ` WHERE ${whereConditions.join(' AND ')}`;
     }
 
     // Validate sortBy to prevent SQL injection
@@ -63,13 +89,38 @@ export async function GET(request: NextRequest) {
     query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     queryParams.push(limit, offset);
 
-    // Get total count
+    // Get total count with same filters
     let countQuery = 'SELECT COUNT(*) as total FROM leads.leads';
     const countParams: any[] = [];
+    const countWhereConditions: string[] = [];
+    let countParamIndex = 1;
 
     if (search) {
-      countQuery += ' WHERE phone_number LIKE $1 OR source LIKE $1';
+      countWhereConditions.push(`(phone_number LIKE $${countParamIndex} OR source LIKE $${countParamIndex})`);
       countParams.push(`%${search}%`);
+      countParamIndex++;
+    }
+
+    if (website && website !== 'all') {
+      countWhereConditions.push(`website = $${countParamIndex}`);
+      countParams.push(website);
+      countParamIndex++;
+    }
+
+    if (dateFrom) {
+      countWhereConditions.push(`created_at >= $${countParamIndex}`);
+      countParams.push(dateFrom);
+      countParamIndex++;
+    }
+
+    if (dateTo) {
+      countWhereConditions.push(`created_at <= $${countParamIndex}`);
+      countParams.push(dateTo + ' 23:59:59');
+      countParamIndex++;
+    }
+
+    if (countWhereConditions.length > 0) {
+      countQuery += ` WHERE ${countWhereConditions.join(' AND ')}`;
     }
 
     const [dataResult, countResult] = await Promise.all([

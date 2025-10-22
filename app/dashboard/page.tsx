@@ -273,31 +273,26 @@ export default function DashboardPage() {
 
   const fetchLeads = async () => {
     try {
-      let url = `/api/leads?page=${page}&limit=20&search=${search}`;
+      // Build URL with all filter parameters
+      let url = `/api/leads?page=${page}&limit=20&search=${encodeURIComponent(search)}`;
+
+      if (websiteFilter && websiteFilter !== 'all') {
+        url += `&website=${encodeURIComponent(websiteFilter)}`;
+      }
+
+      if (dateFrom) {
+        url += `&dateFrom=${encodeURIComponent(dateFrom)}`;
+      }
+
+      if (dateTo) {
+        url += `&dateTo=${encodeURIComponent(dateTo)}`;
+      }
 
       const response = await fetch(url);
       const data = await response.json();
 
-      // Apply client-side filters
-      let filteredData = data.data;
-
-      if (websiteFilter !== 'all') {
-        filteredData = filteredData.filter((lead: Lead) => lead.website === websiteFilter);
-      }
-
-      if (dateFrom) {
-        filteredData = filteredData.filter((lead: Lead) =>
-          new Date(lead.created_at) >= new Date(dateFrom)
-        );
-      }
-
-      if (dateTo) {
-        filteredData = filteredData.filter((lead: Lead) =>
-          new Date(lead.created_at) <= new Date(dateTo)
-        );
-      }
-
-      setLeads(filteredData);
+      // No need for client-side filtering - API handles it
+      setLeads(data.data);
       setTotalPages(data.pagination.totalPages);
     } catch (error) {
       console.error('Error fetching leads:', error);
