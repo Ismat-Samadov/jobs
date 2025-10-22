@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes
-  if (pathname === '/login' || pathname.startsWith('/api/auth')) {
+  if (pathname === '/' || pathname === '/login' || pathname.startsWith('/api/auth')) {
     // If user is logged in and trying to access login, redirect based on role
     if (token && pathname === '/login') {
       const userRole = (token as any).role;
