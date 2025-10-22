@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 
 interface Lead {
@@ -264,12 +264,33 @@ export default function DashboardPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [availableSources, setAvailableSources] = useState<string[]>([]);
+  const isInitialMount = useRef(true);
 
+  // Fetch leads when page changes
   useEffect(() => {
     fetchLeads();
+  }, [page]);
+
+  // Auto-apply filters when they change (reset to page 1)
+  useEffect(() => {
+    // Skip the initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    if (page === 1) {
+      fetchLeads();
+    } else {
+      setPage(1); // This will trigger the page useEffect above
+    }
+  }, [websiteFilter, dateFrom, dateTo]);
+
+  // Fetch stats and sources only on initial load
+  useEffect(() => {
     fetchStats();
     fetchSources();
-  }, [page]);
+  }, []);
 
   const fetchLeads = async () => {
     try {
