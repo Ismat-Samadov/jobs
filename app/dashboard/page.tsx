@@ -335,74 +335,132 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Navigation Header */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 shadow-lg">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl font-bold text-white">Lead Generator</h1>
+                <p className="text-xs text-white/80 hidden sm:block">Data Management Dashboard</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="hidden md:flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
+                <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="text-sm font-medium text-white">{session?.user?.name}</span>
+              </div>
+              <a
+                href="/api/auth/signout"
+                className="inline-flex items-center px-3 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-all"
+              >
+                <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span className="hidden sm:inline">Logout</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-base sm:text-lg text-gray-600">
-            Welcome back, <span className="font-semibold text-blue-600">{session?.user?.name}</span>
+        {/* Welcome Banner */}
+        <div className="mb-6 sm:mb-8 bg-gradient-to-r from-white to-blue-50 rounded-2xl shadow-lg p-6 border border-blue-100">
+          <h2 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+            Welcome back, {session?.user?.name}!
+          </h2>
+          <p className="mt-2 text-gray-600">
+            Here's an overview of your lead generation performance
           </p>
         </div>
 
         {/* Statistics Cards */}
         {stats && (
           <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 overflow-hidden shadow-lg rounded-xl">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 overflow-hidden shadow-xl rounded-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer">
               <div className="p-6">
-                <div className="flex items-center">
+                <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <dt className="text-sm font-medium text-blue-100 truncate">
+                    <dt className="text-sm font-medium text-blue-100 uppercase tracking-wide">
                       Total Leads
                     </dt>
-                    <dd className="mt-2 text-4xl font-bold text-white">
+                    <dd className="mt-2 text-4xl font-extrabold text-white">
                       {stats.totalLeads.toLocaleString()}
                     </dd>
                   </div>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-500 to-green-600 overflow-hidden shadow-lg rounded-xl">
+            <div className="bg-gradient-to-br from-green-500 to-green-600 overflow-hidden shadow-xl rounded-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer">
               <div className="p-6">
-                <div className="flex items-center">
+                <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <dt className="text-sm font-medium text-green-100 truncate">
+                    <dt className="text-sm font-medium text-green-100 uppercase tracking-wide">
                       Today
                     </dt>
-                    <dd className="mt-2 text-4xl font-bold text-white">
+                    <dd className="mt-2 text-4xl font-extrabold text-white">
                       {stats.leadsToday.toLocaleString()}
                     </dd>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 overflow-hidden shadow-lg rounded-xl">
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-1">
-                    <dt className="text-sm font-medium text-purple-100 truncate">
-                      This Week
-                    </dt>
-                    <dd className="mt-2 text-4xl font-bold text-white">
-                      {stats.leadsThisWeek.toLocaleString()}
-                    </dd>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 overflow-hidden shadow-lg rounded-xl">
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 overflow-hidden shadow-xl rounded-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer">
               <div className="p-6">
-                <div className="flex items-center">
+                <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <dt className="text-sm font-medium text-orange-100 truncate">
+                    <dt className="text-sm font-medium text-purple-100 uppercase tracking-wide">
+                      This Week
+                    </dt>
+                    <dd className="mt-2 text-4xl font-extrabold text-white">
+                      {stats.leadsThisWeek.toLocaleString()}
+                    </dd>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 overflow-hidden shadow-xl rounded-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer">
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <dt className="text-sm font-medium text-orange-100 uppercase tracking-wide">
                       This Month
                     </dt>
-                    <dd className="mt-2 text-4xl font-bold text-white">
+                    <dd className="mt-2 text-4xl font-extrabold text-white">
                       {stats.leadsThisMonth.toLocaleString()}
                     </dd>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -411,9 +469,16 @@ export default function DashboardPage() {
         )}
 
         {/* Filters and Actions */}
-        <div className="bg-white shadow-lg rounded-xl mb-6">
+        <div className="bg-white shadow-xl rounded-2xl mb-6 border border-gray-100">
           <div className="px-4 sm:px-6 py-5">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Filters & Actions</h2>
+            <div className="flex items-center mb-4">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg p-2 mr-3">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Filters & Actions</h2>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
               {/* Search Input */}
@@ -477,7 +542,7 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row flex-wrap gap-3">
               <button
                 onClick={handleSearch}
-                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg transform hover:scale-105 transition-all"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -487,7 +552,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={clearFilters}
-                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 border-2 border-gray-300 text-sm font-semibold rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 shadow-md transform hover:scale-105 transition-all"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -498,7 +563,7 @@ export default function DashboardPage() {
               <button
                 onClick={handleExport}
                 disabled={exporting}
-                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -510,11 +575,23 @@ export default function DashboardPage() {
         </div>
 
         {/* Leads Data Table */}
-        <div className="bg-white shadow-lg rounded-xl overflow-hidden mb-6">
-          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">
-              Leads Data ({leads.length} results)
-            </h2>
+        <div className="bg-white shadow-xl rounded-2xl overflow-hidden mb-6 border border-gray-100">
+          <div className="px-4 sm:px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg p-2 mr-3">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Leads Data
+                </h2>
+              </div>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+                {leads.length} results
+              </span>
+            </div>
           </div>
 
           {leads.length === 0 ? (
@@ -564,46 +641,54 @@ export default function DashboardPage() {
         </div>
 
         {/* Pagination */}
-        <div className="bg-white shadow-lg rounded-xl px-6 py-4">
+        <div className="bg-white shadow-xl rounded-2xl px-6 py-4 border border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex-1 flex justify-between sm:hidden">
               <button
                 onClick={() => { setPage(Math.max(1, page - 1)); fetchLeads(); }}
                 disabled={page === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-semibold rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all"
               >
                 Previous
               </button>
               <button
                 onClick={() => { setPage(Math.min(totalPages, page + 1)); fetchLeads(); }}
                 disabled={page === totalPages}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="ml-3 relative inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-semibold rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all"
               >
                 Next
               </button>
             </div>
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-700">
-                  Page <span className="font-bold text-blue-600">{page}</span> of{' '}
-                  <span className="font-bold text-blue-600">{totalPages}</span>
-                </p>
+              <div className="flex items-center space-x-2">
+                <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg px-4 py-2">
+                  <p className="text-sm font-semibold text-gray-800">
+                    Page <span className="font-bold text-blue-600">{page}</span> of{' '}
+                    <span className="font-bold text-purple-600">{totalPages}</span>
+                  </p>
+                </div>
               </div>
               <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                <nav className="relative z-0 inline-flex rounded-xl shadow-md">
                   <button
                     onClick={() => { setPage(Math.max(1, page - 1)); fetchLeads(); }}
                     disabled={page === 1}
-                    className="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="relative inline-flex items-center px-6 py-2 rounded-l-xl border-2 border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all"
                   >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                     Previous
                   </button>
                   <button
                     onClick={() => { setPage(Math.min(totalPages, page + 1)); fetchLeads(); }}
                     disabled={page === totalPages}
-                    className="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="relative inline-flex items-center px-6 py-2 rounded-r-xl border-2 border-l-0 border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all"
                   >
                     Next
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
                 </nav>
               </div>
