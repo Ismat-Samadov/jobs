@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import pool from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export interface Lead {
   id: number;
   phone_number: string;

@@ -3,19 +3,29 @@
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const { data: session, status } = useSession();
+  const [mounted, setMounted] = useState(false);
+  const session = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && session?.status === 'authenticated') {
       router.push('/dashboard');
     }
-  }, [status, router]);
+  }, [mounted, session?.status, router]);
 
-  if (status === 'loading') {
+  // Show nothing during SSR
+  if (!mounted) {
+    return null;
+  }
+
+  if (session?.status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
