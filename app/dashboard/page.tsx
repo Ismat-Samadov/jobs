@@ -265,13 +265,28 @@ export default function DashboardPage() {
   const [dateTo, setDateTo] = useState('');
   const [availableSources, setAvailableSources] = useState<string[]>([]);
   const isInitialMount = useRef(true);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch leads when page changes
   useEffect(() => {
     fetchLeads();
   }, [page]);
 
-  // Auto-apply filters when they change (reset to page 1)
+  // Auto-apply filters for dropdown/date changes (immediate)
+  useEffect(() => {
+    // Skip the initial mount
+    if (isInitialMount.current) {
+      return;
+    }
+
+    if (page === 1) {
+      fetchLeads();
+    } else {
+      setPage(1);
+    }
+  }, [websiteFilter, dateFrom, dateTo]);
+
+  // Auto-apply search filter with debouncing to avoid excessive API calls
   useEffect(() => {
     // Skip the initial mount
     if (isInitialMount.current) {
@@ -279,12 +294,27 @@ export default function DashboardPage() {
       return;
     }
 
-    if (page === 1) {
-      fetchLeads();
-    } else {
-      setPage(1); // This will trigger the page useEffect above
+    // Clear any existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
-  }, [websiteFilter, dateFrom, dateTo]);
+
+    // Debounce search by 500ms
+    searchTimeoutRef.current = setTimeout(() => {
+      if (page === 1) {
+        fetchLeads();
+      } else {
+        setPage(1);
+      }
+    }, 500);
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [search]);
 
   // Fetch stats and sources only on initial load
   useEffect(() => {
@@ -344,8 +374,15 @@ export default function DashboardPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setPage(1);
-    fetchLeads();
+    // Force immediate search (bypass debounce)
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    if (page === 1) {
+      fetchLeads();
+    } else {
+      setPage(1);
+    }
   };
 
   const handleExport = async () => {
@@ -374,8 +411,7 @@ export default function DashboardPage() {
     setWebsiteFilter('all');
     setDateFrom('');
     setDateTo('');
-    setPage(1);
-    setTimeout(() => fetchLeads(), 100);
+    // No need to manually fetch - useEffect will trigger when filters change
   };
 
   if (loading) {
@@ -575,7 +611,7 @@ export default function DashboardPage() {
                   <option value="all">All Websites</option>
                   {availableSources.map((source) => (
                     <option key={source} value={source}>
-                      {source.toUpperCase()}
+                      {source}
                     </option>
                   ))}
                 </select>
@@ -617,7 +653,7 @@ export default function DashboardPage() {
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Apply Filters
+                Search Now
               </button>
 
               <button
@@ -687,7 +723,7 @@ export default function DashboardPage() {
                       Phone Number
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Source
+                      Website
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                       Data Preview
@@ -715,14 +751,14 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex-1 flex justify-between sm:hidden">
               <button
-                onClick={() => { setPage(Math.max(1, page - 1)); fetchLeads(); }}
+                onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
                 className="relative inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-semibold rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all"
               >
                 Previous
               </button>
               <button
-                onClick={() => { setPage(Math.min(totalPages, page + 1)); fetchLeads(); }}
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
                 className="ml-3 relative inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-semibold rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all"
               >
@@ -741,7 +777,7 @@ export default function DashboardPage() {
               <div>
                 <nav className="relative z-0 inline-flex rounded-xl shadow-md">
                   <button
-                    onClick={() => { setPage(Math.max(1, page - 1)); fetchLeads(); }}
+                    onClick={() => setPage(Math.max(1, page - 1))}
                     disabled={page === 1}
                     className="relative inline-flex items-center px-6 py-2 rounded-l-xl border-2 border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all"
                   >
@@ -751,7 +787,7 @@ export default function DashboardPage() {
                     Previous
                   </button>
                   <button
-                    onClick={() => { setPage(Math.min(totalPages, page + 1)); fetchLeads(); }}
+                    onClick={() => setPage(Math.min(totalPages, page + 1))}
                     disabled={page === totalPages}
                     className="relative inline-flex items-center px-6 py-2 rounded-r-xl border-2 border-l-0 border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all"
                   >
