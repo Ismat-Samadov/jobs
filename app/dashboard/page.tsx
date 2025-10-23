@@ -316,11 +316,16 @@ export default function DashboardPage() {
     };
   }, [search]);
 
-  // Fetch stats and sources only on initial load
+  // Fetch stats and sources on initial load and when filters are cleared
   useEffect(() => {
     fetchStats();
     fetchSources();
   }, []);
+
+  // Refetch sources when filter dropdown is opened (on focus)
+  const handleSourcesRefresh = () => {
+    fetchSources();
+  };
 
   const fetchLeads = async () => {
     try {
@@ -411,6 +416,8 @@ export default function DashboardPage() {
     setWebsiteFilter('all');
     setDateFrom('');
     setDateTo('');
+    // Refresh sources list when clearing filters
+    fetchSources();
     // No need to manually fetch - useEffect will trigger when filters change
   };
 
@@ -606,6 +613,7 @@ export default function DashboardPage() {
                 <select
                   value={websiteFilter}
                   onChange={(e) => setWebsiteFilter(e.target.value)}
+                  onFocus={handleSourcesRefresh}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   <option value="all">All Websites</option>

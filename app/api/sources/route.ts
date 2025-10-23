@@ -17,7 +17,14 @@ export async function GET() {
 
     const sources = result.rows.map(row => row.source);
 
-    return NextResponse.json({ sources });
+    return NextResponse.json(
+      { sources },
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching sources:', error);
     return NextResponse.json(
