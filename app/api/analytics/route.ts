@@ -20,8 +20,10 @@ export async function GET() {
       leadsBySourceResult,
       leadsByDateResult,
       leadsLast30DaysResult,
-      topCitiesResult,
-      topSubjectsResult,
+      dataQualityResult,
+      hourlyDistributionResult,
+      weekdayDistributionResult,
+      uniquePhoneNumbersResult,
       websiteGrowthResult,
       dailyGrowthResult,
     ] = await Promise.all([
@@ -58,30 +60,45 @@ export async function GET() {
         ORDER BY date ASC
       `),
 
-      // Top cities (from tutors data)
+      // Data quality metrics - leads with full_data vs without
       pool.query(`
         SELECT
-          full_data->>'city' as city,
+          CASE
+            WHEN full_data IS NOT NULL AND full_data::text != 'null' THEN 'Complete Data'
+            ELSE 'Basic Data Only'
+          END as data_status,
           COUNT(*) as count
         FROM leads.leads
-        WHERE full_data->>'city' IS NOT NULL
-        AND full_data->>'city' != ''
-        GROUP BY full_data->>'city'
-        ORDER BY count DESC
-        LIMIT 10
+        GROUP BY data_status
       `),
 
-      // Top subjects (from tutors data)
+      // Hourly distribution - when are leads collected?
       pool.query(`
         SELECT
-          full_data->>'subject_taught' as subject,
+          EXTRACT(HOUR FROM created_at) as hour,
           COUNT(*) as count
         FROM leads.leads
-        WHERE full_data->>'subject_taught' IS NOT NULL
-        AND full_data->>'subject_taught' != ''
-        GROUP BY full_data->>'subject_taught'
-        ORDER BY count DESC
-        LIMIT 10
+        GROUP BY EXTRACT(HOUR FROM created_at)
+        ORDER BY hour
+      `),
+
+      // Day of week distribution
+      pool.query(`
+        SELECT
+          TO_CHAR(created_at, 'Day') as day_name,
+          EXTRACT(DOW FROM created_at) as day_num,
+          COUNT(*) as count
+        FROM leads.leads
+        GROUP BY day_name, day_num
+        ORDER BY day_num
+      `),
+
+      // Unique phone numbers vs total leads
+      pool.query(`
+        SELECT
+          COUNT(DISTINCT phone_number) as unique_phones,
+          COUNT(*) as total_leads
+        FROM leads.leads
       `),
 
       // Website growth over time
@@ -114,8 +131,10 @@ export async function GET() {
     const leadsBySource = leadsBySourceResult.rows;
     const leadsByDate = leadsByDateResult.rows;
     const leadsLast30Days = leadsLast30DaysResult.rows;
-    const topCities = topCitiesResult.rows;
-    const topSubjects = topSubjectsResult.rows;
+    const dataQuality = dataQualityResult.rows;
+    const hourlyDistribution = hourlyDistributionResult.rows;
+    const weekdayDistribution = weekdayDistributionResult.rows;
+    const phoneStats = uniquePhoneNumbersResult.rows[0];
     const websiteGrowth = websiteGrowthResult.rows;
     const dailyGrowth = dailyGrowthResult.rows;
 
@@ -138,19 +157,34 @@ export async function GET() {
     // Top 5 sources
     const topSources = leadsBySource.slice(0, 5);
 
+    // Calculate data quality percentage
+    const completeDataCount = dataQuality.find(row => row.data_status === 'Complete Data')?.count || 0;
+    const dataQualityPercentage = totalLeads > 0
+      ? ((parseInt(completeDataCount) / totalLeads) * 100).toFixed(1)
+      : 0;
+
+    // Calculate duplicate rate
+    const duplicateRate = phoneStats.total_leads > 0
+      ? (((parseInt(phoneStats.total_leads) - parseInt(phoneStats.unique_phones)) / parseInt(phoneStats.total_leads)) * 100).toFixed(1)
+      : 0;
+
     return NextResponse.json({
       overview: {
         totalLeads,
         todayLeads,
         avgDailyLeads,
         growthPercentage,
+        uniquePhones: parseInt(phoneStats.unique_phones),
+        duplicateRate,
+        dataQualityPercentage,
       },
       leadsBySource,
       topSources,
       leadsByDate,
       leadsLast30Days,
-      topCities,
-      topSubjects,
+      dataQuality,
+      hourlyDistribution,
+      weekdayDistribution,
       websiteGrowth,
       dailyGrowth,
     });
