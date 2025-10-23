@@ -3,7 +3,8 @@ Main entry point for running all scrapers
 """
 import asyncio
 from datetime import datetime
-from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync
+from concurrent.futures import ThreadPoolExecutor
+from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync, scrape_turbo_az
 from scripts.telegram import TelegramNotifier
 
 
@@ -63,6 +64,44 @@ async def main():
         })
     finally:
         bul_scraper.close()
+
+    # Turbo.AZ Scraper - scrape first 5 pages (runs in thread executor)
+    print("\n" + "=" * 70)
+    print("Turbo.AZ Scraper")
+    print("=" * 70)
+    turbo_start = datetime.now()
+
+    try:
+        # Run synchronous scraper in thread pool
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            result = await loop.run_in_executor(executor, scrape_turbo_az, 5)
+
+        turbo_end = datetime.now()
+        turbo_duration = (turbo_end - turbo_start).total_seconds()
+
+        stats = result.get('stats', {})
+        leads = result.get('leads', [])
+
+        turbo_stats = {
+            'new_leads': stats.get('saved', 0),
+            'duplicates': stats.get('total', 0) - stats.get('saved', 0),
+            'errors': stats.get('failed', 0),
+            'duration': turbo_duration,
+            'start_time': turbo_start,
+            'leads': leads
+        }
+
+        reports.append({
+            'source': 'Turbo.AZ',
+            'stats': turbo_stats,
+            'duration': turbo_duration,
+            'start_time': turbo_start
+        })
+
+        print(f"✓ Turbo.AZ scraping completed: {stats.get('total', 0)} leads ({stats.get('saved', 0)} saved) in {turbo_duration:.2f}s")
+    except Exception as e:
+        print(f"✗ Turbo.AZ scraping failed: {e}")
 
     # Calculate overall duration
     overall_end = datetime.now()
