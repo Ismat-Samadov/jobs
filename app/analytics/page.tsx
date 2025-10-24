@@ -430,20 +430,25 @@ export default function AnalyticsPage() {
               Weekly Collection Pattern
             </h2>
           </div>
-          <div className="p-6">
-            <div className="grid grid-cols-7 gap-3">
+          <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
               {analytics.weekdayDistribution.map((day) => {
                 const maxCount = Math.max(...analytics.weekdayDistribution.map(d => parseInt(d.count)));
                 const percentage = maxCount > 0 ? (parseInt(day.count) / maxCount * 100) : 0;
-                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const dayShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                 return (
                   <div key={day.day_name} className="text-center">
-                    <div className="mb-2 text-xs font-semibold text-gray-700">{dayNames[parseInt(day.day_num)]}</div>
-                    <div className="bg-gray-100 rounded-lg p-3 hover:bg-gray-200 transition-colors">
-                      <div className="text-2xl font-bold text-gray-900">{parseInt(day.count).toLocaleString()}</div>
-                      <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                    <div className="mb-2 text-xs sm:text-sm font-semibold text-gray-700">
+                      <span className="hidden lg:inline">{dayShort[parseInt(day.day_num)]}</span>
+                      <span className="lg:hidden">{dayNames[parseInt(day.day_num)]}</span>
+                    </div>
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 hover:shadow-md hover:from-purple-50 hover:to-pink-50 transition-all duration-200 border border-gray-200">
+                      <div className="text-xl sm:text-2xl font-bold text-gray-900">{parseInt(day.count).toLocaleString()}</div>
+                      <div className="text-xs text-gray-500 mb-2 mt-1">leads</div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
                         <div
-                          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500 shadow-sm"
                           style={{ width: `${percentage}%` }}
                         ></div>
                       </div>
