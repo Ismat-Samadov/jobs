@@ -1,6 +1,8 @@
 # Environment variables
 .env
 
+backup_removed_files/
+
 # Python
 __pycache__/
 *.py[cod]
