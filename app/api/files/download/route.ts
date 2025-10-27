@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     headers.set('Content-Disposition', `attachment; filename="${file.original_filename}"`);
     headers.set('Content-Length', downloadResult.data.length.toString());
 
-    return new NextResponse(downloadResult.data, {
+    return new NextResponse(new Uint8Array(downloadResult.data), {
       status: 200,
       headers,
     });
