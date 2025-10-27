@@ -530,31 +530,61 @@ export default function FileManagerPage() {
           </button>
         </div>
 
-        {/* Breadcrumbs */}
-        <div className="mb-6 bg-white shadow-lg rounded-2xl p-4">
-          <div className="flex items-center space-x-2 text-sm">
-            <button
-              onClick={() => setCurrentFolder(null)}
-              className="text-purple-600 hover:text-purple-800 font-medium flex items-center"
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              Root
-            </button>
-            {getBreadcrumbs().map((folder) => (
-              <div key={folder.id} className="flex items-center">
-                <svg className="w-4 h-4 text-gray-400 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        {/* Breadcrumbs & Current Folder Info */}
+        <div className="mb-6 bg-white/70 backdrop-blur-sm shadow-lg rounded-2xl p-4 sm:p-5 border border-gray-200/50">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center overflow-x-auto scrollbar-hide space-x-2 text-sm">
+              <button
+                onClick={() => setCurrentFolder(null)}
+                className="flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 hover:from-purple-100 hover:to-pink-100 transition-colors whitespace-nowrap font-semibold"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <button
-                  onClick={() => setCurrentFolder(folder.id)}
-                  className="text-purple-600 hover:text-purple-800 font-medium"
-                >
-                  {folder.name}
-                </button>
+                <span>Root</span>
+              </button>
+              {getBreadcrumbs().map((folder, index) => (
+                <div key={folder.id} className="flex items-center">
+                  <svg className="w-4 h-4 text-gray-400 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  <button
+                    onClick={() => setCurrentFolder(folder.id)}
+                    className={`px-3 py-2 rounded-lg font-semibold whitespace-nowrap transition-colors ${
+                      index === getBreadcrumbs().length - 1
+                        ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {folder.name}
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Current Folder Stats */}
+            <div className="flex items-center space-x-4 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200/50">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                <div className="text-sm">
+                  <span className="font-bold text-blue-900">{getSubfolders().length}</span>
+                  <span className="text-blue-700 ml-1">folder{getSubfolders().length !== 1 ? 's' : ''}</span>
+                </div>
               </div>
-            ))}
+              <div className="w-px h-6 bg-blue-300"></div>
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <div className="text-sm">
+                  <span className="font-bold text-purple-900">{files.length}</span>
+                  <span className="text-purple-700 ml-1">file{files.length !== 1 ? 's' : ''}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -613,78 +643,125 @@ export default function FileManagerPage() {
         {/* Files */}
         <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
           <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Files in {getCurrentFolderName()}</h2>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-2">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Files in {getCurrentFolderName()}</h2>
+                  <p className="text-xs text-gray-600 mt-0.5">{files.length} file{files.length !== 1 ? 's' : ''} in this location</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {files.length === 0 ? (
-            <div className="p-12 text-center">
-              <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              <p className="text-lg font-medium text-gray-500">No files found</p>
+            <div className="p-12 sm:p-16 text-center">
+              <div className="flex flex-col items-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center mb-4">
+                  <svg className="w-10 h-10 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="text-lg font-semibold text-gray-900 mb-2">No files yet</p>
+                <p className="text-sm text-gray-500 mb-6 max-w-sm">
+                  Upload your first file to get started with file management
+                </p>
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-sm font-semibold rounded-xl shadow-lg transform hover:scale-105 transition-all"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Upload Your First File
+                </button>
+              </div>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-100">
               {files.map((file) => (
-                <div key={file.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-4 flex-1 min-w-0">
-                      <div className="flex-shrink-0">
+                <div key={file.id} className="p-4 sm:p-6 hover:bg-gradient-to-r hover:from-purple-50/30 hover:to-pink-50/30 transition-all group">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                    {/* File Info */}
+                    <div className="flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0">
+                      <div className="flex-shrink-0 mt-1">
                         {getFileIcon(file.file_type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate group-hover:text-purple-700 transition-colors">
                           {file.original_filename}
                         </h3>
-                        <div className="flex items-center space-x-4 mt-1">
-                          <span className="text-xs text-gray-500">{formatFileSize(file.file_size)}</span>
-                          <span className="text-xs text-gray-500">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+                          <span className="inline-flex items-center text-xs text-gray-600">
+                            <svg className="w-3.5 h-3.5 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                            </svg>
+                            {formatFileSize(file.file_size)}
+                          </span>
+                          <span className="inline-flex items-center text-xs text-gray-600">
+                            <svg className="w-3.5 h-3.5 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
                             {file.download_count} download{file.download_count !== 1 ? 's' : ''}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="inline-flex items-center text-xs text-gray-600">
+                            <svg className="w-3.5 h-3.5 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
                             {new Date(file.created_at).toLocaleDateString()}
                           </span>
-                          <span className="text-xs text-gray-500">By {file.uploaded_by}</span>
+                          <span className="inline-flex items-center text-xs text-gray-600">
+                            <svg className="w-3.5 h-3.5 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            {file.uploaded_by}
+                          </span>
                         </div>
                         {file.description && (
-                          <p className="text-xs text-gray-600 mt-1">{file.description}</p>
+                          <p className="text-xs sm:text-sm text-gray-600 mt-2 bg-gray-50 rounded-lg p-2">{file.description}</p>
                         )}
                       </div>
                     </div>
-                    <div className="ml-4 flex flex-col sm:flex-row gap-2">
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap lg:flex-col gap-2">
                       <button
                         onClick={() => handleDownload(file.id, file.original_filename)}
                         disabled={downloading === file.id}
-                        className="inline-flex items-center px-3 py-2 text-xs font-semibold text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-all disabled:opacity-50"
+                        className="flex-1 lg:flex-none inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        Download
+                        {downloading === file.id ? 'Downloading...' : 'Download'}
                       </button>
                       <button
                         onClick={() => openEditFileModal(file)}
-                        className="inline-flex items-center px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-lg transition-all"
+                        className="flex-1 lg:flex-none inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-lg transition-all"
                       >
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                         Edit
                       </button>
                       <button
                         onClick={() => openMoveFileModal(file)}
-                        className="inline-flex items-center px-3 py-2 text-xs font-semibold text-purple-700 bg-purple-100 hover:bg-purple-200 rounded-lg transition-all"
+                        className="flex-1 lg:flex-none inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-purple-700 bg-purple-100 hover:bg-purple-200 rounded-lg transition-all"
                       >
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                         </svg>
                         Move
                       </button>
                       <button
                         onClick={() => handleDeleteFile(file)}
-                        className="inline-flex items-center px-3 py-2 text-xs font-semibold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-all"
+                        className="flex-1 lg:flex-none inline-flex items-center justify-center px-3 py-2 text-xs font-semibold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-all"
                       >
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                         Delete
