@@ -27,6 +27,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // API routes handle their own authentication - let them through
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
   // Protected routes - require authentication
   if (!token) {
     console.log('❌ No token found, redirecting to login from:', pathname);
