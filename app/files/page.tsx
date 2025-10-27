@@ -171,78 +171,86 @@ export default function FilesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Navigation Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 shadow-lg">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      {/* Modern Navigation Header */}
+      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Logo & Title */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                </svg>
+              <div className="relative">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                </div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
-              <div>
-                <h1 className="text-lg sm:text-xl font-bold text-white">Files</h1>
-                <p className="text-xs text-white/80 hidden sm:block">Browse and download files</p>
+              <div className="hidden sm:block">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  File Library
+                </h1>
+                <p className="text-xs text-gray-500">Browse & Download</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+
+            {/* Mobile Menu Button */}
+            <div className="flex items-center space-x-2">
               <a
                 href="/dashboard"
-                className="inline-flex items-center px-3 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-all"
+                className="inline-flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                <svg className="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span className="hidden sm:inline">Dashboard</span>
+                <span className="hidden sm:inline">Home</span>
               </a>
               {session?.user?.role === 'admin' && (
                 <a
                   href="/file-manager"
-                  className="inline-flex items-center px-3 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-all"
+                  className="inline-flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all shadow-md"
                 >
-                  <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <svg className="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
-                  <span className="hidden sm:inline">Manage Files</span>
+                  <span className="hidden sm:inline">Manage</span>
                 </a>
               )}
-              <a
-                href="/api/auth/signout"
-                className="inline-flex items-center px-3 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-all"
+              <button
+                onClick={() => window.location.href = '/api/auth/signout'}
+                className="inline-flex items-center justify-center p-2 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                title="Logout"
               >
-                <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                <span className="hidden sm:inline">Logout</span>
-              </a>
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      </nav>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Breadcrumbs */}
-        <div className="mb-6 bg-white shadow-lg rounded-2xl p-4">
-          <div className="flex items-center space-x-2 text-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        {/* Modern Breadcrumbs */}
+        <div className="mb-6 bg-white/70 backdrop-blur-sm shadow-md rounded-xl p-3 sm:p-4 border border-gray-200/50">
+          <div className="flex items-center overflow-x-auto scrollbar-hide space-x-2 text-sm">
             <button
               onClick={() => setCurrentFolder(null)}
-              className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 hover:from-blue-100 hover:to-purple-100 transition-colors whitespace-nowrap font-medium"
             >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
-              Root
+              <span>Root</span>
             </button>
-            {getBreadcrumbs().map((folder, index) => (
-              <div key={folder.id} className="flex items-center">
-                <svg className="w-4 h-4 text-gray-400 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {getBreadcrumbs().map((folder) => (
+              <div key={folder.id} className="flex items-center space-x-2">
+                <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
                 <button
                   onClick={() => setCurrentFolder(folder.id)}
-                  className="text-blue-600 hover:text-blue-800 font-medium"
+                  className="px-3 py-1.5 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors whitespace-nowrap font-medium"
                 >
                   {folder.name}
                 </button>
@@ -251,26 +259,46 @@ export default function FilesPage() {
           </div>
         </div>
 
-        {/* Folders */}
+        {/* Folders Grid - Mobile Optimized */}
         {getSubfolders().length > 0 && (
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Folders</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
+                <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                Folders
+              </h2>
+              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                {getSubfolders().length}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {getSubfolders().map((folder) => (
                 <button
                   key={folder.id}
                   onClick={() => setCurrentFolder(folder.id)}
-                  className="bg-white hover:bg-blue-50 shadow-lg rounded-xl p-6 transition-all transform hover:scale-105 text-left border border-gray-200"
+                  className="group bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50 shadow-md hover:shadow-xl rounded-xl p-4 sm:p-5 transition-all duration-200 transform hover:scale-105 text-left border border-gray-200 hover:border-blue-300"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg p-3">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-2.5 sm:p-3 group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                       </svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">{folder.name}</h3>
-                      <p className="text-sm text-gray-500">{folder.file_count} file(s)</p>
+                      <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base mb-1">
+                        {folder.name}
+                      </h3>
+                      <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500">
+                        <span>{folder.file_count} files</span>
+                        {folder.subfolder_count > 0 && (
+                          <>
+                            <span>•</span>
+                            <span>{folder.subfolder_count} folders</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -279,54 +307,83 @@ export default function FilesPage() {
           </div>
         )}
 
-        {/* Files */}
-        <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
-          <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Files in {getCurrentFolderName()}</h2>
+        {/* Files Section - Mobile Optimized */}
+        <div className="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden border border-gray-200/50">
+          <div className="px-4 sm:px-6 py-4 bg-gradient-to-r from-gray-50 via-blue-50 to-purple-50 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
+                <svg className="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span className="hidden sm:inline">Files in </span>{getCurrentFolderName()}
+              </h2>
+              <span className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+                {files.length}
+              </span>
+            </div>
           </div>
 
           {files.length === 0 ? (
-            <div className="p-12 text-center">
-              <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              <p className="text-lg font-medium text-gray-500">No files found</p>
+            <div className="p-12 sm:p-16 text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl mb-4">
+                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <p className="text-lg font-semibold text-gray-700 mb-2">No files found</p>
+              <p className="text-sm text-gray-500">This folder is empty</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-100">
               {files.map((file) => (
-                <div key={file.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 flex-1 min-w-0">
-                      <div className="flex-shrink-0">
+                <div key={file.id} className="p-4 sm:p-6 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    {/* File Icon & Info */}
+                    <div className="flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0">
+                      <div className="flex-shrink-0 mt-1">
                         {getFileIcon(file.file_type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate mb-1">
                           {file.original_filename}
                         </h3>
-                        <div className="flex items-center space-x-4 mt-1">
-                          <span className="text-xs text-gray-500">{formatFileSize(file.file_size)}</span>
-                          <span className="text-xs text-gray-500">
-                            {file.download_count} download{file.download_count !== 1 ? 's' : ''}
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-500">
+                          <span className="inline-flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                            </svg>
+                            {formatFileSize(file.file_size)}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="inline-flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            {file.download_count} downloads
+                          </span>
+                          <span className="inline-flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
                             {new Date(file.created_at).toLocaleDateString()}
                           </span>
                         </div>
                         {file.description && (
-                          <p className="text-xs text-gray-600 mt-1">{file.description}</p>
+                          <p className="text-xs sm:text-sm text-gray-600 mt-2 line-clamp-2">
+                            {file.description}
+                          </p>
                         )}
                       </div>
                     </div>
+
+                    {/* Download Button */}
                     <button
                       onClick={() => handleDownload(file.id, file.original_filename)}
                       disabled={downloading === file.id}
-                      className="ml-4 inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-semibold rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-semibold rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {downloading === file.id ? (
                         <>
-                          <svg className="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                          <svg className="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
@@ -334,7 +391,7 @@ export default function FilesPage() {
                         </>
                       ) : (
                         <>
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                           </svg>
                           Download
