@@ -1,16 +1,15 @@
 /**
- * API route for file downloads
+ * API route for file downloads from Cloudflare R2
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import pool from '@/lib/db';
-import { readFile } from 'fs/promises';
-import { existsSync } from 'fs';
+import { downloadFromR2, getContentType } from '@/lib/r2';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * GET /api/files/download - Download a file
+ * GET /api/files/download - Download a file from R2
  */
 export async function GET(request: NextRequest) {
   try {
@@ -40,9 +39,14 @@ export async function GET(request: NextRequest) {
 
     const file = result.rows[0];
 
-    // Check if file exists on disk
-    if (!existsSync(file.file_path)) {
-      return NextResponse.json({ error: 'File not found on server' }, { status: 404 });
+    // Download file from R2
+    const downloadResult = await downloadFromR2(file.file_path);
+
+    if (!downloadResult.success || !downloadResult.data) {
+      return NextResponse.json(
+        { error: downloadResult.error || 'File not found on R2' },
+        { status: 404 }
+      );
     }
 
     // Increment download count
@@ -51,16 +55,13 @@ export async function GET(request: NextRequest) {
       [id]
     );
 
-    // Read file from disk
-    const fileBuffer = await readFile(file.file_path);
-
     // Set appropriate headers for download
     const headers = new Headers();
-    headers.set('Content-Type', getContentType(file.file_type));
+    headers.set('Content-Type', downloadResult.contentType || getContentType(file.file_type));
     headers.set('Content-Disposition', `attachment; filename="${file.original_filename}"`);
-    headers.set('Content-Length', file.file_size.toString());
+    headers.set('Content-Length', downloadResult.data.length.toString());
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(downloadResult.data, {
       status: 200,
       headers,
     });
@@ -68,19 +69,4 @@ export async function GET(request: NextRequest) {
     console.error('Error downloading file:', error);
     return NextResponse.json({ error: 'Failed to download file' }, { status: 500 });
   }
-}
-
-/**
- * Helper function to get content type based on file extension
- */
-function getContentType(fileType: string): string {
-  const types: { [key: string]: string } = {
-    csv: 'text/csv',
-    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    xls: 'application/vnd.ms-excel',
-    json: 'application/json',
-    txt: 'text/plain',
-  };
-
-  return types[fileType] || 'application/octet-stream';
 }

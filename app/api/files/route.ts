@@ -1,23 +1,13 @@
 /**
- * API routes for file operations
+ * API routes for file operations with Cloudflare R2 storage
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import pool from '@/lib/db';
-import { writeFile, unlink, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
+import { uploadToR2, deleteFromR2, getContentType, generateR2Key } from '@/lib/r2';
 import path from 'path';
 
 export const dynamic = 'force-dynamic';
-
-const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
-
-// Ensure upload directory exists
-async function ensureUploadDir() {
-  if (!existsSync(UPLOAD_DIR)) {
-    await mkdir(UPLOAD_DIR, { recursive: true });
-  }
-}
 
 /**
  * GET /api/files - Get all files with optional folder filter
@@ -92,8 +82,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await ensureUploadDir();
-
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
     const folderId = formData.get('folderId') as string;
@@ -123,17 +111,22 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Generate unique filename
-        const timestamp = Date.now();
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
-        const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const filename = `${timestamp}_${randomSuffix}_${sanitizedName}`;
-        const filePath = path.join(UPLOAD_DIR, filename);
+        // Generate unique R2 key
+        const r2Key = generateR2Key(file.name);
+        const contentType = getContentType(fileExt.replace('.', ''));
 
-        // Save file to disk
+        // Upload file to R2
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        await writeFile(filePath, buffer);
+        const uploadResult = await uploadToR2(r2Key, buffer, contentType);
+
+        if (!uploadResult.success) {
+          results.failed.push({
+            filename: file.name,
+            error: uploadResult.error || 'R2 upload failed',
+          });
+          continue;
+        }
 
         // Save file metadata to database
         const insertQuery = `
@@ -152,11 +145,11 @@ export async function POST(request: NextRequest) {
         `;
 
         const values = [
-          filename,
+          r2Key, // Store R2 key as filename
           file.name,
           fileExt.replace('.', ''),
           file.size,
-          filePath,
+          r2Key, // Store R2 key as file_path
           folderId && folderId !== 'root' ? parseInt(folderId) : null,
           token.sub, // user id
           description || null,
@@ -289,13 +282,11 @@ export async function DELETE(request: NextRequest) {
 
     const file = fileResult.rows[0];
 
-    // Delete file from disk
-    try {
-      if (existsSync(file.file_path)) {
-        await unlink(file.file_path);
-      }
-    } catch (err) {
-      console.error('Error deleting file from disk:', err);
+    // Delete file from R2
+    const deleteResult = await deleteFromR2(file.file_path);
+    if (!deleteResult.success) {
+      console.error('Error deleting file from R2:', deleteResult.error);
+      // Continue anyway to clean up database
     }
 
     // Delete from database
