@@ -266,6 +266,7 @@ export default function DashboardPage() {
   const [availableSources, setAvailableSources] = useState<string[]>([]);
   const isInitialMount = useRef(true);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Fetch leads when page changes
   useEffect(() => {
@@ -432,75 +433,153 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Navigation Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 shadow-lg">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Logo & Title */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+              <div className="relative">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
-              <div>
-                <h1 className="text-lg sm:text-xl font-bold text-white">Lead Generator</h1>
-                <p className="text-xs text-white/80 hidden sm:block">Data Management Dashboard</p>
+              <div className="hidden sm:block">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Lead Generator
+                </h1>
+                <p className="text-xs text-gray-500">Dashboard</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-2">
               <a
                 href="/files"
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-all"
+                className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 text-gray-700 hover:text-blue-700 text-sm font-medium transition-all"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                 </svg>
-                <span className="hidden sm:inline">Files</span>
+                <span>Files</span>
               </a>
               <a
                 href="/analytics"
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-all"
+                className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 text-gray-700 hover:text-blue-700 text-sm font-medium transition-all"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <span className="hidden sm:inline">Analytics</span>
+                <span>Analytics</span>
               </a>
               {session?.user?.role === 'admin' && (
                 <>
                   <a
                     href="/file-manager"
-                    className="inline-flex items-center space-x-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-all"
+                    className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 text-gray-700 hover:text-blue-700 text-sm font-medium transition-all"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span className="hidden sm:inline">Manage Files</span>
+                    <span>File Manager</span>
                   </a>
                   <a
                     href="/admin"
-                    className="inline-flex items-center space-x-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-all"
+                    className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 text-gray-700 hover:text-blue-700 text-sm font-medium transition-all"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="hidden sm:inline">Admin Panel</span>
+                    <span>Admin</span>
                   </a>
                 </>
               )}
               <a
                 href="/api/auth/signout"
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-all"
+                className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-700 text-sm font-medium transition-all"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                <span className="hidden sm:inline">Logout</span>
+                <span>Logout</span>
               </a>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="lg:hidden py-4 border-t border-gray-200 space-y-2">
+              <a
+                href="/files"
+                className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 text-gray-700 hover:text-blue-700 font-medium transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                <span>Files</span>
+              </a>
+              <a
+                href="/analytics"
+                className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 text-gray-700 hover:text-blue-700 font-medium transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span>Analytics</span>
+              </a>
+              {session?.user?.role === 'admin' && (
+                <>
+                  <a
+                    href="/file-manager"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 text-gray-700 hover:text-blue-700 font-medium transition-all"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>File Manager</span>
+                  </a>
+                  <a
+                    href="/admin"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 text-gray-700 hover:text-blue-700 font-medium transition-all"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>Admin Panel</span>
+                  </a>
+                </>
+              )}
+              <a
+                href="/api/auth/signout"
+                className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-700 font-medium transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Logout</span>
+              </a>
+            </div>
+          )}
         </div>
-      </div>
+      </nav>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8">
         {/* Welcome Banner */}
@@ -739,38 +818,129 @@ export default function DashboardPage() {
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                  <tr>
-                    <th className="px-4 py-3 text-left w-12"></th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Phone Number
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Website
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Data Preview
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Created At
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white">
-                  {leads.map((lead) => (
-                    <LeadRow key={lead.id} lead={lead} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                    <tr>
+                      <th className="px-4 py-3 text-left w-12"></th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        ID
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Phone Number
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Website
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Data Preview
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Created At
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white">
+                    {leads.map((lead) => (
+                      <LeadRow key={lead.id} lead={lead} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden divide-y divide-gray-100">
+                {leads.map((lead) => (
+                  <div key={lead.id} className="p-4 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all">
+                    <div className="space-y-3">
+                      {/* ID & Status */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-500">#{lead.id}</span>
+                        {lead.full_data ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            Has Data
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+                            No Data
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Phone Number */}
+                      <a
+                        href={`tel:${lead.phone_number}`}
+                        className="flex items-center space-x-2 text-base font-semibold text-blue-600 hover:text-blue-800"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        <span>{lead.phone_number}</span>
+                      </a>
+
+                      {/* Website Badge */}
+                      <div>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getBadgeColor(lead.website)}`}>
+                          {lead.website}
+                        </span>
+                      </div>
+
+                      {/* Data Preview */}
+                      {lead.full_data && (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-sm text-gray-700 line-clamp-2">
+                            {(() => {
+                              const fullData = lead.full_data;
+                              const parts = [];
+                              if (fullData.title) parts.push(fullData.title);
+                              if (fullData.price?.amount) parts.push(`${fullData.price.amount} ${fullData.price.currency || ''}`);
+                              return parts.join(' - ') || `${Object.keys(fullData).length} field${Object.keys(fullData).length !== 1 ? 's' : ''}`;
+                            })()}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Created Date */}
+                      <div className="flex items-center space-x-2 text-xs text-gray-500">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>
+                          {new Date(lead.created_at).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+
+                      {/* View Details Link */}
+                      <a
+                        href={lead.source}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-1 text-sm font-medium text-blue-600 hover:text-blue-800"
+                      >
+                        <span>View Source</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
