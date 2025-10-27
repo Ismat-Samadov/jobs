@@ -133,7 +133,17 @@ export default function FileManagerPage() {
         body: formData,
       });
 
-      const result = await response.json();
+      // Try to parse JSON, but handle cases where response is not JSON (like 413 errors)
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        if (!response.ok) {
+          // If not JSON and not OK, throw a generic error with status
+          throw new Error(`Upload failed with status ${response.status}. ${response.statusText || 'File might be too large or request invalid.'}`);
+        }
+        throw new Error('Invalid response from server');
+      }
 
       if (!response.ok) {
         throw new Error(result.error || 'Upload failed');
