@@ -652,21 +652,6 @@ export default function FileManagerPage() {
 
         {/* Files */}
         <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
-          <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-2">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Files in {getCurrentFolderName()}</h2>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {files.length === 0 ? (
             <div className="p-12 sm:p-16 text-center">
               <button
