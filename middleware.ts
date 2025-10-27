@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Admin-only routes
-  if (pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/file-manager')) {
     const userRole = (token as any).role;
     console.log('🔍 Admin route access attempt. Path:', pathname, 'Role:', userRole);
     if (userRole !== 'admin') {
