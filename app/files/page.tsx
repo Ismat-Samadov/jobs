@@ -330,8 +330,12 @@ export default function FilesPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
               </div>
-              <p className="text-lg font-semibold text-gray-700 mb-2">No files found</p>
-              <p className="text-sm text-gray-500">This folder is empty</p>
+              <p className="text-lg font-semibold text-gray-700 mb-2">No files in this folder</p>
+              {getSubfolders().length > 0 ? (
+                <p className="text-sm text-gray-500">Browse the folders above to find files</p>
+              ) : (
+                <p className="text-sm text-gray-500">This folder is empty</p>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
