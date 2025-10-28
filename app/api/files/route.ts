@@ -9,6 +9,10 @@ import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
+// Increase body size limit for file uploads (default is ~4.5MB)
+export const maxDuration = 60; // 60 seconds timeout for uploads
+export const runtime = 'nodejs'; // Use Node.js runtime for larger uploads
+
 /**
  * GET /api/files - Get all files with optional folder filter
  */

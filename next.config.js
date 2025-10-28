@@ -4,6 +4,10 @@ const nextConfig = {
   experimental: {
     missingSuspenseWithCSRBailout: false,
   },
+  // Increase body size limit for file uploads (default is ~4.5MB)
+  serverRuntimeConfig: {
+    maxRequestBodySize: '50mb',
+  },
   env: {
     DATABASE_URL: process.env.DATABASE_URL,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
