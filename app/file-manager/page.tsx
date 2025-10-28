@@ -449,36 +449,6 @@ export default function FileManagerPage() {
     return folders.filter(f => f.id !== selectedFile?.folder_id);
   };
 
-  const getTotalFileCount = (): number => {
-    // Get all descendant folder IDs recursively
-    const getAllDescendantFolders = (parentId: number | null): number[] => {
-      const directChildren = folders.filter(f => f.parent_id === parentId);
-      const allDescendants: number[] = [];
-
-      directChildren.forEach(child => {
-        allDescendants.push(child.id);
-        allDescendants.push(...getAllDescendantFolders(child.id));
-      });
-
-      return allDescendants;
-    };
-
-    // Get all descendant folder IDs
-    const descendantFolderIds = getAllDescendantFolders(currentFolder);
-
-    // Sum up file_count from current folder and all descendants
-    let totalFiles = files.length; // Files in current folder
-
-    descendantFolderIds.forEach(folderId => {
-      const folder = folders.find(f => f.id === folderId);
-      if (folder) {
-        totalFiles += folder.file_count;
-      }
-    });
-
-    return totalFiles;
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
