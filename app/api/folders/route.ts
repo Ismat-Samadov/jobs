@@ -228,6 +228,9 @@ export async function PUT(request: NextRequest) {
 
 /**
  * DELETE /api/folders - Delete a folder (Admin only)
+ * Query params:
+ *   - id: Folder ID to delete
+ *   - force: If 'true', delete folder with all contents (files and subfolders)
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -242,6 +245,7 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const force = searchParams.get('force') === 'true';
 
     if (!id) {
       return NextResponse.json({ error: 'Folder ID is required' }, { status: 400 });
@@ -267,19 +271,54 @@ export async function DELETE(request: NextRequest) {
     const { file_count, subfolder_count } = contentCheck.rows[0];
 
     if (parseInt(file_count) > 0 || parseInt(subfolder_count) > 0) {
-      return NextResponse.json(
-        {
-          error: 'Cannot delete folder with contents',
-          details: `Folder contains ${file_count} file(s) and ${subfolder_count} subfolder(s)`,
-        },
-        { status: 400 }
-      );
+      if (!force) {
+        return NextResponse.json(
+          {
+            error: 'Cannot delete folder with contents',
+            details: `Folder contains ${file_count} file(s) and ${subfolder_count} subfolder(s)`,
+          },
+          { status: 400 }
+        );
+      }
+
+      // Force delete: Delete all files in folder first
+      if (parseInt(file_count) > 0) {
+        await pool.query('DELETE FROM leads.files WHERE folder_id = $1', [id]);
+      }
+
+      // Force delete: Recursively delete all subfolders
+      if (parseInt(subfolder_count) > 0) {
+        const deleteSubfoldersQuery = `
+          WITH RECURSIVE folder_tree AS (
+            SELECT id FROM leads.folders WHERE parent_id = $1
+            UNION ALL
+            SELECT f.id FROM leads.folders f
+            INNER JOIN folder_tree ft ON f.parent_id = ft.id
+          )
+          DELETE FROM leads.files WHERE folder_id IN (SELECT id FROM folder_tree);
+
+          WITH RECURSIVE folder_tree AS (
+            SELECT id FROM leads.folders WHERE parent_id = $1
+            UNION ALL
+            SELECT f.id FROM leads.folders f
+            INNER JOIN folder_tree ft ON f.parent_id = ft.id
+          )
+          DELETE FROM leads.folders WHERE id IN (SELECT id FROM folder_tree);
+        `;
+        await pool.query(deleteSubfoldersQuery, [id]);
+      }
     }
 
     // Delete folder
     await pool.query('DELETE FROM leads.folders WHERE id = $1', [id]);
 
-    return NextResponse.json({ message: 'Folder deleted successfully' });
+    return NextResponse.json({
+      message: 'Folder deleted successfully',
+      deleted: {
+        files: parseInt(file_count),
+        subfolders: parseInt(subfolder_count)
+      }
+    });
   } catch (error) {
     console.error('Error deleting folder:', error);
     return NextResponse.json({ error: 'Failed to delete folder' }, { status: 500 });
