@@ -612,18 +612,6 @@ export default function FileManagerPage() {
                   <span className="text-white/90 ml-1.5 font-semibold">folder{getSubfolders().length !== 1 ? 's' : ''}</span>
                 </div>
               </div>
-              <div className="w-px h-8 bg-white/30"></div>
-              <div className="flex items-center space-x-2">
-                <div className="bg-white/20 rounded-lg p-1.5">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div className="text-sm">
-                  <span className="font-black text-2xl text-white">{getTotalFileCount()}</span>
-                  <span className="text-white/90 ml-1.5 font-semibold">file{getTotalFileCount() !== 1 ? 's' : ''}</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
