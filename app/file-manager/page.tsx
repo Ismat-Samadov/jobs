@@ -50,6 +50,10 @@ export default function FileManagerPage() {
   const [showEditFolderModal, setShowEditFolderModal] = useState(false);
   const [showMoveFileModal, setShowMoveFileModal] = useState(false);
 
+  // Dropdown states
+  const [openFolderDropdown, setOpenFolderDropdown] = useState<number | null>(null);
+  const [openFileDropdown, setOpenFileDropdown] = useState<number | null>(null);
+
   // Form states
   const [selectedFile, setSelectedFile] = useState<FileRecord | null>(null);
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
@@ -62,6 +66,8 @@ export default function FileManagerPage() {
   const [moveFolderId, setMoveFolderId] = useState<number | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderDropdownRef = useRef<HTMLDivElement>(null);
+  const fileDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -79,6 +85,21 @@ export default function FileManagerPage() {
     fetchFolders();
     fetchFiles();
   }, [session, status, router, currentFolder]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (folderDropdownRef.current && !folderDropdownRef.current.contains(event.target as Node)) {
+        setOpenFolderDropdown(null);
+      }
+      if (fileDropdownRef.current && !fileDropdownRef.current.contains(event.target as Node)) {
+        setOpenFileDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchFolders = async () => {
     try {
@@ -563,40 +584,76 @@ export default function FileManagerPage() {
         {/* Folders */}
         {getSubfolders().length > 0 && (
           <div className="mb-6">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 px-1">Folders</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
               {getSubfolders().map((folder) => (
                 <div
                   key={folder.id}
-                  className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all group"
+                  className="relative bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-400 hover:shadow-md transition-all duration-200 group"
                 >
                   <button
                     onClick={() => setCurrentFolder(folder.id)}
                     className="w-full text-left"
                   >
-                    <div className="flex items-start space-x-3">
-                      <svg className="w-10 h-10 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                      </svg>
-                      <div className="flex-1 min-w-0 mt-1">
-                        <h3 className="text-sm font-medium text-gray-900 truncate">{folder.name}</h3>
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-sm font-medium text-gray-900 truncate w-full text-center">{folder.name}</h3>
+                      <div className="text-xs text-gray-500">
+                        {folder.file_count} {folder.file_count === 1 ? 'file' : 'files'}
                       </div>
                     </div>
                   </button>
-                  <div className="flex space-x-1 mt-3 pt-3 border-t border-gray-100">
+
+                  {/* 3-dot menu button */}
+                  <div className="absolute top-2 right-2" ref={openFolderDropdown === folder.id ? folderDropdownRef : null}>
                     <button
-                      onClick={() => openEditFolderModal(folder)}
-                      className="flex-1 px-2 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded"
-                      title="Rename"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenFolderDropdown(openFolderDropdown === folder.id ? null : folder.id);
+                      }}
+                      className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      title="More actions"
                     >
-                      Rename
+                      <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                      </svg>
                     </button>
-                    <button
-                      onClick={() => handleDeleteFolder(folder)}
-                      className="flex-1 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded"
-                      title="Delete"
-                    >
-                      Delete
-                    </button>
+
+                    {/* Dropdown menu */}
+                    {openFolderDropdown === folder.id && (
+                      <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditFolderModal(folder);
+                            setOpenFolderDropdown(null);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          <span>Rename</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteFolder(folder);
+                            setOpenFolderDropdown(null);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -605,70 +662,138 @@ export default function FileManagerPage() {
         )}
 
         {/* Files */}
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          {files.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
-              <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              <p className="text-sm">No files in this folder</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {files.map((file) => (
-                <div key={file.id} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between gap-4">
-                    {/* File Info */}
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+        <div>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 px-1">Files</h2>
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            {files.length === 0 ? (
+              <div className="p-16 text-center">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-sm font-medium text-gray-900 mb-1">No files yet</h3>
+                <p className="text-sm text-gray-500">Upload files to get started</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {files.map((file) => (
+                  <div key={file.id} className="p-4 hover:bg-gray-50 transition-colors group relative">
+                    <div className="flex items-center gap-4">
+                      {/* File Icon */}
                       <div className="flex-shrink-0">
                         {getFileIcon(file.file_type)}
                       </div>
+
+                      {/* File Info */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-medium text-gray-900 truncate">{file.original_filename}</h3>
-                        <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
-                          <span>{formatFileSize(file.file_size)}</span>
-                          <span>{new Date(file.created_at).toLocaleDateString()}</span>
-                          <span>{file.download_count} downloads</span>
+                        <h3 className="text-sm font-semibold text-gray-900 truncate mb-1">{file.original_filename}</h3>
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <span className="inline-flex items-center">
+                            <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            {formatFileSize(file.file_size)}
+                          </span>
+                          <span className="inline-flex items-center">
+                            <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {new Date(file.created_at).toLocaleDateString()}
+                          </span>
+                          <span className="inline-flex items-center">
+                            <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            {file.download_count} {file.download_count === 1 ? 'download' : 'downloads'}
+                          </span>
                         </div>
                         {file.description && (
-                          <p className="text-xs text-gray-600 mt-1">{file.description}</p>
+                          <p className="text-xs text-gray-600 mt-2 line-clamp-2">{file.description}</p>
                         )}
                       </div>
-                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleDownload(file.id, file.original_filename)}
-                        disabled={downloading === file.id}
-                        className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded disabled:opacity-50"
-                      >
-                        {downloading === file.id ? 'Downloading...' : 'Download'}
-                      </button>
-                      <button
-                        onClick={() => openEditFileModal(file)}
-                        className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => openMoveFileModal(file)}
-                        className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded"
-                      >
-                        Move
-                      </button>
-                      <button
-                        onClick={() => handleDeleteFile(file)}
-                        className="px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded"
-                      >
-                        Delete
-                      </button>
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleDownload(file.id, file.original_filename)}
+                          disabled={downloading === file.id}
+                          className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          {downloading === file.id ? 'Downloading...' : 'Download'}
+                        </button>
+
+                        {/* 3-dot menu button */}
+                        <div className="relative" ref={openFileDropdown === file.id ? fileDropdownRef : null}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenFileDropdown(openFileDropdown === file.id ? null : file.id);
+                            }}
+                            className="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+                            title="More actions"
+                          >
+                            <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                            </svg>
+                          </button>
+
+                          {/* Dropdown menu */}
+                          {openFileDropdown === file.id && (
+                            <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-20">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditFileModal(file);
+                                  setOpenFileDropdown(null);
+                                }}
+                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-3"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                <span>Edit Details</span>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openMoveFileModal(file);
+                                  setOpenFileDropdown(null);
+                                }}
+                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-3"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                                <span>Move to Folder</span>
+                              </button>
+                              <div className="border-t border-gray-200 my-1"></div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteFile(file);
+                                  setOpenFileDropdown(null);
+                                }}
+                                className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                <span>Delete File</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -676,10 +801,10 @@ export default function FileManagerPage() {
       {showUploadModal && (
         <div className="fixed z-50 inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onClick={() => !uploading && setShowUploadModal(false)}></div>
-            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm transition-opacity" onClick={() => !uploading && setShowUploadModal(false)}></div>
+            <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <form onSubmit={handleUpload}>
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 pt-6 pb-4">
+                <div className="bg-white px-6 pt-6 pb-4 border-b border-gray-200">
                   <h3 className="text-xl font-bold text-gray-900">Upload Files</h3>
                   <p className="text-sm text-gray-600 mt-1">Upload one or multiple files at once</p>
                 </div>
@@ -778,10 +903,10 @@ export default function FileManagerPage() {
       {showCreateFolderModal && (
         <div className="fixed z-50 inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onClick={() => setShowCreateFolderModal(false)}></div>
-            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm transition-opacity" onClick={() => setShowCreateFolderModal(false)}></div>
+            <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <form onSubmit={handleCreateFolder}>
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 pt-6 pb-4">
+                <div className="bg-white px-6 pt-6 pb-4 border-b border-gray-200">
                   <h3 className="text-xl font-bold text-gray-900">Create New Folder</h3>
                 </div>
                 <div className="bg-white px-6 pt-4 pb-6">
@@ -804,13 +929,13 @@ export default function FileManagerPage() {
                       setShowCreateFolderModal(false);
                       setFolderName('');
                     }}
-                    className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg"
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                   >
                     Create
                   </button>
@@ -825,10 +950,10 @@ export default function FileManagerPage() {
       {showEditFileModal && selectedFile && (
         <div className="fixed z-50 inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onClick={() => setShowEditFileModal(false)}></div>
-            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm transition-opacity" onClick={() => setShowEditFileModal(false)}></div>
+            <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <form onSubmit={handleEditFile}>
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 pt-6 pb-4">
+                <div className="bg-white px-6 pt-6 pb-4 border-b border-gray-200">
                   <h3 className="text-xl font-bold text-gray-900">Edit File</h3>
                 </div>
                 <div className="bg-white px-6 pt-4 pb-6 space-y-4">
@@ -884,10 +1009,10 @@ export default function FileManagerPage() {
       {showEditFolderModal && selectedFolder && (
         <div className="fixed z-50 inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onClick={() => setShowEditFolderModal(false)}></div>
-            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm transition-opacity" onClick={() => setShowEditFolderModal(false)}></div>
+            <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <form onSubmit={handleEditFolder}>
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 pt-6 pb-4">
+                <div className="bg-white px-6 pt-6 pb-4 border-b border-gray-200">
                   <h3 className="text-xl font-bold text-gray-900">Rename Folder</h3>
                 </div>
                 <div className="bg-white px-6 pt-4 pb-6">
@@ -931,10 +1056,10 @@ export default function FileManagerPage() {
       {showMoveFileModal && selectedFile && (
         <div className="fixed z-50 inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" onClick={() => setShowMoveFileModal(false)}></div>
-            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm transition-opacity" onClick={() => setShowMoveFileModal(false)}></div>
+            <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <form onSubmit={handleMoveFile}>
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 pt-6 pb-4">
+                <div className="bg-white px-6 pt-6 pb-4 border-b border-gray-200">
                   <h3 className="text-xl font-bold text-gray-900">Move File</h3>
                 </div>
                 <div className="bg-white px-6 pt-4 pb-6">
