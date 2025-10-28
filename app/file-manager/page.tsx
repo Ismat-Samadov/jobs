@@ -608,7 +608,6 @@ export default function FileManagerPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate">{folder.name}</h3>
-                        <p className="text-sm text-gray-500">{folder.file_count} file(s)</p>
                       </div>
                     </div>
                   </button>
