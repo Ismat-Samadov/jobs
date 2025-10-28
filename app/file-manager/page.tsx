@@ -116,47 +116,82 @@ export default function FileManagerPage() {
 
     try {
       setUploading(true);
-      setUploadProgress(`Uploading ${uploadFiles.length} file(s)...`);
+      const results = {
+        uploaded: [] as any[],
+        failed: [] as { filename: string; error: string }[],
+        total: uploadFiles.length,
+      };
 
-      const formData = new FormData();
+      for (let i = 0; i < uploadFiles.length; i++) {
+        const file = uploadFiles[i];
+        try {
+          setUploadProgress(`Uploading ${i + 1} of ${uploadFiles.length}: ${file.name}...`);
 
-      // Append all files with the name 'files' (matching the API)
-      uploadFiles.forEach((file) => {
-        formData.append('files', file);
-      });
+          // Step 1: Get presigned URL
+          const urlResponse = await fetch('/api/files/upload-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: file.name,
+              contentType: file.type,
+            }),
+          });
 
-      formData.append('folderId', currentFolder?.toString() || 'root');
-      formData.append('description', uploadDescription);
+          if (!urlResponse.ok) {
+            throw new Error('Failed to get upload URL');
+          }
 
-      const response = await fetch('/api/files', {
-        method: 'POST',
-        body: formData,
-      });
+          const { uploadUrl, key } = await urlResponse.json();
 
-      // Try to parse JSON, but handle cases where response is not JSON (like 413 errors)
-      let result;
-      try {
-        result = await response.json();
-      } catch (jsonError) {
-        if (!response.ok) {
-          // If not JSON and not OK, throw a generic error with status
-          throw new Error(`Upload failed with status ${response.status}. ${response.statusText || 'File might be too large or request invalid.'}`);
+          // Step 2: Upload directly to R2
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: {
+              'Content-Type': file.type,
+            },
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error('Failed to upload file to storage');
+          }
+
+          // Step 3: Save metadata to database
+          const metadataResponse = await fetch('/api/files/metadata', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              key,
+              originalFilename: file.name,
+              fileSize: file.size,
+              folderId: currentFolder?.toString() || 'root',
+              description: uploadDescription,
+            }),
+          });
+
+          if (!metadataResponse.ok) {
+            throw new Error('Failed to save file metadata');
+          }
+
+          const metadataResult = await metadataResponse.json();
+          results.uploaded.push(metadataResult.file);
+        } catch (error: any) {
+          console.error(`Error uploading file ${file.name}:`, error);
+          results.failed.push({
+            filename: file.name,
+            error: error.message || 'Upload failed',
+          });
         }
-        throw new Error('Invalid response from server');
-      }
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Upload failed');
       }
 
       // Show detailed results
       let message = '';
-      if (result.uploaded && result.uploaded.length > 0) {
-        message += `✓ Successfully uploaded ${result.uploaded.length} file(s)`;
+      if (results.uploaded.length > 0) {
+        message += `✓ Successfully uploaded ${results.uploaded.length} file(s)`;
       }
-      if (result.failed && result.failed.length > 0) {
-        message += `\n\n✗ Failed to upload ${result.failed.length} file(s):\n`;
-        result.failed.forEach((f: any) => {
+      if (results.failed.length > 0) {
+        message += `\n\n✗ Failed to upload ${results.failed.length} file(s):\n`;
+        results.failed.forEach((f: any) => {
           message += `- ${f.filename}: ${f.error}\n`;
         });
       }
