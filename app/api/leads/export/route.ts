@@ -22,8 +22,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all leads
-    const result = await pool.query(`
+    // Get total count first
+    const countResult = await pool.query('SELECT COUNT(*) FROM leads.leads');
+    const totalLeads = parseInt(countResult.rows[0].count);
+
+    // If more than 50,000 leads, limit to most recent 50,000
+    const EXPORT_LIMIT = 50000;
+    let query = `
       SELECT
         id,
         phone_number,
@@ -33,7 +38,15 @@ export async function GET(request: NextRequest) {
         full_data
       FROM leads.leads
       ORDER BY created_at DESC
-    `);
+    `;
+
+    if (totalLeads > EXPORT_LIMIT) {
+      query += ` LIMIT ${EXPORT_LIMIT}`;
+      console.log(`Limiting export to ${EXPORT_LIMIT} most recent leads (total: ${totalLeads})`);
+    }
+
+    // Get leads with limit
+    const result = await pool.query(query);
 
     // Format data for Excel - flatten full_data structure
     const data = result.rows.map(row => {
@@ -135,12 +148,16 @@ export async function GET(request: NextRequest) {
     const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 
     // Return as downloadable file
-    const filename = `leads_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+    const exportedCount = result.rows.length;
+    const limitNote = totalLeads > EXPORT_LIMIT ? `_latest_${EXPORT_LIMIT}_of_${totalLeads}` : `_all_${totalLeads}`;
+    const filename = `leads_export${limitNote}_${new Date().toISOString().split('T')[0]}.xlsx`;
 
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${filename}"`,
+        'X-Total-Leads': String(totalLeads),
+        'X-Exported-Leads': String(exportedCount),
       },
     });
   } catch (error) {

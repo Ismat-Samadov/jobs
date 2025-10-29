@@ -395,18 +395,40 @@ export default function DashboardPage() {
     setExporting(true);
     try {
       const response = await fetch('/api/leads/export');
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      // Get custom headers
+      const totalLeads = response.headers.get('X-Total-Leads');
+      const exportedLeads = response.headers.get('X-Exported-Leads');
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `leads_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      // Get filename from Content-Disposition header or use default
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : `leads_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+
+      // Show success message with export info
+      if (totalLeads && exportedLeads && totalLeads !== exportedLeads) {
+        alert(`Export successful!\n\nExported ${exportedLeads} most recent leads out of ${totalLeads} total.\n\nNote: Export is limited to 50,000 leads for performance.`);
+      } else {
+        alert(`Export successful! ${exportedLeads || 'All'} leads exported.`);
+      }
     } catch (error) {
       console.error('Error exporting:', error);
-      alert('Failed to export leads');
+      alert('Failed to export leads. Please try again.');
     } finally {
       setExporting(false);
     }
