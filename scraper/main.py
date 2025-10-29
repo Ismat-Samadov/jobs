@@ -4,7 +4,7 @@ Main entry point for running all scrapers
 import asyncio
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync, scrape_turbo_az
+from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync, scrape_turbo_az, BiTurboAzScraperAsync
 from scripts.telegram import TelegramNotifier
 
 
@@ -102,6 +102,23 @@ async def main():
         print(f"✓ Turbo.AZ scraping completed: {stats.get('total', 0)} leads ({stats.get('saved', 0)} saved) in {turbo_duration:.2f}s")
     except Exception as e:
         print(f"✗ Turbo.AZ scraping failed: {e}")
+
+    # BiTurbo.AZ Scraper - scrape first 5 pages
+    print("\n" + "=" * 70)
+    print("BiTurbo.AZ Scraper")
+    print("=" * 70)
+    biturbo_scraper = BiTurboAzScraperAsync(max_concurrent=10)
+
+    try:
+        biturbo_stats = await biturbo_scraper.scrape(pages=5)
+        reports.append({
+            'source': 'BiTurbo.AZ',
+            'stats': biturbo_stats,
+            'duration': biturbo_stats.get('duration', 0),
+            'start_time': biturbo_stats.get('start_time', overall_start)
+        })
+    finally:
+        biturbo_scraper.close()
 
     # Calculate overall duration
     overall_end = datetime.now()
