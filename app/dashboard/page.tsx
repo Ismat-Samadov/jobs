@@ -394,37 +394,92 @@ export default function DashboardPage() {
   const handleExport = async () => {
     setExporting(true);
     try {
+      // Dynamically import xlsx only when needed
+      const XLSX = await import('xlsx');
+
       const response = await fetch('/api/leads/export');
 
       if (!response.ok) {
         throw new Error('Export failed');
       }
 
-      // Get custom headers
-      const totalLeads = response.headers.get('X-Total-Leads');
-      const exportedLeads = response.headers.get('X-Exported-Leads');
+      const result = await response.json();
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
+      if (!result.success) {
+        throw new Error('Export failed');
+      }
 
-      // Get filename from Content-Disposition header or use default
-      const contentDisposition = response.headers.get('Content-Disposition');
-      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
-      const filename = filenameMatch ? filenameMatch[1] : `leads_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const { totalLeads, exportedLeads, data } = result;
 
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Format data for Excel - flatten full_data structure
+      const formattedData = data.map((row: any) => {
+        const fullData = row.full_data || {};
+        const propertyDetails = fullData.property_details || {};
+        const price = fullData.price || {};
+        const seller = fullData.seller || {};
+        const listingInfo = fullData.listing_info || {};
 
-      // Show success message with export info
-      if (totalLeads && exportedLeads && totalLeads !== exportedLeads) {
-        alert(`Export successful!\n\nExported ${exportedLeads} most recent leads out of ${totalLeads} total.\n\nNote: Export is limited to 10,000 leads due to Vercel platform constraints.`);
+        return {
+          'ID': row.id,
+          'Phone Number': row.phone_number,
+          'Website': row.website,
+          'Source URL': row.source,
+          'Created At': new Date(row.created_at).toLocaleString(),
+          'Title': fullData.title || '',
+          'Price Amount': price.amount || '',
+          'Price Currency': price.currency || '',
+          'Address': fullData.address || '',
+          'City': propertyDetails.city || '',
+          'Country': propertyDetails.country || '',
+          'Property Type': propertyDetails.property_type || '',
+          'Category': propertyDetails.category || '',
+          'Location': propertyDetails.location || '',
+          'Area (m²)': propertyDetails.area_sqm || propertyDetails.area || '',
+          'Area (sot)': propertyDetails.area_sot || '',
+          'Rooms': propertyDetails.rooms || '',
+          'Floor': propertyDetails.floor || '',
+          'Document': propertyDetails.document || '',
+          'Mortgage': propertyDetails.mortgage || '',
+          'Repair': propertyDetails.repair || '',
+          'Features': fullData.features ? fullData.features.join(', ') : '',
+          'Seller Name': seller.name || '',
+          'Seller Type': seller.type || '',
+          'Ad ID': listingInfo.ad_id || '',
+          'Views': listingInfo.views || '',
+          'Date Posted': listingInfo.date_posted || '',
+          'Number of Images': fullData.images ? fullData.images.length : 0,
+          'First Image URL': fullData.images && fullData.images.length > 0 ? fullData.images[0] : '',
+          'Description': fullData.description || '',
+        };
+      });
+
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(formattedData);
+
+      // Set column widths
+      worksheet['!cols'] = [
+        { wch: 8 }, { wch: 15 }, { wch: 15 }, { wch: 50 }, { wch: 20 },
+        { wch: 50 }, { wch: 15 }, { wch: 10 }, { wch: 50 }, { wch: 15 },
+        { wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 12 },
+        { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 20 }, { wch: 12 },
+        { wch: 15 }, { wch: 50 }, { wch: 20 }, { wch: 20 }, { wch: 12 },
+        { wch: 10 }, { wch: 15 }, { wch: 12 }, { wch: 60 }, { wch: 100 },
+      ];
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
+
+      // Generate and download file
+      const limitNote = totalLeads > exportedLeads ? `_latest_${exportedLeads}_of_${totalLeads}` : `_all_${totalLeads}`;
+      const filename = `leads_export${limitNote}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      XLSX.writeFile(workbook, filename);
+
+      // Show success message
+      if (totalLeads > exportedLeads) {
+        alert(`Export successful!\n\nExported ${exportedLeads} most recent leads out of ${totalLeads} total.\n\nNote: Export is limited to 10,000 leads due to platform constraints.`);
       } else {
-        alert(`Export successful! ${exportedLeads || 'All'} leads exported.`);
+        alert(`Export successful! All ${exportedLeads} leads exported.`);
       }
     } catch (error) {
       console.error('Error exporting:', error);
