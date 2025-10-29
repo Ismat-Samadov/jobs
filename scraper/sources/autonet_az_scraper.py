@@ -210,25 +210,24 @@ class AutoNetAzScraperAsync:
         if not validated_phone:
             return False
 
+        conn = None
         try:
             conn = self.db_pool.getconn()
             cursor = conn.cursor()
 
-            # Check if record already exists
+            # Check if phone number already exists globally (unique constraint is on phone_number alone)
             cursor.execute("""
-                SELECT id FROM leads.leads
-                WHERE phone_number = %s AND website = %s
-            """, (validated_phone, 'autonet.az'))
+                SELECT id, website FROM leads.leads
+                WHERE phone_number = %s
+            """, (validated_phone,))
 
             existing = cursor.fetchone()
 
             if existing:
-                # Update existing record
-                cursor.execute("""
-                    UPDATE leads.leads
-                    SET source = %s, full_data = %s
-                    WHERE phone_number = %s AND website = %s
-                """, (source_url, psycopg2.extras.Json(full_data), validated_phone, 'autonet.az'))
+                # Phone exists - skip silently (counted as duplicate)
+                cursor.close()
+                self.db_pool.putconn(conn)
+                return False
             else:
                 # Insert new record
                 cursor.execute("""
@@ -241,6 +240,12 @@ class AutoNetAzScraperAsync:
             self.db_pool.putconn(conn)
 
             return True
+        except psycopg2.IntegrityError as e:
+            # Duplicate key - this should not happen due to the check above, but handle it anyway
+            if conn:
+                conn.rollback()
+                self.db_pool.putconn(conn)
+            return False
         except Exception as e:
             print(f"✗ Database error: {e}")
             if conn:

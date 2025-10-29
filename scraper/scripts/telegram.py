@@ -1,6 +1,7 @@
 """
 Telegram notification module for scraper results
 """
+import asyncio
 import aiohttp
 import os
 import sys
@@ -68,7 +69,7 @@ class TelegramNotifier:
                             'parse_mode': parse_mode
                         }
 
-                        async with session.post(self.api_url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                        async with session.post(self.api_url, json=payload, timeout=aiohttp.ClientTimeout(total=30)) as response:
                             if response.status == 200:
                                 success_count += 1
                                 print(f"✓ Sent to chat {chat_id}")
@@ -76,8 +77,11 @@ class TelegramNotifier:
                                 error_text = await response.text()
                                 print(f"✗ Failed to send to chat {chat_id} (HTTP {response.status}): {error_text}")
 
+                    except asyncio.TimeoutError:
+                        print(f"✗ Error sending to chat {chat_id}: Timeout after 30 seconds")
                     except Exception as e:
-                        print(f"✗ Error sending to chat {chat_id}: {e}")
+                        error_msg = str(e) if str(e) else type(e).__name__
+                        print(f"✗ Error sending to chat {chat_id}: {error_msg}")
 
         except Exception as e:
             print(f"Failed to send Telegram notifications: {e}")
