@@ -5,6 +5,7 @@ from .bul_az_scraper import BulAzScraperAsync
 from .turbo_az_scraper import TurboAzScraper, scrape_turbo_az
 from .avtopro_az_scraper import AvtoproAzScraperAsync
 from .biturbo_az_scraper import BiTurboAzScraperAsync
+from .autonet_az_scraper import AutoNetAzScraperAsync
 
 __all__ = ['EvvAzScraperAsync',
            'VillaAzScraperAsync',
@@ -12,4 +13,5 @@ __all__ = ['EvvAzScraperAsync',
            'TurboAzScraper',
            'scrape_turbo_az',
            'AvtoproAzScraperAsync',
-           'BiTurboAzScraperAsync']
+           'BiTurboAzScraperAsync',
+           'AutoNetAzScraperAsync']

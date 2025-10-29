@@ -4,7 +4,7 @@ Main entry point for running all scrapers
 import asyncio
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync, scrape_turbo_az, BiTurboAzScraperAsync
+from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync, scrape_turbo_az, BiTurboAzScraperAsync, AutoNetAzScraperAsync
 from scripts.telegram import TelegramNotifier
 
 
@@ -119,6 +119,23 @@ async def main():
         })
     finally:
         biturbo_scraper.close()
+
+    # AutoNet.AZ Scraper - scrape first 5 pages (license plates)
+    print("\n" + "=" * 70)
+    print("AutoNet.AZ Scraper (License Plates)")
+    print("=" * 70)
+    autonet_scraper = AutoNetAzScraperAsync(max_concurrent=10)
+
+    try:
+        autonet_stats = await autonet_scraper.scrape(pages=5)
+        reports.append({
+            'source': 'AutoNet.AZ',
+            'stats': autonet_stats,
+            'duration': autonet_stats.get('duration', 0),
+            'start_time': autonet_stats.get('start_time', overall_start)
+        })
+    finally:
+        autonet_scraper.close()
 
     # Calculate overall duration
     overall_end = datetime.now()
