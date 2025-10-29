@@ -26,8 +26,9 @@ export async function GET(request: NextRequest) {
     const countResult = await pool.query('SELECT COUNT(*) FROM leads.leads');
     const totalLeads = parseInt(countResult.rows[0].count);
 
-    // If more than 50,000 leads, limit to most recent 50,000
-    const EXPORT_LIMIT = 50000;
+    // Vercel has a 4.5MB response limit on Hobby plan
+    // Limit to 10,000 leads to stay well under the limit
+    const EXPORT_LIMIT = 10000;
     let query = `
       SELECT
         id,

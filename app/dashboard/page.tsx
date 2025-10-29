@@ -422,7 +422,7 @@ export default function DashboardPage() {
 
       // Show success message with export info
       if (totalLeads && exportedLeads && totalLeads !== exportedLeads) {
-        alert(`Export successful!\n\nExported ${exportedLeads} most recent leads out of ${totalLeads} total.\n\nNote: Export is limited to 50,000 leads for performance.`);
+        alert(`Export successful!\n\nExported ${exportedLeads} most recent leads out of ${totalLeads} total.\n\nNote: Export is limited to 10,000 leads due to Vercel platform constraints.`);
       } else {
         alert(`Export successful! ${exportedLeads || 'All'} leads exported.`);
       }
