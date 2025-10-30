@@ -5,7 +5,13 @@ import asyncio
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync, scrape_turbo_az, BiTurboAzScraperAsync, AutoNetAzScraperAsync
+from sources.xidmetler_az_scraper import XidmetlerAzScraper
 from scripts.telegram import TelegramNotifier
+import os
+import psycopg2.pool
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 async def main():
@@ -136,6 +142,45 @@ async def main():
         })
     finally:
         autonet_scraper.close()
+
+    # XiDMETLER.AZ Scraper - scrape courses/training listings
+    print("\n" + "=" * 70)
+    print("XiDMETLER.AZ Scraper (Courses & Training)")
+    print("=" * 70)
+    xidmetler_start = datetime.now()
+
+    # Create database pool for XidmetlerAz scraper
+    db_pool = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with XidmetlerAzScraper(db_pool) as xidmetler_scraper:
+            await xidmetler_scraper.scrape(max_pages=5)
+
+            xidmetler_end = datetime.now()
+            xidmetler_duration = (xidmetler_end - xidmetler_start).total_seconds()
+
+            xidmetler_stats = {
+                'new_leads': xidmetler_scraper.stats['new_leads'],
+                'duplicates': xidmetler_scraper.stats['duplicates'],
+                'errors': xidmetler_scraper.stats['errors'],
+                'invalid_phones': xidmetler_scraper.stats['invalid_phones'],
+                'duration': xidmetler_duration,
+                'start_time': xidmetler_start
+            }
+
+            reports.append({
+                'source': 'XiDMETLER.AZ',
+                'stats': xidmetler_stats,
+                'duration': xidmetler_duration,
+                'start_time': xidmetler_start
+            })
+    except Exception as e:
+        print(f"✗ XiDMETLER.AZ scraping failed: {e}")
+    finally:
+        db_pool.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
