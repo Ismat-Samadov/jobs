@@ -6,6 +6,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync, scrape_turbo_az, BiTurboAzScraperAsync, AutoNetAzScraperAsync
 from sources.xidmetler_az_scraper import XidmetlerAzScraper
+from sources.birja_com_scraper import BirjaComScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -181,6 +182,45 @@ async def main():
         print(f"✗ XiDMETLER.AZ scraping failed: {e}")
     finally:
         db_pool.closeall()
+
+    # BIRJA.COM Scraper - scrape courses/training listings
+    print("\n" + "=" * 70)
+    print("BIRJA.COM Scraper (Courses & Training)")
+    print("=" * 70)
+    birja_start = datetime.now()
+
+    # Create database pool for BirjaCom scraper
+    db_pool2 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with BirjaComScraper(db_pool2) as birja_scraper:
+            await birja_scraper.scrape(max_pages=5)
+
+            birja_end = datetime.now()
+            birja_duration = (birja_end - birja_start).total_seconds()
+
+            birja_stats = {
+                'new_leads': birja_scraper.stats['new_leads'],
+                'duplicates': birja_scraper.stats['duplicates'],
+                'errors': birja_scraper.stats['errors'],
+                'invalid_phones': birja_scraper.stats['invalid_phones'],
+                'duration': birja_duration,
+                'start_time': birja_start
+            }
+
+            reports.append({
+                'source': 'BIRJA.COM',
+                'stats': birja_stats,
+                'duration': birja_duration,
+                'start_time': birja_start
+            })
+    except Exception as e:
+        print(f"✗ BIRJA.COM scraping failed: {e}")
+    finally:
+        db_pool2.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
