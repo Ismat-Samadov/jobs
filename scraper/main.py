@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync, scrape_turbo_az, BiTurboAzScraperAsync, AutoNetAzScraperAsync
 from sources.xidmetler_az_scraper import XidmetlerAzScraper
 from sources.birja_com_scraper import BirjaComScraper
+from sources.qarabazar_az_scraper import QarabazarAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -221,6 +222,45 @@ async def main():
         print(f"✗ BIRJA.COM scraping failed: {e}")
     finally:
         db_pool2.closeall()
+
+    # QARABAZAR.AZ Scraper - scrape classifieds listings
+    print("\n" + "=" * 70)
+    print("QARABAZAR.AZ Scraper (Classifieds)")
+    print("=" * 70)
+    qarabazar_start = datetime.now()
+
+    # Create database pool for QarabazarAz scraper
+    db_pool3 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        qarabazar_scraper = QarabazarAzScraper(db_pool3)
+        qarabazar_stats_raw = await qarabazar_scraper.scrape(pages=5, concurrency=10)
+
+        qarabazar_end = datetime.now()
+        qarabazar_duration = (qarabazar_end - qarabazar_start).total_seconds()
+
+        qarabazar_stats = {
+            'new_leads': qarabazar_stats_raw['saved_phones'],
+            'duplicates': qarabazar_stats_raw['duplicates'],
+            'errors': qarabazar_stats_raw['errors'],
+            'invalid_phones': qarabazar_stats_raw['invalid_phones'],
+            'duration': qarabazar_duration,
+            'start_time': qarabazar_start
+        }
+
+        reports.append({
+            'source': 'QARABAZAR.AZ',
+            'stats': qarabazar_stats,
+            'duration': qarabazar_duration,
+            'start_time': qarabazar_start
+        })
+    except Exception as e:
+        print(f"✗ QARABAZAR.AZ scraping failed: {e}")
+    finally:
+        db_pool3.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
