@@ -165,10 +165,22 @@ class TelegramNotifier:
             source = report['source']
             stats = report['stats']
 
-            total = stats.get('total', 0)
-            saved = stats.get('saved', 0)
-            failed = stats.get('failed', 0)
-            extracted = total - failed
+            # Handle different stat formats
+            # Format 1: 'total', 'saved', 'failed' (EVV, Villa, Bul, BiTurbo, AutoNet)
+            # Format 2: 'new_leads', 'duplicates', 'errors' (XiDMETLER, BIRJA, QARABAZAR)
+            if 'total' in stats:
+                total = stats.get('total', 0)
+                saved = stats.get('saved', 0)
+                failed = stats.get('failed', 0)
+                extracted = total - failed
+            else:
+                # Format 2: calculate from new_leads + duplicates
+                saved = stats.get('new_leads', 0)
+                duplicates = stats.get('duplicates', 0)
+                failed = stats.get('errors', 0)
+                invalid = stats.get('invalid_phones', 0)
+                extracted = saved + duplicates
+                total = extracted + failed + invalid
 
             total_listings += total
             total_extracted += extracted
