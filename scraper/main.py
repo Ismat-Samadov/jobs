@@ -8,6 +8,7 @@ from sources import EvvAzScraperAsync, VillaAzScraperAsync, BulAzScraperAsync, s
 from sources.xidmetler_az_scraper import XidmetlerAzScraper
 from sources.birja_com_scraper import BirjaComScraper
 from sources.qarabazar_az_scraper import QarabazarAzScraper
+from sources.emlak_az_scraper import EmlakAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -261,6 +262,45 @@ async def main():
         print(f"✗ QARABAZAR.AZ scraping failed: {e}")
     finally:
         db_pool3.closeall()
+
+    # EMLAK.AZ Scraper - scrape real estate listings
+    print("\n" + "=" * 70)
+    print("EMLAK.AZ Scraper (Real Estate)")
+    print("=" * 70)
+    emlak_start = datetime.now()
+
+    # Create database pool for EmlakAz scraper
+    db_pool4 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        emlak_scraper = EmlakAzScraper(db_pool4)
+        emlak_stats_raw = await emlak_scraper.scrape(pages=5, concurrency=10)
+
+        emlak_end = datetime.now()
+        emlak_duration = (emlak_end - emlak_start).total_seconds()
+
+        emlak_stats = {
+            'new_leads': emlak_stats_raw['saved_phones'],
+            'duplicates': emlak_stats_raw['duplicates'],
+            'errors': emlak_stats_raw['errors'],
+            'invalid_phones': emlak_stats_raw['invalid_phones'],
+            'duration': emlak_duration,
+            'start_time': emlak_start
+        }
+
+        reports.append({
+            'source': 'EMLAK.AZ',
+            'stats': emlak_stats,
+            'duration': emlak_duration,
+            'start_time': emlak_start
+        })
+    except Exception as e:
+        print(f"✗ EMLAK.AZ scraping failed: {e}")
+    finally:
+        db_pool4.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
