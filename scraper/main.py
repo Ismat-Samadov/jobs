@@ -9,6 +9,7 @@ from sources.xidmetler_az_scraper import XidmetlerAzScraper
 from sources.birja_com_scraper import BirjaComScraper
 from sources.qarabazar_az_scraper import QarabazarAzScraper
 from sources.emlak_az_scraper import EmlakAzScraper
+from sources.lalafo_az_scraper import LalafoAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -301,6 +302,45 @@ async def main():
         print(f"✗ EMLAK.AZ scraping failed: {e}")
     finally:
         db_pool4.closeall()
+
+    # LALAFO.AZ Scraper - scrape classifieds listings
+    print("\n" + "=" * 70)
+    print("LALAFO.AZ Scraper (Classifieds)")
+    print("=" * 70)
+    lalafo_start = datetime.now()
+
+    # Create database pool for LalafoAz scraper
+    db_pool5 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        lalafo_scraper = LalafoAzScraper(db_pool5)
+        lalafo_stats_raw = await lalafo_scraper.scrape(pages=5, concurrency=10)
+
+        lalafo_end = datetime.now()
+        lalafo_duration = (lalafo_end - lalafo_start).total_seconds()
+
+        lalafo_stats = {
+            'new_leads': lalafo_stats_raw['saved_phones'],
+            'duplicates': lalafo_stats_raw['duplicates'],
+            'errors': lalafo_stats_raw['errors'],
+            'invalid_phones': lalafo_stats_raw['invalid_phones'],
+            'duration': lalafo_duration,
+            'start_time': lalafo_start
+        }
+
+        reports.append({
+            'source': 'LALAFO.AZ',
+            'stats': lalafo_stats,
+            'duration': lalafo_duration,
+            'start_time': lalafo_start
+        })
+    except Exception as e:
+        print(f"✗ LALAFO.AZ scraping failed: {e}")
+    finally:
+        db_pool5.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
