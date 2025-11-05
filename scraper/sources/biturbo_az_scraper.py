@@ -250,10 +250,10 @@ class BiTurboAzScraperAsync:
         }
 
         try:
-            # Fetch listing page once
-            async with session.get(listing['url'], headers=self.headers, timeout=aiohttp.ClientTimeout(total=15)) as response:
+            # Fetch listing page once with increased timeout
+            async with session.get(listing['url'], headers=self.headers, timeout=aiohttp.ClientTimeout(total=30)) as response:
                 if response.status != 200:
-                    print(f"Failed to fetch listing page (HTTP {response.status}): {listing['url']}")
+                    print(f"  ⚠️ Failed to fetch listing page (HTTP {response.status}): {listing['url']}")
                     return result
 
                 html_content = await response.text(encoding='utf-8', errors='ignore')
@@ -277,10 +277,15 @@ class BiTurboAzScraperAsync:
                         if self.save_to_database(clean_phone, listing['url'], full_data):
                             result['saved'] += 1
 
+        except asyncio.TimeoutError:
+            # Handle timeout errors gracefully without full stack trace
+            print(f"  ⏱️ Timeout fetching listing (30s): {listing['url']}")
+        except aiohttp.ClientError as e:
+            # Handle network-related errors
+            print(f"  ❌ Network error for {listing['url']}: {type(e).__name__}")
         except Exception as e:
-            import traceback
-            print(f"Error processing listing: {listing['url']} - {e}")
-            traceback.print_exc()
+            # Handle other unexpected errors
+            print(f"  ❌ Error processing listing {listing['url']}: {type(e).__name__} - {str(e)[:100]}")
 
         return result
 
