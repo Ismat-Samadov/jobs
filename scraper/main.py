@@ -343,9 +343,9 @@ async def main():
     finally:
         db_pool5.closeall()
 
-    # BINA.AZ Scraper - scrape real estate agencies
+    # BINA.AZ Scraper - scrape real estate property listings
     print("\n" + "=" * 70)
-    print("BINA.AZ Scraper (Real Estate Agencies)")
+    print("BINA.AZ Scraper (Real Estate Properties)")
     print("=" * 70)
     bina_start = datetime.now()
 
@@ -357,7 +357,7 @@ async def main():
 
     try:
         async with BinaAzScraper(db_pool6) as bina_scraper:
-            await bina_scraper.scrape()  # All agencies on first page
+            await bina_scraper.scrape(max_pages=5)  # Scrape 5 pages of property listings
 
             bina_end = datetime.now()
             bina_duration = (bina_end - bina_start).total_seconds()
