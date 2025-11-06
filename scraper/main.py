@@ -10,6 +10,7 @@ from sources.birja_com_scraper import BirjaComScraper
 from sources.qarabazar_az_scraper import QarabazarAzScraper
 from sources.emlak_az_scraper import EmlakAzScraper
 from sources.lalafo_az_scraper import LalafoAzScraper
+from sources.bina_az_scraper import BinaAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -341,6 +342,45 @@ async def main():
         print(f"✗ LALAFO.AZ scraping failed: {e}")
     finally:
         db_pool5.closeall()
+
+    # BINA.AZ Scraper - scrape real estate agencies
+    print("\n" + "=" * 70)
+    print("BINA.AZ Scraper (Real Estate Agencies)")
+    print("=" * 70)
+    bina_start = datetime.now()
+
+    # Create database pool for BinaAz scraper
+    db_pool6 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with BinaAzScraper(db_pool6) as bina_scraper:
+            await bina_scraper.scrape()  # All agencies on first page
+
+            bina_end = datetime.now()
+            bina_duration = (bina_end - bina_start).total_seconds()
+
+            bina_stats = {
+                'new_leads': bina_scraper.stats['new_leads'],
+                'duplicates': bina_scraper.stats['duplicates'],
+                'errors': bina_scraper.stats['errors'],
+                'invalid_phones': bina_scraper.stats['invalid_phones'],
+                'duration': bina_duration,
+                'start_time': bina_start
+            }
+
+            reports.append({
+                'source': 'BINA.AZ',
+                'stats': bina_stats,
+                'duration': bina_duration,
+                'start_time': bina_start
+            })
+    except Exception as e:
+        print(f"✗ BINA.AZ scraping failed: {e}")
+    finally:
+        db_pool6.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
