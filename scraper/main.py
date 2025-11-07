@@ -13,6 +13,7 @@ from sources.lalafo_az_scraper import LalafoAzScraper
 from sources.bina_az_scraper import BinaAzScraper
 from sources.arenda_az_scraper import ArendaAzScraper
 from sources.aratap_az_scraper import AratapAzScraper
+from sources.mashin_al_scraper import MashinAlScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -461,6 +462,45 @@ async def main():
         print(f"✗ ARATAP.AZ scraping failed: {e}")
     finally:
         db_pool8.closeall()
+
+    # MASHIN.AL Scraper - scrape car listings
+    print("\n" + "=" * 70)
+    print("MASHIN.AL Scraper (Cars)")
+    print("=" * 70)
+    mashin_start = datetime.now()
+
+    # Create database pool for MashinAl scraper
+    db_pool9 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with MashinAlScraper(db_pool9) as mashin_scraper:
+            await mashin_scraper.scrape(max_pages=5)
+
+            mashin_end = datetime.now()
+            mashin_duration = (mashin_end - mashin_start).total_seconds()
+
+            mashin_stats = {
+                'new_leads': mashin_scraper.stats['new_leads'],
+                'duplicates': mashin_scraper.stats['duplicates'],
+                'errors': mashin_scraper.stats['errors'],
+                'invalid_phones': mashin_scraper.stats['invalid_phones'],
+                'duration': mashin_duration,
+                'start_time': mashin_start
+            }
+
+            reports.append({
+                'source': 'MASHIN.AL',
+                'stats': mashin_stats,
+                'duration': mashin_duration,
+                'start_time': mashin_start
+            })
+    except Exception as e:
+        print(f"✗ MASHIN.AL scraping failed: {e}")
+    finally:
+        db_pool9.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
