@@ -430,16 +430,26 @@ async def main():
     print("\n" + "=" * 70)
     print("Sending Telegram Notification")
     print("=" * 70)
-    notifier = TelegramNotifier()
-    if notifier.is_configured():
-        success = await notifier.send_multi_source_report(reports, total_duration)
-        if success:
-            print("✓ Telegram notification sent successfully")
+
+    # Create database pool for Telegram notifier (to query actual stats)
+    telegram_db_pool = psycopg2.pool.SimpleConnectionPool(
+        1, 5,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        notifier = TelegramNotifier(db_pool=telegram_db_pool)
+        if notifier.is_configured():
+            success = await notifier.send_multi_source_report(reports, total_duration)
+            if success:
+                print("✓ Telegram notification sent successfully")
+            else:
+                print("✗ Failed to send Telegram notification")
         else:
-            print("✗ Failed to send Telegram notification")
-    else:
-        print("Telegram not configured - skipping notification")
-        print("Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env to enable")
+            print("Telegram not configured - skipping notification")
+            print("Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env to enable")
+    finally:
+        telegram_db_pool.closeall()
 
     print("\n" + "=" * 70)
     print(f"All scrapers completed in {total_duration:.2f}s")

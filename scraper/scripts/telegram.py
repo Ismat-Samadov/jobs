@@ -18,13 +18,14 @@ load_dotenv(dotenv_path=env_path)
 class TelegramNotifier:
     """Send scraping reports to Telegram channel(s)"""
 
-    def __init__(self, bot_token: Optional[str] = None, chat_id: Optional[str] = None):
+    def __init__(self, bot_token: Optional[str] = None, chat_id: Optional[str] = None, db_pool=None):
         """
         Initialize Telegram notifier
 
         Args:
             bot_token: Telegram Bot API token
             chat_id: Telegram chat/channel ID(s) - can be comma-separated for multiple recipients
+            db_pool: Database connection pool for querying actual stats
         """
         self.bot_token = bot_token or os.getenv('TELEGRAM_BOT_TOKEN')
         chat_id_str = chat_id or os.getenv('TELEGRAM_CHAT_ID')
@@ -36,10 +37,59 @@ class TelegramNotifier:
             self.chat_ids = []
 
         self.api_url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
+        self.db_pool = db_pool
 
     def is_configured(self) -> bool:
         """Check if Telegram is properly configured"""
         return bool(self.bot_token and self.chat_ids)
+
+    def get_database_stats(self) -> Dict[str, int]:
+        """
+        Query database for actual lead statistics
+
+        Returns:
+            Dict with total_leads, today_leads, yesterday_leads
+        """
+        if not self.db_pool:
+            return {'total_leads': 0, 'today_leads': 0, 'yesterday_leads': 0}
+
+        conn = None
+        try:
+            conn = self.db_pool.getconn()
+            cursor = conn.cursor()
+
+            # Get total leads count
+            cursor.execute("SELECT COUNT(*) FROM leads.leads")
+            total_leads = cursor.fetchone()[0]
+
+            # Get today's leads count
+            cursor.execute("""
+                SELECT COUNT(*) FROM leads.leads
+                WHERE DATE(created_at) = CURRENT_DATE
+            """)
+            today_leads = cursor.fetchone()[0]
+
+            # Get yesterday's leads count (for comparison)
+            cursor.execute("""
+                SELECT COUNT(*) FROM leads.leads
+                WHERE DATE(created_at) = CURRENT_DATE - INTERVAL '1 day'
+            """)
+            yesterday_leads = cursor.fetchone()[0]
+
+            cursor.close()
+            self.db_pool.putconn(conn)
+
+            return {
+                'total_leads': total_leads,
+                'today_leads': today_leads,
+                'yesterday_leads': yesterday_leads
+            }
+
+        except Exception as e:
+            print(f"Error querying database stats: {e}")
+            if conn:
+                self.db_pool.putconn(conn)
+            return {'total_leads': 0, 'today_leads': 0, 'yesterday_leads': 0}
 
     async def send_message(self, message: str, parse_mode: str = "HTML") -> bool:
         """
@@ -194,9 +244,17 @@ class TelegramNotifier:
                 f"{emoji} <b>{source}</b>: {extracted}/{total} ({extraction_rate:.1f}%) | Saved: {saved}"
             )
 
+        # Get actual database statistics
+        db_stats = self.get_database_stats()
+        actual_today_saved = db_stats['today_leads']
+        actual_total_leads = db_stats['total_leads']
+
+        # Calculate duplicates from scraped data vs actual saves
+        actual_duplicates = total_extracted - actual_today_saved if total_extracted >= actual_today_saved else 0
+
         # Overall metrics
         overall_extraction_rate = (total_extracted / total_listings * 100) if total_listings > 0 else 0
-        overall_save_rate = (total_saved / total_extracted * 100) if total_extracted > 0 else 0
+        overall_save_rate = (actual_today_saved / total_extracted * 100) if total_extracted > 0 else 0
 
         # Determine overall status
         if overall_extraction_rate >= 80:
@@ -215,11 +273,17 @@ class TelegramNotifier:
 
 📊 <b>Overall Statistics</b>
 ━━━━━━━━━━━━━━━━━━
-📋 Total Listings: <code>{total_listings}</code>
+📋 Total Listings Scraped: <code>{total_listings}</code>
 📱 Phones Extracted: <code>{total_extracted}</code> ({overall_extraction_rate:.1f}%)
-💾 New Saved: <code>{total_saved}</code> ({overall_save_rate:.1f}%)
-🔄 Duplicates/Invalid: <code>{total_extracted - total_saved}</code>
-❌ Failed: <code>{total_failed}</code>
+💾 New Saved (Today): <code>{actual_today_saved}</code> ({overall_save_rate:.1f}%)
+🔄 Duplicates/Invalid: <code>{actual_duplicates}</code>
+❌ Failed Extractions: <code>{total_failed}</code>
+
+💼 <b>Database Totals</b>
+━━━━━━━━━━━━━━━━━━
+📊 Total Leads in DB: <code>{actual_total_leads:,}</code>
+📅 Added Today: <code>{actual_today_saved}</code>
+📆 Added Yesterday: <code>{db_stats['yesterday_leads']}</code>
 
 📍 <b>By Source</b>
 ━━━━━━━━━━━━━━━━━━
