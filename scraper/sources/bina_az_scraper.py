@@ -1,22 +1,22 @@
 """
-BINA.AZ Scraper - Real Estate Property Listings
+BINA.AZ Scraper - Real Estate Agencies
 
-Scrapes property listings from bina.az with:
-- GraphQL API for paginated property listings
-- Phone number API endpoint for contact information
-- Comprehensive property data extraction
+Scrapes agency listings from bina.az with:
+- Agency listing page pagination
+- API endpoint for phone numbers
+- Agency profile information
 """
 import asyncio
 import aiohttp
 import re
-import json
+from bs4 import BeautifulSoup
 from typing import List, Dict, Optional
 import psycopg2
 import psycopg2.extras
 from psycopg2.pool import SimpleConnectionPool
 import sys
 import os
-from urllib.parse import urlencode, quote
+import json
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,21 +25,18 @@ from scripts.validator import PhoneValidator
 
 
 class BinaAzScraper:
-    """Scraper for bina.az real estate property listings"""
+    """Scraper for bina.az real estate agencies"""
 
     BASE_URL = "https://bina.az"
-    GRAPHQL_URL = "https://bina.az/graphql"
-    PHONES_API = "https://bina.az/items/{item_id}/phones"
-
-    # GraphQL query hash for SearchItems
-    GRAPHQL_HASH = "872e9c694c34b6674514d48e9dcf1b46241d3d79f365ddf20d138f18e74554c5"
+    AGENCIES_URL = "https://bina.az/agentlikler"
+    PHONES_API = "https://bina.az/agentlikler/{slug}/phones?react=true"
 
     def __init__(self, db_pool: SimpleConnectionPool):
         """Initialize scraper with database connection pool"""
         self.db_pool = db_pool
         self.session: Optional[aiohttp.ClientSession] = None
         self.stats = {
-            'total_listings': 0,
+            'total_agencies': 0,
             'new_leads': 0,
             'duplicates': 0,
             'invalid_phones': 0,
@@ -52,18 +49,16 @@ class BinaAzScraper:
         # Headers to mimic real browser
         headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'Accept': 'application/json',
             'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8,ru;q=0.7,az;q=0.6',
-            'Content-Type': 'application/json',
             'DNT': '1',
-            'Referer': 'https://bina.az/baki/alqi-satqi/menziller',
+            'Referer': self.AGENCIES_URL,
             'sec-ch-ua': '"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"',
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"macOS"',
             'sec-fetch-dest': 'empty',
             'sec-fetch-mode': 'cors',
-            'sec-fetch-site': 'same-origin',
-            'x-requested-with': 'XMLHttpRequest'
+            'sec-fetch-site': 'same-origin'
         }
         self.session = aiohttp.ClientSession(timeout=timeout, headers=headers)
         return self
@@ -73,89 +68,39 @@ class BinaAzScraper:
         if self.session:
             await self.session.close()
 
-    async def fetch_listings_page(self, cursor: Optional[str] = None, page_size: int = 16) -> Optional[Dict]:
+    def extract_agency_slug(self, href: str) -> Optional[str]:
         """
-        Fetch a page of listings using GraphQL API
+        Extract agency slug from href URL
 
         Args:
-            cursor: Pagination cursor (None for first page)
-            page_size: Number of items per page
+            href: Agency href like "/agentlikler/jetset-real-estate"
 
         Returns:
-            GraphQL response data or None
+            Slug like "jetset-real-estate" or None
         """
-        try:
-            # Build GraphQL variables
-            variables = {
-                "first": page_size,
-                "filter": {
-                    "cityId": "1",  # Baku
-                    "categoryId": "1",  # Apartments/Properties
-                    "leased": False  # For sale (not rent)
-                },
-                "sort": "BUMPED_AT_DESC"
-            }
+        match = re.search(r'/agentlikler/([^/]+)$', href)
+        if match:
+            return match.group(1)
+        return None
 
-            # Add cursor for pagination
-            if cursor:
-                variables["cursor"] = cursor
-
-            # Build query parameters
-            params = {
-                "operationName": "SearchItems",
-                "variables": json.dumps(variables, separators=(',', ':')),
-                "extensions": json.dumps({
-                    "persistedQuery": {
-                        "version": 1,
-                        "sha256Hash": self.GRAPHQL_HASH
-                    }
-                }, separators=(',', ':'))
-            }
-
-            url = f"{self.GRAPHQL_URL}?{urlencode(params)}"
-
-            async with self.session.get(url) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    return data
-                else:
-                    print(f"   ✗ Failed to fetch listings (HTTP {response.status})")
-                    return None
-
-        except asyncio.TimeoutError:
-            print(f"   ✗ Timeout fetching listings page")
-            return None
-        except Exception as e:
-            print(f"   ✗ Error fetching listings page: {e}")
-            return None
-
-    async def fetch_item_phones(self, item_id: str) -> List[str]:
+    async def fetch_agency_phones(self, slug: str) -> List[str]:
         """
-        Fetch phone numbers for a specific item using phones API
+        Fetch phone numbers from API endpoint
 
         Args:
-            item_id: Item/listing ID
+            slug: Agency slug (e.g., "jetset-real-estate")
 
         Returns:
             List of phone numbers
         """
         try:
-            item_url = f"{self.BASE_URL}/items/{item_id}"
-
-            # Build API URL with query parameters
-            params = {
-                "source_link": item_url,
-                "trigger_button": "main"
-            }
-
-            url = self.PHONES_API.format(item_id=item_id)
-            url = f"{url}?{urlencode(params)}"
+            url = self.PHONES_API.format(slug=slug)
 
             async with self.session.get(url) as response:
                 if response.status == 200:
                     data = await response.json()
 
-                    # API returns {"phones": ["(055) 518-99-99"]}
+                    # API returns {"phones": ["(070) 731-00-31", "(050) 460-86-12"]}
                     phones = data.get('phones', [])
 
                     # Clean phone numbers (remove formatting)
@@ -168,22 +113,121 @@ class BinaAzScraper:
 
                     return cleaned_phones
                 else:
-                    # Silently skip if phone fetch fails (common for listings without visible phones)
+                    print(f"   ✗ Failed to fetch phones for {slug} (HTTP {response.status})")
                     return []
 
         except asyncio.TimeoutError:
+            print(f"   ✗ Timeout fetching phones for {slug}")
             return []
         except Exception as e:
-            # Silently skip errors
+            print(f"   ✗ Error fetching phones for {slug}: {e}")
             return []
 
-    def save_lead(self, phone_number: str, listing_data: Dict) -> bool:
+    async def scrape_agency_detail(self, agency_card_html: BeautifulSoup) -> Optional[Dict]:
+        """
+        Scrape agency detail from card HTML and fetch phones from API
+
+        Args:
+            agency_card_html: BeautifulSoup object of agency card
+
+        Returns:
+            Dict with agency data or None
+        """
+        try:
+            # Extract href
+            href = agency_card_html.get('href')
+            if not href:
+                return None
+
+            # Extract slug from href
+            slug = self.extract_agency_slug(href)
+            if not slug:
+                print(f"   ✗ Could not extract slug from {href}")
+                return None
+
+            agency_url = self.BASE_URL + href
+
+            # Extract agency title
+            title_elem = agency_card_html.find('h2', {'data-cy': 'agency-title'})
+            title = title_elem.get_text(strip=True) if title_elem else slug
+
+            # Extract offer count
+            count_elem = agency_card_html.find('span', {'data-cy': 'agency-count'})
+            offer_count = None
+            if count_elem:
+                count_text = count_elem.get('title', '')
+                count_match = re.search(r'(\d+)', count_text)
+                if count_match:
+                    offer_count = int(count_match.group(1))
+
+            # Extract description
+            desc_elem = agency_card_html.find('span', {'data-cy': 'agency-desc'})
+            description = desc_elem.get_text(strip=True) if desc_elem else None
+
+            # Extract logo
+            logo_elem = agency_card_html.find('img', {'data-cy': 'agency-logo'})
+            logo_url = logo_elem.get('src') if logo_elem else None
+
+            # Fetch phone numbers from API
+            phone_numbers = await self.fetch_agency_phones(slug)
+
+            return {
+                'slug': slug,
+                'title': title,
+                'offer_count': offer_count,
+                'description': description,
+                'logo_url': logo_url,
+                'phone_numbers': phone_numbers,
+                'url': agency_url
+            }
+
+        except Exception as e:
+            print(f"   ✗ Error scraping agency card: {e}")
+            return None
+
+    async def scrape_agencies_page(self, page_num: int) -> List[BeautifulSoup]:
+        """
+        Scrape agency cards from a pagination page
+
+        Args:
+            page_num: Page number (1 = first page)
+
+        Returns:
+            List of agency card BeautifulSoup objects
+        """
+        try:
+            # Build URL with pagination
+            if page_num == 1:
+                url = self.AGENCIES_URL
+            else:
+                url = f"{self.AGENCIES_URL}?page={page_num}"
+
+            async with self.session.get(url) as response:
+                if response.status != 200:
+                    return []
+
+                html = await response.text()
+                soup = BeautifulSoup(html, 'html.parser')
+
+                # Find all agency cards
+                agency_cards = soup.find_all('a', {'data-cy': 'agency'})
+
+                return agency_cards
+
+        except asyncio.TimeoutError:
+            print(f"   ✗ Timeout fetching page {page_num}")
+            return []
+        except Exception as e:
+            print(f"   ✗ Error fetching page {page_num}: {e}")
+            return []
+
+    def save_lead(self, phone_number: str, agency_data: Dict) -> bool:
         """
         Save lead to database
 
         Args:
             phone_number: Validated phone number
-            listing_data: Listing data dict
+            agency_data: Agency data dict
 
         Returns:
             True if new lead saved, False if duplicate
@@ -207,33 +251,21 @@ class BinaAzScraper:
                 self.db_pool.putconn(conn)
                 return False
 
-            # Prepare full_data JSON with all listing details
+            # Prepare full_data JSON
             full_data = {
-                'item_id': listing_data.get('id'),
-                'price': listing_data.get('price'),
-                'area': listing_data.get('area'),
-                'rooms': listing_data.get('rooms'),
-                'floor': listing_data.get('floor'),
-                'floors': listing_data.get('floors'),
-                'city': listing_data.get('city'),
-                'location': listing_data.get('location'),
-                'has_mortgage': listing_data.get('hasMortgage'),
-                'has_bill_of_sale': listing_data.get('hasBillOfSale'),
-                'has_repair': listing_data.get('hasRepair'),
-                'company': listing_data.get('company'),
-                'photos': listing_data.get('photos', []),
-                'vipped': listing_data.get('vipped'),
-                'featured': listing_data.get('featured'),
-                'is_business': listing_data.get('isBusiness'),
-                'updated_at': listing_data.get('updatedAt'),
-                'source_url': listing_data.get('url')
+                'slug': agency_data.get('slug'),
+                'title': agency_data.get('title'),
+                'offer_count': agency_data.get('offer_count'),
+                'description': agency_data.get('description'),
+                'logo_url': agency_data.get('logo_url'),
+                'source_url': agency_data.get('url')
             }
 
             # Insert new lead
             cursor.execute("""
                 INSERT INTO leads.leads (phone_number, website, source, full_data)
                 VALUES (%s, %s, %s, %s)
-            """, (phone_number, 'bina.az', listing_data.get('url'), psycopg2.extras.Json(full_data)))
+            """, (phone_number, 'bina.az', agency_data.get('url'), psycopg2.extras.Json(full_data)))
 
             conn.commit()
             cursor.close()
@@ -254,62 +286,67 @@ class BinaAzScraper:
             self.stats['errors'] += 1
             return False
 
-    async def process_listing(self, item_node: Dict) -> Dict:
+    async def scrape(self, max_pages: int = 1):
         """
-        Process a single listing - extract data and fetch phone numbers
+        Main scraping method
 
         Args:
-            item_node: GraphQL item node data
-
-        Returns:
-            Processing result dict
+            max_pages: Maximum number of pages to scrape (default: 1 since all agencies are on first page)
         """
-        result = {
-            'item_id': item_node.get('id'),
-            'phones_found': 0,
-            'phones_saved': 0
-        }
+        print(f"\n{'='*70}")
+        print("BINA.AZ Scraper - Real Estate Agencies")
+        print(f"{'='*70}\n")
 
-        try:
-            item_id = item_node.get('id')
-            if not item_id:
-                return result
+        all_agency_cards = []
 
-            # Build full listing URL
-            path = item_node.get('path', f"/items/{item_id}")
-            listing_url = self.BASE_URL + path
+        # Scrape agency cards from listing page
+        print(f"📋 Scraping agency listings...")
 
-            # Extract listing data
-            listing_data = {
-                'id': item_id,
-                'url': listing_url,
-                'price': item_node.get('price'),
-                'area': item_node.get('area'),
-                'rooms': item_node.get('rooms'),
-                'floor': item_node.get('floor'),
-                'floors': item_node.get('floors'),
-                'city': item_node.get('city'),
-                'location': item_node.get('location'),
-                'hasMortgage': item_node.get('hasMortgage'),
-                'hasBillOfSale': item_node.get('hasBillOfSale'),
-                'hasRepair': item_node.get('hasRepair'),
-                'company': item_node.get('company'),
-                'photos': [p.get('large') for p in item_node.get('photos', [])[:4]],  # Save first 4 photos
-                'vipped': item_node.get('vipped'),
-                'featured': item_node.get('featured'),
-                'isBusiness': item_node.get('isBusiness'),
-                'updatedAt': item_node.get('updatedAt')
-            }
+        # Note: bina.az loads all agencies on first page, so we only need page 1
+        agency_cards = await self.scrape_agencies_page(1)
 
-            # Fetch phone numbers
-            phones = await self.fetch_item_phones(item_id)
-            result['phones_found'] = len(phones)
+        if not agency_cards:
+            print(f"   No agencies found")
+            return
 
-            if not phones:
-                return result
+        # Deduplicate by href
+        seen_hrefs = set()
+        unique_cards = []
+        for card in agency_cards:
+            href = card.get('href')
+            if href and href not in seen_hrefs:
+                seen_hrefs.add(href)
+                unique_cards.append(card)
+
+        all_agency_cards = unique_cards
+        self.stats['total_agencies'] = len(all_agency_cards)
+
+        print(f"✓ Found {len(all_agency_cards)} unique agencies\n")
+
+        # Scrape each agency detail and fetch phones
+        print(f"🔍 Fetching phone numbers from API...\n")
+
+        for idx, agency_card in enumerate(all_agency_cards, 1):
+            # Progress indicator
+            if idx % 10 == 0 or idx == 1:
+                print(f"   Progress: {idx}/{len(all_agency_cards)} agencies...")
+
+            # Extract agency data from card and fetch phones
+            agency_data = await self.scrape_agency_detail(agency_card)
+
+            if not agency_data:
+                self.stats['errors'] += 1
+                continue
+
+            # Process phone numbers
+            phone_numbers = agency_data.get('phone_numbers', [])
+
+            if not phone_numbers:
+                # No phone numbers found
+                continue
 
             # Validate and save each phone number
-            for phone in phones:
+            for phone in phone_numbers:
                 validated_phone = PhoneValidator.validate_phone(phone)
 
                 if not validated_phone:
@@ -317,87 +354,21 @@ class BinaAzScraper:
                     continue
 
                 # Save to database
-                is_new = self.save_lead(validated_phone, listing_data)
+                is_new = self.save_lead(validated_phone, agency_data)
 
                 if is_new:
                     self.stats['new_leads'] += 1
-                    result['phones_saved'] += 1
                 else:
                     self.stats['duplicates'] += 1
 
-            return result
-
-        except Exception as e:
-            print(f"   ✗ Error processing listing {result['item_id']}: {e}")
-            self.stats['errors'] += 1
-            return result
-
-    async def scrape(self, max_pages: int = 5, items_per_page: int = 16):
-        """
-        Main scraping method
-
-        Args:
-            max_pages: Maximum number of pages to scrape
-            items_per_page: Number of items per page (default: 16)
-        """
-        print(f"\n{'='*70}")
-        print("BINA.AZ Scraper - Real Estate Property Listings")
-        print(f"{'='*70}\n")
-
-        cursor = None
-        page_count = 0
-
-        print(f"🔍 Scraping up to {max_pages} pages ({items_per_page} listings per page)...\n")
-
-        while page_count < max_pages:
-            page_count += 1
-            print(f"   Page {page_count}/{max_pages}...")
-
-            # Fetch listings page
-            response_data = await self.fetch_listings_page(cursor, items_per_page)
-
-            if not response_data:
-                print(f"   ✗ Failed to fetch page {page_count}, stopping")
-                break
-
-            # Extract data from GraphQL response
-            items_connection = response_data.get('data', {}).get('itemsConnection', {})
-            edges = items_connection.get('edges', [])
-            page_info = items_connection.get('pageInfo', {})
-
-            if not edges:
-                print(f"   No listings found on page {page_count}, stopping")
-                break
-
-            print(f"   Found {len(edges)} listings on page {page_count}")
-
-            # Process each listing
-            for edge in edges:
-                item_node = edge.get('node', {})
-                self.stats['total_listings'] += 1
-
-                # Process listing (fetch phones and save)
-                await self.process_listing(item_node)
-
-                # Small delay between phone API requests
-                await asyncio.sleep(0.2)
-
-            # Check if there's a next page
-            has_next_page = page_info.get('hasNextPage', False)
-            cursor = page_info.get('endCursor')
-
-            if not has_next_page or not cursor:
-                print(f"   Reached end of listings")
-                break
-
-            # Small delay between pages
-            await asyncio.sleep(0.5)
+            # Small delay between API requests
+            await asyncio.sleep(0.3)
 
         # Print final stats
         print(f"\n{'='*70}")
         print("Scraping Complete - BINA.AZ")
         print(f"{'='*70}")
-        print(f"Total listings:    {self.stats['total_listings']:,}")
+        print(f"Total agencies:    {self.stats['total_agencies']:,}")
         print(f"New leads:         {self.stats['new_leads']:,}")
         print(f"Duplicates:        {self.stats['duplicates']:,}")
         print(f"Invalid phones:    {self.stats['invalid_phones']:,}")
@@ -418,9 +389,9 @@ async def main():
         os.getenv('DATABASE_URL')
     )
 
-    # Run scraper - scrape 3 pages for testing
+    # Run scraper (only needs 1 page since all agencies are on first page)
     async with BinaAzScraper(db_pool) as scraper:
-        await scraper.scrape(max_pages=3)
+        await scraper.scrape()
 
     db_pool.closeall()
 
