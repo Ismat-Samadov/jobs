@@ -12,6 +12,7 @@ from sources.emlak_az_scraper import EmlakAzScraper
 from sources.lalafo_az_scraper import LalafoAzScraper
 from sources.bina_az_scraper import BinaAzScraper
 from sources.arenda_az_scraper import ArendaAzScraper
+from sources.aratap_az_scraper import AratapAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -421,6 +422,45 @@ async def main():
         print(f"✗ ARENDA.AZ scraping failed: {e}")
     finally:
         db_pool7.closeall()
+
+    # ARATAP.AZ Scraper - scrape classifieds listings
+    print("\n" + "=" * 70)
+    print("ARATAP.AZ Scraper (Classifieds)")
+    print("=" * 70)
+    aratap_start = datetime.now()
+
+    # Create database pool for AratapAz scraper
+    db_pool8 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with AratapAzScraper(db_pool8) as aratap_scraper:
+            await aratap_scraper.scrape(max_pages=5)
+
+            aratap_end = datetime.now()
+            aratap_duration = (aratap_end - aratap_start).total_seconds()
+
+            aratap_stats = {
+                'new_leads': aratap_scraper.stats['new_leads'],
+                'duplicates': aratap_scraper.stats['duplicates'],
+                'errors': aratap_scraper.stats['errors'],
+                'invalid_phones': aratap_scraper.stats['invalid_phones'],
+                'duration': aratap_duration,
+                'start_time': aratap_start
+            }
+
+            reports.append({
+                'source': 'ARATAP.AZ',
+                'stats': aratap_stats,
+                'duration': aratap_duration,
+                'start_time': aratap_start
+            })
+    except Exception as e:
+        print(f"✗ ARATAP.AZ scraping failed: {e}")
+    finally:
+        db_pool8.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
