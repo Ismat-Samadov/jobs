@@ -14,6 +14,7 @@ from sources.bina_az_scraper import BinaAzScraper
 from sources.arenda_az_scraper import ArendaAzScraper
 from sources.aratap_az_scraper import AratapAzScraper
 from sources.mashin_al_scraper import MashinAlScraper
+from sources.masinlar_az_scraper import MasinlarAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -501,6 +502,45 @@ async def main():
         print(f"✗ MASHIN.AL scraping failed: {e}")
     finally:
         db_pool9.closeall()
+
+    # MASINLAR.AZ Scraper - scrape car rental/sales listings
+    print("\n" + "=" * 70)
+    print("MASINLAR.AZ Scraper (Car Rental & Sales)")
+    print("=" * 70)
+    masinlar_start = datetime.now()
+
+    # Create database pool for MasinlarAz scraper
+    db_pool10 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with MasinlarAzScraper(db_pool10) as masinlar_scraper:
+            await masinlar_scraper.scrape(max_pages=5)
+
+            masinlar_end = datetime.now()
+            masinlar_duration = (masinlar_end - masinlar_start).total_seconds()
+
+            masinlar_stats = {
+                'new_leads': masinlar_scraper.stats['new_leads'],
+                'duplicates': masinlar_scraper.stats['duplicates'],
+                'errors': masinlar_scraper.stats['errors'],
+                'invalid_phones': masinlar_scraper.stats['invalid_phones'],
+                'duration': masinlar_duration,
+                'start_time': masinlar_start
+            }
+
+            reports.append({
+                'source': 'MASINLAR.AZ',
+                'stats': masinlar_stats,
+                'duration': masinlar_duration,
+                'start_time': masinlar_start
+            })
+    except Exception as e:
+        print(f"✗ MASINLAR.AZ scraping failed: {e}")
+    finally:
+        db_pool10.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
