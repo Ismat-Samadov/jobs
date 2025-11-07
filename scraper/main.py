@@ -11,6 +11,7 @@ from sources.qarabazar_az_scraper import QarabazarAzScraper
 from sources.emlak_az_scraper import EmlakAzScraper
 from sources.lalafo_az_scraper import LalafoAzScraper
 from sources.bina_az_scraper import BinaAzScraper
+from sources.arenda_az_scraper import ArendaAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -381,6 +382,45 @@ async def main():
         print(f"✗ BINA.AZ scraping failed: {e}")
     finally:
         db_pool6.closeall()
+
+    # ARENDA.AZ Scraper - scrape real estate listings
+    print("\n" + "=" * 70)
+    print("ARENDA.AZ Scraper (Real Estate)")
+    print("=" * 70)
+    arenda_start = datetime.now()
+
+    # Create database pool for ArendaAz scraper
+    db_pool7 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with ArendaAzScraper(db_pool7, max_concurrent=10) as arenda_scraper:
+            arenda_stats_raw = await arenda_scraper.scrape(pages=5, concurrency=10)
+
+            arenda_end = datetime.now()
+            arenda_duration = (arenda_end - arenda_start).total_seconds()
+
+            arenda_stats = {
+                'new_leads': arenda_stats_raw['saved_phones'],
+                'duplicates': arenda_stats_raw['duplicates'],
+                'errors': arenda_stats_raw['errors'],
+                'invalid_phones': arenda_stats_raw['invalid_phones'],
+                'duration': arenda_duration,
+                'start_time': arenda_start
+            }
+
+            reports.append({
+                'source': 'ARENDA.AZ',
+                'stats': arenda_stats,
+                'duration': arenda_duration,
+                'start_time': arenda_start
+            })
+    except Exception as e:
+        print(f"✗ ARENDA.AZ scraping failed: {e}")
+    finally:
+        db_pool7.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
