@@ -18,6 +18,7 @@ from sources.masinlar_az_scraper import MasinlarAzScraper
 from sources.tezbazar_az_scraper import TezBazarAzScraper
 from sources.tunel_az_scraper import TunelAzScraper
 from sources.tap_az_scraper import TapAzScraper
+from sources.ipoteka_az_scraper import IpotekaAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -661,6 +662,45 @@ async def main():
         print(f"✗ TAP.AZ scraping failed: {e}")
     finally:
         db_pool13.closeall()
+
+    # IPOTEKA.AZ Scraper - scrape real estate listings
+    print("\n" + "=" * 70)
+    print("IPOTEKA.AZ Scraper (Real Estate)")
+    print("=" * 70)
+    ipoteka_start = datetime.now()
+
+    # Create database pool for IpotekaAz scraper
+    db_pool14 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with IpotekaAzScraper(db_pool14) as ipoteka_scraper:
+            await ipoteka_scraper.scrape(max_pages=5)
+
+            ipoteka_end = datetime.now()
+            ipoteka_duration = (ipoteka_end - ipoteka_start).total_seconds()
+
+            ipoteka_stats = {
+                'new_leads': ipoteka_scraper.stats['new_leads'],
+                'duplicates': ipoteka_scraper.stats['duplicates'],
+                'errors': ipoteka_scraper.stats['errors'],
+                'invalid_phones': ipoteka_scraper.stats['invalid_phones'],
+                'duration': ipoteka_duration,
+                'start_time': ipoteka_start
+            }
+
+            reports.append({
+                'source': 'IPOTEKA.AZ',
+                'stats': ipoteka_stats,
+                'duration': ipoteka_duration,
+                'start_time': ipoteka_start
+            })
+    except Exception as e:
+        print(f"✗ IPOTEKA.AZ scraping failed: {e}")
+    finally:
+        db_pool14.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
