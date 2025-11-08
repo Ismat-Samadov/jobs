@@ -15,6 +15,7 @@ from sources.arenda_az_scraper import ArendaAzScraper
 from sources.aratap_az_scraper import AratapAzScraper
 from sources.mashin_al_scraper import MashinAlScraper
 from sources.masinlar_az_scraper import MasinlarAzScraper
+from sources.tezbazar_az_scraper import TezBazarAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -541,6 +542,45 @@ async def main():
         print(f"✗ MASINLAR.AZ scraping failed: {e}")
     finally:
         db_pool10.closeall()
+
+    # TEZBAZAR.AZ Scraper - scrape classifieds listings
+    print("\n" + "=" * 70)
+    print("TEZBAZAR.AZ Scraper (Classifieds)")
+    print("=" * 70)
+    tezbazar_start = datetime.now()
+
+    # Create database pool for TezBazarAz scraper
+    db_pool11 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with TezBazarAzScraper(db_pool11) as tezbazar_scraper:
+            await tezbazar_scraper.scrape(max_pages=5)
+
+            tezbazar_end = datetime.now()
+            tezbazar_duration = (tezbazar_end - tezbazar_start).total_seconds()
+
+            tezbazar_stats = {
+                'new_leads': tezbazar_scraper.stats['new_leads'],
+                'duplicates': tezbazar_scraper.stats['duplicates'],
+                'errors': tezbazar_scraper.stats['errors'],
+                'invalid_phones': tezbazar_scraper.stats['invalid_phones'],
+                'duration': tezbazar_duration,
+                'start_time': tezbazar_start
+            }
+
+            reports.append({
+                'source': 'TEZBAZAR.AZ',
+                'stats': tezbazar_stats,
+                'duration': tezbazar_duration,
+                'start_time': tezbazar_start
+            })
+    except Exception as e:
+        print(f"✗ TEZBAZAR.AZ scraping failed: {e}")
+    finally:
+        db_pool11.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
