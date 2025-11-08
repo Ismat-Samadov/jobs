@@ -19,6 +19,7 @@ from sources.tezbazar_az_scraper import TezBazarAzScraper
 from sources.tunel_az_scraper import TunelAzScraper
 from sources.tap_az_scraper import TapAzScraper
 from sources.ipoteka_az_scraper import IpotekaAzScraper
+from sources.vipemlak_az_scraper import VipemlakAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -701,6 +702,45 @@ async def main():
         print(f"✗ IPOTEKA.AZ scraping failed: {e}")
     finally:
         db_pool14.closeall()
+
+    # VIPEMLAK.AZ Scraper - scrape real estate listings
+    print("\n" + "=" * 70)
+    print("VIPEMLAK.AZ Scraper (Real Estate)")
+    print("=" * 70)
+    vipemlak_start = datetime.now()
+
+    # Create database pool for VipemlakAz scraper
+    db_pool15 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with VipemlakAzScraper(db_pool15) as vipemlak_scraper:
+            await vipemlak_scraper.scrape(max_pages=5)
+
+            vipemlak_end = datetime.now()
+            vipemlak_duration = (vipemlak_end - vipemlak_start).total_seconds()
+
+            vipemlak_stats = {
+                'new_leads': vipemlak_scraper.stats['new_leads'],
+                'duplicates': vipemlak_scraper.stats['duplicates'],
+                'errors': vipemlak_scraper.stats['errors'],
+                'invalid_phones': vipemlak_scraper.stats['invalid_phones'],
+                'duration': vipemlak_duration,
+                'start_time': vipemlak_start
+            }
+
+            reports.append({
+                'source': 'VIPEMLAK.AZ',
+                'stats': vipemlak_stats,
+                'duration': vipemlak_duration,
+                'start_time': vipemlak_start
+            })
+    except Exception as e:
+        print(f"✗ VIPEMLAK.AZ scraping failed: {e}")
+    finally:
+        db_pool15.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
