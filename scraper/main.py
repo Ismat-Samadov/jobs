@@ -20,6 +20,7 @@ from sources.tunel_az_scraper import TunelAzScraper
 from sources.tap_az_scraper import TapAzScraper
 from sources.ipoteka_az_scraper import IpotekaAzScraper
 from sources.vipemlak_az_scraper import VipemlakAzScraper
+from sources.yeniemlak_az_scraper import YeniemlakAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -741,6 +742,45 @@ async def main():
         print(f"✗ VIPEMLAK.AZ scraping failed: {e}")
     finally:
         db_pool15.closeall()
+
+    # YENIEMLAK.AZ Scraper - scrape real estate listings
+    print("\n" + "=" * 70)
+    print("YENIEMLAK.AZ Scraper (Real Estate)")
+    print("=" * 70)
+    yeniemlak_start = datetime.now()
+
+    # Create database pool for YeniemlakAz scraper
+    db_pool16 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with YeniemlakAzScraper(db_pool16) as yeniemlak_scraper:
+            await yeniemlak_scraper.scrape(max_pages=5)
+
+            yeniemlak_end = datetime.now()
+            yeniemlak_duration = (yeniemlak_end - yeniemlak_start).total_seconds()
+
+            yeniemlak_stats = {
+                'new_leads': yeniemlak_scraper.stats['new_leads'],
+                'duplicates': yeniemlak_scraper.stats['duplicates'],
+                'errors': yeniemlak_scraper.stats['errors'],
+                'invalid_phones': yeniemlak_scraper.stats['invalid_phones'],
+                'duration': yeniemlak_duration,
+                'start_time': yeniemlak_start
+            }
+
+            reports.append({
+                'source': 'YENIEMLAK.AZ',
+                'stats': yeniemlak_stats,
+                'duration': yeniemlak_duration,
+                'start_time': yeniemlak_start
+            })
+    except Exception as e:
+        print(f"✗ YENIEMLAK.AZ scraping failed: {e}")
+    finally:
+        db_pool16.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
