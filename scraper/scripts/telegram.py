@@ -249,12 +249,12 @@ class TelegramNotifier:
         actual_today_saved = db_stats['today_leads']
         actual_total_leads = db_stats['total_leads']
 
-        # Calculate duplicates from scraped data vs actual saves
-        actual_duplicates = total_extracted - actual_today_saved if total_extracted >= actual_today_saved else 0
+        # Calculate duplicates from scraped data vs actual saves in this run
+        actual_duplicates = total_extracted - total_saved if total_extracted >= total_saved else 0
 
         # Overall metrics
         overall_extraction_rate = (total_extracted / total_listings * 100) if total_listings > 0 else 0
-        overall_save_rate = (actual_today_saved / total_extracted * 100) if total_extracted > 0 else 0
+        overall_save_rate = (total_saved / total_extracted * 100) if total_extracted > 0 else 0
 
         # Determine overall status
         if overall_extraction_rate >= 80:
@@ -275,15 +275,9 @@ class TelegramNotifier:
 ━━━━━━━━━━━━━━━━━━
 📋 Total Listings Scraped: <code>{total_listings}</code>
 📱 Phones Extracted: <code>{total_extracted}</code> ({overall_extraction_rate:.1f}%)
-💾 New Saved (Today): <code>{actual_today_saved}</code> ({overall_save_rate:.1f}%)
+💾 New Saved (This Run): <code>{total_saved}</code> ({overall_save_rate:.1f}%)
 🔄 Duplicates/Invalid: <code>{actual_duplicates}</code>
 ❌ Failed Extractions: <code>{total_failed}</code>
-
-💼 <b>Database Totals</b>
-━━━━━━━━━━━━━━━━━━
-📊 Total Leads in DB: <code>{actual_total_leads:,}</code>
-📅 Added Today: <code>{actual_today_saved}</code>
-📆 Added Yesterday: <code>{db_stats['yesterday_leads']}</code>
 
 📍 <b>By Source</b>
 ━━━━━━━━━━━━━━━━━━
@@ -291,8 +285,14 @@ class TelegramNotifier:
 
 ⏱ <b>Performance</b>
 ━━━━━━━━━━━━━━━━━━
-⏳ Total Duration: <code>{total_duration:.2f}s</code>
+⏳ Total Duration: <code>{total_duration / 60:.1f} min</code> ({total_duration:.0f}s)
 ⚡ Overall Speed: <code>{total_listings / total_duration:.1f}</code> listings/sec
+
+💼 <b>Database Totals</b>
+━━━━━━━━━━━━━━━━━━
+📊 Total Leads in DB: <code>{actual_total_leads:,}</code>
+📅 Added Today: <code>{actual_today_saved}</code>
+📆 Added Yesterday: <code>{db_stats['yesterday_leads']}</code>
 
 🎯 <b>Status</b>: {status_text}
 """
