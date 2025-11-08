@@ -16,6 +16,7 @@ from sources.aratap_az_scraper import AratapAzScraper
 from sources.mashin_al_scraper import MashinAlScraper
 from sources.masinlar_az_scraper import MasinlarAzScraper
 from sources.tezbazar_az_scraper import TezBazarAzScraper
+from sources.tunel_az_scraper import TunelAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -581,6 +582,45 @@ async def main():
         print(f"✗ TEZBAZAR.AZ scraping failed: {e}")
     finally:
         db_pool11.closeall()
+
+    # TUNEL.AZ Scraper - scrape car listings
+    print("\n" + "=" * 70)
+    print("TUNEL.AZ Scraper (Cars)")
+    print("=" * 70)
+    tunel_start = datetime.now()
+
+    # Create database pool for TunelAz scraper
+    db_pool12 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with TunelAzScraper(db_pool12) as tunel_scraper:
+            await tunel_scraper.scrape(max_pages=5)
+
+            tunel_end = datetime.now()
+            tunel_duration = (tunel_end - tunel_start).total_seconds()
+
+            tunel_stats = {
+                'new_leads': tunel_scraper.stats['new_leads'],
+                'duplicates': tunel_scraper.stats['duplicates'],
+                'errors': tunel_scraper.stats['errors'],
+                'invalid_phones': tunel_scraper.stats['invalid_phones'],
+                'duration': tunel_duration,
+                'start_time': tunel_start
+            }
+
+            reports.append({
+                'source': 'TUNEL.AZ',
+                'stats': tunel_stats,
+                'duration': tunel_duration,
+                'start_time': tunel_start
+            })
+    except Exception as e:
+        print(f"✗ TUNEL.AZ scraping failed: {e}")
+    finally:
+        db_pool12.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
