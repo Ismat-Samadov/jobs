@@ -27,7 +27,8 @@ class AvtovitrinComScraper:
     """Scraper for avtovitrin.com car listings"""
 
     BASE_URL = "https://www.avtovitrin.com"
-    SEARCH_URL = f"{BASE_URL}/search_result.php?cars=0&modelname=0&min_price=&max_price=&start_year=&end_year=&city=0&cur=1"
+    # Use new-ads.php for pagination support
+    SEARCH_URL = f"{BASE_URL}/new-ads.php"
 
     def __init__(self, db_pool: SimpleConnectionPool):
         """Initialize scraper with database connection pool"""
@@ -79,8 +80,8 @@ class AvtovitrinComScraper:
             HTML content or None
         """
         try:
-            # Build search URL - same URL for all pages, content loads dynamically
-            url = self.SEARCH_URL
+            # Build search URL - page1.php, page2.php, etc.
+            url = f"{self.SEARCH_URL}?page={page}"
 
             async with self.session.get(url) as response:
                 if response.status == 200:
@@ -109,12 +110,14 @@ class AvtovitrinComScraper:
         soup = BeautifulSoup(html, 'lxml')
         urls = []
 
-        # Find all listing links - pattern: /cars/{id}-{brand}-{model}
-        listing_links = soup.find_all('a', href=re.compile(r'/cars/\d{7}-'))
+        # Find all listing links - pattern: cars/{id}-{brand}-{model} (no leading slash)
+        listing_links = soup.find_all('a', href=re.compile(r'cars/\d{7}-'))
 
         for link in listing_links:
             href = link.get('href')
-            if href and '/cars/' in href:
+            if href and 'cars/' in href:
+                # Strip any trailing spaces
+                href = href.strip()
                 # Convert relative URL to absolute
                 if href.startswith('/'):
                     full_url = self.BASE_URL + href
@@ -425,44 +428,55 @@ class AvtovitrinComScraper:
             self.stats['errors'] += 1
             return result
 
-    async def scrape(self, max_listings: int = 100):
+    async def scrape(self, max_pages: int = 5):
         """
         Main scraping method
 
         Args:
-            max_listings: Maximum number of listings to scrape
+            max_pages: Maximum number of pages to scrape
         """
         print(f"\n{'='*70}")
         print("AVTOVITRIN.COM Scraper - Car Listings")
         print(f"{'='*70}\n")
 
-        # Scrape listing URLs from search page
-        print(f"🔍 Scraping listing URLs (max {max_listings})...\n")
+        all_listing_urls = []
 
-        html = await self.fetch_search_page(1)
-        if not html:
-            print("   ✗ Failed to fetch search page")
-            return
+        # Scrape listing URLs from multiple pages
+        print(f"🔍 Scraping listing URLs from {max_pages} pages...\n")
 
-        listing_urls = self.extract_listing_urls(html)
+        for page in range(1, max_pages + 1):
+            print(f"   Page {page}/{max_pages}...")
 
-        if not listing_urls:
-            print("   No listings found")
-            return
+            html = await self.fetch_search_page(page)
+            if not html:
+                print(f"   ✗ Failed to fetch page {page}, stopping")
+                break
 
-        # Limit to max_listings
-        listing_urls = listing_urls[:max_listings]
-        self.stats['total_listings'] = len(listing_urls)
+            listing_urls = self.extract_listing_urls(html)
 
-        print(f"✓ Found {len(listing_urls)} listings\n")
+            if not listing_urls:
+                print(f"   No listings found on page {page}, stopping")
+                break
+
+            all_listing_urls.extend(listing_urls)
+            print(f"   Found {len(listing_urls)} listings on page {page}")
+
+            # Small delay between pages
+            await asyncio.sleep(0.5)
+
+        # Deduplicate URLs
+        all_listing_urls = list(set(all_listing_urls))
+        self.stats['total_listings'] = len(all_listing_urls)
+
+        print(f"\n✓ Found {len(all_listing_urls)} unique listings\n")
 
         # Scrape each listing detail page
         print(f"📱 Scraping listing details and phone numbers...\n")
 
-        for idx, listing_url in enumerate(listing_urls, 1):
+        for idx, listing_url in enumerate(all_listing_urls, 1):
             # Progress indicator
             if idx % 10 == 0 or idx == 1:
-                print(f"   Progress: {idx}/{len(listing_urls)} listings...")
+                print(f"   Progress: {idx}/{len(all_listing_urls)} listings...")
 
             # Process listing
             await self.process_listing(listing_url)
@@ -495,9 +509,9 @@ async def main():
         os.getenv('DATABASE_URL')
     )
 
-    # Run scraper - scrape 50 listings for testing
+    # Run scraper - scrape 2 pages for testing
     async with AvtovitrinComScraper(db_pool) as scraper:
-        await scraper.scrape(max_listings=50)
+        await scraper.scrape(max_pages=2)
 
     db_pool.closeall()
 

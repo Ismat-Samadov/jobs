@@ -25,6 +25,7 @@ from sources.unvan_az_scraper import UnvanAzScraper
 from sources.rahatemlak_az_scraper import RahatEmlakAzScraper
 from sources.ucuztap_az_scraper import UcuztapAzScraper
 from sources.birja_in_scraper import BirjaInScraper
+from sources.avtovitrin_com_scraper import AvtovitrinComScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -941,6 +942,45 @@ async def main():
         print(f"✗ BIRJA-IN.AZ scraping failed: {e}")
     finally:
         db_pool20.closeall()
+
+    # AVTOVITRIN.COM Scraper - scrape car listings
+    print("\n" + "=" * 70)
+    print("AVTOVITRIN.COM Scraper (Cars)")
+    print("=" * 70)
+    avtovitrin_start = datetime.now()
+
+    # Create database pool for AvtovitrinCom scraper
+    db_pool21 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with AvtovitrinComScraper(db_pool21) as avtovitrin_scraper:
+            await avtovitrin_scraper.scrape(max_pages=5)
+
+            avtovitrin_end = datetime.now()
+            avtovitrin_duration = (avtovitrin_end - avtovitrin_start).total_seconds()
+
+            avtovitrin_stats = {
+                'new_leads': avtovitrin_scraper.stats['new_leads'],
+                'duplicates': avtovitrin_scraper.stats['duplicates'],
+                'errors': avtovitrin_scraper.stats['errors'],
+                'invalid_phones': avtovitrin_scraper.stats['invalid_phones'],
+                'duration': avtovitrin_duration,
+                'start_time': avtovitrin_start
+            }
+
+            reports.append({
+                'source': 'AVTOVITRIN.COM',
+                'stats': avtovitrin_stats,
+                'duration': avtovitrin_duration,
+                'start_time': avtovitrin_start
+            })
+    except Exception as e:
+        print(f"✗ AVTOVITRIN.COM scraping failed: {e}")
+    finally:
+        db_pool21.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
