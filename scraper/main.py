@@ -26,6 +26,7 @@ from sources.rahatemlak_az_scraper import RahatEmlakAzScraper
 from sources.ucuztap_az_scraper import UcuztapAzScraper
 from sources.birja_in_scraper import BirjaInScraper
 from sources.avtovitrin_com_scraper import AvtovitrinComScraper
+from sources.binalar_az_scraper import BinalarAzScraperAsync
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -981,6 +982,45 @@ async def main():
         print(f"✗ AVTOVITRIN.COM scraping failed: {e}")
     finally:
         db_pool21.closeall()
+
+    # BINALAR.AZ Scraper - scrape real estate listings
+    print("\n" + "=" * 70)
+    print("BINALAR.AZ Scraper (Real Estate)")
+    print("=" * 70)
+    binalar_start = datetime.now()
+
+    # Create database pool for BinalarAz scraper
+    db_pool22 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with BinalarAzScraperAsync(db_pool22) as binalar_scraper:
+            await binalar_scraper.scrape(max_pages=5)
+
+            binalar_end = datetime.now()
+            binalar_duration = (binalar_end - binalar_start).total_seconds()
+
+            binalar_stats = {
+                'new_leads': binalar_scraper.stats['new_leads'],
+                'duplicates': binalar_scraper.stats['duplicates'],
+                'errors': binalar_scraper.stats['errors'],
+                'invalid_phones': binalar_scraper.stats['invalid_phones'],
+                'duration': binalar_duration,
+                'start_time': binalar_start
+            }
+
+            reports.append({
+                'source': 'BINALAR.AZ',
+                'stats': binalar_stats,
+                'duration': binalar_duration,
+                'start_time': binalar_start
+            })
+    except Exception as e:
+        print(f"✗ BINALAR.AZ scraping failed: {e}")
+    finally:
+        db_pool22.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
