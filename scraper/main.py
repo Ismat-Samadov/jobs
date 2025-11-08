@@ -24,6 +24,7 @@ from sources.yeniemlak_az_scraper import YeniemlakAzScraper
 from sources.unvan_az_scraper import UnvanAzScraper
 from sources.rahatemlak_az_scraper import RahatEmlakAzScraper
 from sources.ucuztap_az_scraper import UcuztapAzScraper
+from sources.birja_in_scraper import BirjaInScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -901,6 +902,45 @@ async def main():
         print(f"✗ UCUZTAP.AZ scraping failed: {e}")
     finally:
         db_pool19.closeall()
+
+    # BIRJA-IN.AZ Scraper - scrape training and course listings
+    print("\n" + "=" * 70)
+    print("BIRJA-IN.AZ Scraper (Training & Courses)")
+    print("=" * 70)
+    birja_in_start = datetime.now()
+
+    # Create database pool for BirjaIn scraper
+    db_pool20 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with BirjaInScraper(db_pool20) as birja_in_scraper:
+            await birja_in_scraper.scrape(max_pages=5)
+
+            birja_in_end = datetime.now()
+            birja_in_duration = (birja_in_end - birja_in_start).total_seconds()
+
+            birja_in_stats = {
+                'new_leads': birja_in_scraper.stats['new_leads'],
+                'duplicates': birja_in_scraper.stats['duplicates'],
+                'errors': birja_in_scraper.stats['errors'],
+                'invalid_phones': birja_in_scraper.stats['invalid_phones'],
+                'duration': birja_in_duration,
+                'start_time': birja_in_start
+            }
+
+            reports.append({
+                'source': 'BIRJA-IN.AZ',
+                'stats': birja_in_stats,
+                'duration': birja_in_duration,
+                'start_time': birja_in_start
+            })
+    except Exception as e:
+        print(f"✗ BIRJA-IN.AZ scraping failed: {e}")
+    finally:
+        db_pool20.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
