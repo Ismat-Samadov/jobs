@@ -22,6 +22,7 @@ from sources.ipoteka_az_scraper import IpotekaAzScraper
 from sources.vipemlak_az_scraper import VipemlakAzScraper
 from sources.yeniemlak_az_scraper import YeniemlakAzScraper
 from sources.unvan_az_scraper import UnvanAzScraper
+from sources.rahatemlak_az_scraper import RahatEmlakAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -821,6 +822,45 @@ async def main():
         print(f"✗ UNVAN.AZ scraping failed: {e}")
     finally:
         db_pool17.closeall()
+
+    # RAHATEMLAK.AZ Scraper - scrape real estate listings
+    print("\n" + "=" * 70)
+    print("RAHATEMLAK.AZ Scraper (Real Estate)")
+    print("=" * 70)
+    rahatemlak_start = datetime.now()
+
+    # Create database pool for RahatEmlakAz scraper
+    db_pool18 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with RahatEmlakAzScraper(db_pool18) as rahatemlak_scraper:
+            await rahatemlak_scraper.scrape(max_pages=5)
+
+            rahatemlak_end = datetime.now()
+            rahatemlak_duration = (rahatemlak_end - rahatemlak_start).total_seconds()
+
+            rahatemlak_stats = {
+                'new_leads': rahatemlak_scraper.stats['new_leads'],
+                'duplicates': rahatemlak_scraper.stats['duplicates'],
+                'errors': rahatemlak_scraper.stats['errors'],
+                'invalid_phones': rahatemlak_scraper.stats['invalid_phones'],
+                'duration': rahatemlak_duration,
+                'start_time': rahatemlak_start
+            }
+
+            reports.append({
+                'source': 'RAHATEMLAK.AZ',
+                'stats': rahatemlak_stats,
+                'duration': rahatemlak_duration,
+                'start_time': rahatemlak_start
+            })
+    except Exception as e:
+        print(f"✗ RAHATEMLAK.AZ scraping failed: {e}")
+    finally:
+        db_pool18.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
