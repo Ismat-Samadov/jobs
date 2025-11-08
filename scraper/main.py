@@ -21,6 +21,7 @@ from sources.tap_az_scraper import TapAzScraper
 from sources.ipoteka_az_scraper import IpotekaAzScraper
 from sources.vipemlak_az_scraper import VipemlakAzScraper
 from sources.yeniemlak_az_scraper import YeniemlakAzScraper
+from sources.unvan_az_scraper import UnvanAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -781,6 +782,45 @@ async def main():
         print(f"✗ YENIEMLAK.AZ scraping failed: {e}")
     finally:
         db_pool16.closeall()
+
+    # UNVAN.AZ Scraper - scrape classifieds listings
+    print("\n" + "=" * 70)
+    print("UNVAN.AZ Scraper (Classifieds)")
+    print("=" * 70)
+    unvan_start = datetime.now()
+
+    # Create database pool for UnvanAz scraper
+    db_pool17 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with UnvanAzScraper(db_pool17) as unvan_scraper:
+            await unvan_scraper.scrape(max_pages=5)
+
+            unvan_end = datetime.now()
+            unvan_duration = (unvan_end - unvan_start).total_seconds()
+
+            unvan_stats = {
+                'new_leads': unvan_scraper.stats['new_leads'],
+                'duplicates': unvan_scraper.stats['duplicates'],
+                'errors': unvan_scraper.stats['errors'],
+                'invalid_phones': unvan_scraper.stats['invalid_phones'],
+                'duration': unvan_duration,
+                'start_time': unvan_start
+            }
+
+            reports.append({
+                'source': 'UNVAN.AZ',
+                'stats': unvan_stats,
+                'duration': unvan_duration,
+                'start_time': unvan_start
+            })
+    except Exception as e:
+        print(f"✗ UNVAN.AZ scraping failed: {e}")
+    finally:
+        db_pool17.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
