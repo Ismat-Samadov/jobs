@@ -17,6 +17,7 @@ from sources.mashin_al_scraper import MashinAlScraper
 from sources.masinlar_az_scraper import MasinlarAzScraper
 from sources.tezbazar_az_scraper import TezBazarAzScraper
 from sources.tunel_az_scraper import TunelAzScraper
+from sources.tap_az_scraper import TapAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -349,9 +350,9 @@ async def main():
     finally:
         db_pool5.closeall()
 
-    # BINA.AZ Scraper - scrape real estate agencies
+    # BINA.AZ Scraper - scrape real estate property listings
     print("\n" + "=" * 70)
-    print("BINA.AZ Scraper (Real Estate Agencies)")
+    print("BINA.AZ Scraper (Real Estate Properties)")
     print("=" * 70)
     bina_start = datetime.now()
 
@@ -363,7 +364,7 @@ async def main():
 
     try:
         async with BinaAzScraper(db_pool6) as bina_scraper:
-            await bina_scraper.scrape()  # All agencies on first page
+            await bina_scraper.scrape(max_pages=5)
 
             bina_end = datetime.now()
             bina_duration = (bina_end - bina_start).total_seconds()
@@ -621,6 +622,45 @@ async def main():
         print(f"✗ TUNEL.AZ scraping failed: {e}")
     finally:
         db_pool12.closeall()
+
+    # TAP.AZ Scraper - scrape classifieds listings
+    print("\n" + "=" * 70)
+    print("TAP.AZ Scraper (Classifieds)")
+    print("=" * 70)
+    tap_start = datetime.now()
+
+    # Create database pool for TapAz scraper
+    db_pool13 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with TapAzScraper(db_pool13) as tap_scraper:
+            await tap_scraper.scrape(max_pages=5)
+
+            tap_end = datetime.now()
+            tap_duration = (tap_end - tap_start).total_seconds()
+
+            tap_stats = {
+                'new_leads': tap_scraper.stats['new_leads'],
+                'duplicates': tap_scraper.stats['duplicates'],
+                'errors': tap_scraper.stats['errors'],
+                'invalid_phones': tap_scraper.stats['invalid_phones'],
+                'duration': tap_duration,
+                'start_time': tap_start
+            }
+
+            reports.append({
+                'source': 'TAP.AZ',
+                'stats': tap_stats,
+                'duration': tap_duration,
+                'start_time': tap_start
+            })
+    except Exception as e:
+        print(f"✗ TAP.AZ scraping failed: {e}")
+    finally:
+        db_pool13.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
