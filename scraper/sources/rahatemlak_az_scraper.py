@@ -51,7 +51,7 @@ class RahatEmlakAzScraper:
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8,ru;q=0.7,az;q=0.6',
-            'Accept-Encoding': 'gzip, deflate, br, zstd',
+            # Don't include Accept-Encoding to let aiohttp handle it automatically
             'DNT': '1',
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1',
@@ -63,6 +63,7 @@ class RahatEmlakAzScraper:
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"macOS"'
         }
+        # auto_decompress=True by default in aiohttp
         self.session = aiohttp.ClientSession(timeout=timeout, headers=headers)
         return self
 
@@ -93,6 +94,7 @@ class RahatEmlakAzScraper:
             url = self.SEARCH_URL
             async with self.session.get(url, params=params) as response:
                 if response.status == 200:
+                    # aiohttp automatically decompresses gzip/deflate/br
                     return await response.text()
                 else:
                     print(f"   ✗ Failed to fetch search page {page} (HTTP {response.status})")
@@ -118,23 +120,27 @@ class RahatEmlakAzScraper:
         soup = BeautifulSoup(html, 'html.parser')
         urls = []
 
-        # Find all property cards - they are in <a> tags with href="/elan/{id}"
-        property_cards = soup.find_all('a', href=re.compile(r'^https://rahatemlak\.az/elan/\d+$'))
+        # Find all property cards - they are in <a> tags with href starting with "https://rahatemlak.az/elan/"
+        property_cards = soup.find_all('a', href=re.compile(r'https://rahatemlak\.az/elan/\d+'))
 
         for card in property_cards:
             href = card.get('href')
             if href and href not in urls:
-                urls.append(href)
+                # Extract clean URL (remove any query parameters)
+                clean_url = href.split('?')[0] if '?' in href else href
+                if clean_url not in urls:
+                    urls.append(clean_url)
 
         return urls
 
-    async def fetch_phone_number(self, property_id: str, referer: str) -> Optional[str]:
+    async def fetch_phone_number(self, property_id: str, referer: str, csrf_token: Optional[str] = None) -> Optional[str]:
         """
         Fetch phone number via AJAX API
 
         Args:
             property_id: Property ID
             referer: Referer URL
+            csrf_token: CSRF token extracted from page
 
         Returns:
             Phone number or None
@@ -149,16 +155,9 @@ class RahatEmlakAzScraper:
                 'Origin': self.BASE_URL
             }
 
-            # Extract CSRF token from session cookies if available
-            csrf_token = None
-            if self.session.cookie_jar:
-                for cookie in self.session.cookie_jar:
-                    if cookie.key == 'XSRF-TOKEN':
-                        csrf_token = cookie.value
-                        break
-
+            # Add CSRF token to headers
             if csrf_token:
-                headers['X-CSRF-Token'] = csrf_token
+                headers['X-CSRF-TOKEN'] = csrf_token
 
             payload = {
                 'id': property_id
@@ -205,6 +204,7 @@ class RahatEmlakAzScraper:
                 if response.status != 200:
                     return None
 
+                # aiohttp automatically decompresses gzip/deflate/br
                 html = await response.text()
                 soup = BeautifulSoup(html, 'html.parser')
 
@@ -352,8 +352,14 @@ class RahatEmlakAzScraper:
                     if h6:
                         agency_name = h6.get_text(strip=True)
 
+                # Extract CSRF token from meta tag
+                csrf_token = None
+                csrf_meta = soup.find('meta', attrs={'name': 'csrf-token'})
+                if csrf_meta:
+                    csrf_token = csrf_meta.get('content')
+
                 # Fetch phone number via AJAX
-                phone_number = await self.fetch_phone_number(property_id, listing_url)
+                phone_number = await self.fetch_phone_number(property_id, listing_url, csrf_token)
 
                 return {
                     'property_id': property_id,
