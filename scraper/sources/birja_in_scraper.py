@@ -114,7 +114,7 @@ class BirjaInScraper:
 
         # Find all listing links - they have pattern: /{slug}-adv{id}.html
         # Look for links in listing titles
-        listing_links = soup.find_all('a', href=re.compile(r'/-adv\d+\.html'))
+        listing_links = soup.find_all('a', href=re.compile(r'-adv\d+\.html'))
 
         for link in listing_links:
             href = link.get('href')
