@@ -23,6 +23,7 @@ from .birja_in_scraper import BirjaInScraper
 from .avtovitrin_com_scraper import AvtovitrinComScraper
 from .binalar_az_scraper import BinalarAzScraperAsync
 from .binam_az_scraper import BinamAzScraperAsync
+from .mymarket_az_scraper import MymarketAzScraperAsync
 
 __all__ = ['EvvAzScraperAsync',
            'VillaAzScraperAsync',
@@ -48,4 +49,5 @@ __all__ = ['EvvAzScraperAsync',
            'BirjaInScraper',
            'AvtovitrinComScraper',
            'BinalarAzScraperAsync',
-           'BinamAzScraperAsync']
+           'BinamAzScraperAsync',
+           'MymarketAzScraperAsync']

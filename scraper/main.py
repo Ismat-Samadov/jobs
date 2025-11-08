@@ -28,6 +28,7 @@ from sources.birja_in_scraper import BirjaInScraper
 from sources.avtovitrin_com_scraper import AvtovitrinComScraper
 from sources.binalar_az_scraper import BinalarAzScraperAsync
 from sources.binam_az_scraper import BinamAzScraperAsync
+from sources.mymarket_az_scraper import MymarketAzScraperAsync
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -1061,6 +1062,45 @@ async def main():
         print(f"✗ BINAM.AZ scraping failed: {e}")
     finally:
         db_pool23.closeall()
+
+    # MYMARKET.AZ Scraper - scrape marketplace shops
+    print("\n" + "=" * 70)
+    print("MYMARKET.AZ Scraper (Marketplace Shops)")
+    print("=" * 70)
+    mymarket_start = datetime.now()
+
+    # Create database pool for MymarketAz scraper
+    db_pool24 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with MymarketAzScraperAsync(db_pool24) as mymarket_scraper:
+            await mymarket_scraper.scrape(max_pages=5)
+
+            mymarket_end = datetime.now()
+            mymarket_duration = (mymarket_end - mymarket_start).total_seconds()
+
+            mymarket_stats = {
+                'new_leads': mymarket_scraper.stats['new_leads'],
+                'duplicates': mymarket_scraper.stats['duplicates'],
+                'errors': mymarket_scraper.stats['errors'],
+                'invalid_phones': mymarket_scraper.stats['invalid_phones'],
+                'duration': mymarket_duration,
+                'start_time': mymarket_start
+            }
+
+            reports.append({
+                'source': 'MYMARKET.AZ',
+                'stats': mymarket_stats,
+                'duration': mymarket_duration,
+                'start_time': mymarket_start
+            })
+    except Exception as e:
+        print(f"✗ MYMARKET.AZ scraping failed: {e}")
+    finally:
+        db_pool24.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
