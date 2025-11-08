@@ -23,6 +23,7 @@ from sources.vipemlak_az_scraper import VipemlakAzScraper
 from sources.yeniemlak_az_scraper import YeniemlakAzScraper
 from sources.unvan_az_scraper import UnvanAzScraper
 from sources.rahatemlak_az_scraper import RahatEmlakAzScraper
+from sources.ucuztap_az_scraper import UcuztapAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -861,6 +862,45 @@ async def main():
         print(f"✗ RAHATEMLAK.AZ scraping failed: {e}")
     finally:
         db_pool18.closeall()
+
+    # UCUZTAP.AZ Scraper - scrape classifieds listings
+    print("\n" + "=" * 70)
+    print("UCUZTAP.AZ Scraper (Classifieds)")
+    print("=" * 70)
+    ucuztap_start = datetime.now()
+
+    # Create database pool for UcuztapAz scraper
+    db_pool19 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with UcuztapAzScraper(db_pool19) as ucuztap_scraper:
+            await ucuztap_scraper.scrape(max_pages=5)
+
+            ucuztap_end = datetime.now()
+            ucuztap_duration = (ucuztap_end - ucuztap_start).total_seconds()
+
+            ucuztap_stats = {
+                'new_leads': ucuztap_scraper.stats['new_leads'],
+                'duplicates': ucuztap_scraper.stats['duplicates'],
+                'errors': ucuztap_scraper.stats['errors'],
+                'invalid_phones': ucuztap_scraper.stats['invalid_phones'],
+                'duration': ucuztap_duration,
+                'start_time': ucuztap_start
+            }
+
+            reports.append({
+                'source': 'UCUZTAP.AZ',
+                'stats': ucuztap_stats,
+                'duration': ucuztap_duration,
+                'start_time': ucuztap_start
+            })
+    except Exception as e:
+        print(f"✗ UCUZTAP.AZ scraping failed: {e}")
+    finally:
+        db_pool19.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
