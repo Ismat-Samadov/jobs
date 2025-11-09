@@ -30,6 +30,7 @@ from sources.binalar_az_scraper import BinalarAzScraperAsync
 from sources.binam_az_scraper import BinamAzScraperAsync
 from sources.mymarket_az_scraper import MymarketAzScraperAsync
 from sources.myhome_az_scraper import MyhomeAzScraper
+from sources.mulk_az_scraper import MulkAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -1141,6 +1142,45 @@ async def main():
         print(f"✗ MYHOME.AZ scraping failed: {e}")
     finally:
         db_pool25.closeall()
+
+    # MULK.AZ Scraper - scrape real estate property listings
+    print("\n" + "=" * 70)
+    print("MULK.AZ Scraper (Real Estate Properties)")
+    print("=" * 70)
+    mulk_start = datetime.now()
+
+    # Create database pool for MulkAz scraper
+    db_pool26 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with MulkAzScraper(db_pool26) as mulk_scraper:
+            mulk_stats_raw = await mulk_scraper.scrape(max_pages=5)
+
+            mulk_end = datetime.now()
+            mulk_duration = (mulk_end - mulk_start).total_seconds()
+
+            mulk_stats = {
+                'new_leads': mulk_stats_raw['new_leads'],
+                'duplicates': mulk_stats_raw['duplicates'],
+                'errors': mulk_stats_raw['errors'],
+                'invalid_phones': mulk_stats_raw['invalid_phones'],
+                'duration': mulk_duration,
+                'start_time': mulk_start
+            }
+
+            reports.append({
+                'source': 'MULK.AZ',
+                'stats': mulk_stats,
+                'duration': mulk_duration,
+                'start_time': mulk_start
+            })
+    except Exception as e:
+        print(f"✗ MULK.AZ scraping failed: {e}")
+    finally:
+        db_pool26.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
