@@ -110,15 +110,21 @@ class MymarketAzScraperAsync:
 
         return self.stats
 
-    async def get_shop_links(self) -> List[str]:
+    async def get_shop_links(self, max_pages: int = 5) -> List[str]:
         """
-        Extract all shop links from the shops listing page
+        Extract all shop links using the load-more API with pagination
+
+        Args:
+            max_pages: Number of pages to scrape
 
         Returns:
             List of shop URLs
         """
+        shop_links = []
+
         try:
             async with aiohttp.ClientSession() as session:
+                # First, get initial page
                 async with session.get(self.shops_url, headers=self.headers, timeout=aiohttp.ClientTimeout(total=15)) as response:
                     if response.status != 200:
                         print(f"[mymarket.az] Failed to fetch shops page (HTTP {response.status})")
@@ -128,20 +134,77 @@ class MymarketAzScraperAsync:
                     soup = BeautifulSoup(html, 'lxml')
 
                     # Find all shop links - they have class "my-store" and are <a> tags
-                    shop_links = []
                     shop_elements = soup.find_all('a', class_='my-store')
 
                     for shop in shop_elements:
                         href = shop.get('href')
                         if href:
-                            # href is already a full URL like https://mymarket.az/magaza/pixmart
                             shop_links.append(href)
 
-                    return list(set(shop_links))  # Remove duplicates
+                    print(f"[mymarket.az] Page 1: Found {len(shop_links)} shops")
+
+                # Now load more pages using the API
+                for page in range(2, max_pages + 1):
+                    load_more_url = f"{self.base_url}/load-more?dataType=store&page={page}&is_sederek=&name="
+
+                    # Add XHR headers for API call
+                    api_headers = self.headers.copy()
+                    api_headers.update({
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': '*/*',
+                        'Referer': self.shops_url,
+                        'Sec-Fetch-Dest': 'empty',
+                        'Sec-Fetch-Mode': 'cors',
+                        'Sec-Fetch-Site': 'same-origin'
+                    })
+
+                    async with session.get(load_more_url, headers=api_headers, timeout=aiohttp.ClientTimeout(total=15)) as response:
+                        if response.status != 200:
+                            print(f"[mymarket.az] Failed to fetch page {page} (HTTP {response.status})")
+                            break
+
+                        try:
+                            json_data = await response.json()
+
+                            # The response has "cards" field with HTML and "count" field
+                            cards_html = json_data.get('cards', '')
+                            count = json_data.get('count', 0)
+
+                            # Parse the HTML from the cards field
+                            if not cards_html or not cards_html.strip():
+                                print(f"[mymarket.az] No more shops found at page {page}")
+                                break
+
+                            soup = BeautifulSoup(cards_html, 'lxml')
+                            shop_elements = soup.find_all('a', class_='my-store')
+
+                            page_shops = 0
+                            for shop in shop_elements:
+                                href = shop.get('href')
+                                if href:
+                                    shop_links.append(href)
+                                    page_shops += 1
+
+                            print(f"[mymarket.az] Page {page}: Found {page_shops} shops (count={count})")
+
+                            # If we got no shops or fewer than 20, we've reached the end
+                            if page_shops == 0 or count < 20:
+                                if count < 20:
+                                    print(f"[mymarket.az] Reached last page (count={count})")
+                                break
+
+                            # Small delay to be respectful
+                            await asyncio.sleep(0.5)
+
+                        except Exception as e:
+                            print(f"[mymarket.az] Error parsing page {page}: {e}")
+                            break
+
+                return list(set(shop_links))  # Remove duplicates
 
         except Exception as e:
             print(f"[mymarket.az] Error getting shop links: {e}")
-            return []
+            return shop_links
 
     def extract_shop_data(self, html_content: str, shop_url: str) -> Optional[Dict]:
         """
@@ -406,7 +469,7 @@ async def main():
 
     try:
         async with MymarketAzScraperAsync(db_pool, max_concurrent=10) as scraper:
-            stats = await scraper.scrape(max_pages=1)
+            stats = await scraper.scrape(max_pages=5)
 
             # Print summary
             print("\n" + "="*50)
