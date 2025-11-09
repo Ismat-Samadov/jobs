@@ -267,19 +267,15 @@ class TelegramNotifier:
             status_emoji = "❌"
             status_text = "Check Required"
 
+        # Count sources
+        total_sources = len(reports)
+        successful_sources = sum(1 for r in reports if (r['stats'].get('total', 0) - r['stats'].get('failed', 0) if 'total' in r['stats'] else r['stats'].get('new_leads', 0) + r['stats'].get('duplicates', 0)) > 0)
+
         # Format message
         message = f"""
 {status_emoji} <b>Multi-Source Scraping Report</b>
 
-📊 <b>Overall Statistics</b>
-━━━━━━━━━━━━━━━━━━
-📋 Total Listings Scraped: <code>{total_listings}</code>
-📱 Phones Extracted: <code>{total_extracted}</code> ({overall_extraction_rate:.1f}%)
-💾 New Saved (This Run): <code>{total_saved}</code> ({overall_save_rate:.1f}%)
-🔄 Duplicates/Invalid: <code>{actual_duplicates}</code>
-❌ Failed Extractions: <code>{total_failed}</code>
-
-📍 <b>By Source</b>
+📍 <b>By Source</b> (<code>{successful_sources}/{total_sources}</code> sources active)
 ━━━━━━━━━━━━━━━━━━
 {chr(10).join(source_summaries)}
 
@@ -287,12 +283,23 @@ class TelegramNotifier:
 ━━━━━━━━━━━━━━━━━━
 ⏳ Total Duration: <code>{total_duration / 60:.1f} min</code> ({total_duration:.0f}s)
 ⚡ Overall Speed: <code>{total_listings / total_duration:.1f}</code> listings/sec
+📊 Avg per Source: <code>{total_listings / total_sources:.1f}</code> listings
 
 💼 <b>Database Totals</b>
 ━━━━━━━━━━━━━━━━━━
 📊 Total Leads in DB: <code>{actual_total_leads:,}</code>
 📅 Added Today: <code>{actual_today_saved}</code>
 📆 Added Yesterday: <code>{db_stats['yesterday_leads']}</code>
+📈 Growth: <code>{((actual_today_saved - db_stats['yesterday_leads']) / db_stats['yesterday_leads'] * 100 if db_stats['yesterday_leads'] > 0 else 0):.1f}%</code>
+
+📊 <b>Overall Statistics</b>
+━━━━━━━━━━━━━━━━━━
+🔢 Sources Scraped: <code>{total_sources}</code>
+📋 Total Listings: <code>{total_listings:,}</code>
+📱 Phones Extracted: <code>{total_extracted:,}</code> ({overall_extraction_rate:.1f}%)
+💾 New Saved: <code>{total_saved:,}</code> ({overall_save_rate:.1f}%)
+🔄 Duplicates: <code>{actual_duplicates:,}</code>
+❌ Failed: <code>{total_failed:,}</code>
 
 🎯 <b>Status</b>: {status_text}
 """
