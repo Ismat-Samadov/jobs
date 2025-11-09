@@ -31,6 +31,7 @@ from sources.binam_az_scraper import BinamAzScraperAsync
 from sources.mymarket_az_scraper import MymarketAzScraperAsync
 from sources.myhome_az_scraper import MyhomeAzScraper
 from sources.mulk_az_scraper import MulkAzScraper
+from sources.tikili_az_scraper import TikiliAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -1181,6 +1182,45 @@ async def main():
         print(f"✗ MULK.AZ scraping failed: {e}")
     finally:
         db_pool26.closeall()
+
+    # TIKILI.AZ Scraper - scrape real estate property listings
+    print("\n" + "=" * 70)
+    print("TIKILI.AZ Scraper (Real Estate Properties)")
+    print("=" * 70)
+    tikili_start = datetime.now()
+
+    # Create database pool for TikiliAz scraper
+    db_pool27 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with TikiliAzScraper(db_pool27) as tikili_scraper:
+            tikili_stats_raw = await tikili_scraper.scrape(max_pages=5)
+
+            tikili_end = datetime.now()
+            tikili_duration = (tikili_end - tikili_start).total_seconds()
+
+            tikili_stats = {
+                'new_leads': tikili_stats_raw['new_leads'],
+                'duplicates': tikili_stats_raw['duplicates'],
+                'errors': tikili_stats_raw['errors'],
+                'invalid_phones': tikili_stats_raw['invalid_phones'],
+                'duration': tikili_duration,
+                'start_time': tikili_start
+            }
+
+            reports.append({
+                'source': 'TIKILI.AZ',
+                'stats': tikili_stats,
+                'duration': tikili_duration,
+                'start_time': tikili_start
+            })
+    except Exception as e:
+        print(f"✗ TIKILI.AZ scraping failed: {e}")
+    finally:
+        db_pool27.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
