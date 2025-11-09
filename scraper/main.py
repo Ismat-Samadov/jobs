@@ -29,6 +29,7 @@ from sources.avtovitrin_com_scraper import AvtovitrinComScraper
 from sources.binalar_az_scraper import BinalarAzScraperAsync
 from sources.binam_az_scraper import BinamAzScraperAsync
 from sources.mymarket_az_scraper import MymarketAzScraperAsync
+from sources.myhome_az_scraper import MyhomeAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -1101,6 +1102,45 @@ async def main():
         print(f"✗ MYMARKET.AZ scraping failed: {e}")
     finally:
         db_pool24.closeall()
+
+    # MYHOME.AZ Scraper - scrape real estate listings
+    print("\n" + "=" * 70)
+    print("MYHOME.AZ Scraper (Real Estate)")
+    print("=" * 70)
+    myhome_start = datetime.now()
+
+    # Create database pool for MyhomeAz scraper
+    db_pool25 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with MyhomeAzScraper(db_pool25) as myhome_scraper:
+            myhome_stats_raw = await myhome_scraper.scrape(max_pages=5)
+
+            myhome_end = datetime.now()
+            myhome_duration = (myhome_end - myhome_start).total_seconds()
+
+            myhome_stats = {
+                'new_leads': myhome_stats_raw['new_leads'],
+                'duplicates': myhome_stats_raw['duplicates'],
+                'errors': myhome_stats_raw['errors'],
+                'invalid_phones': myhome_stats_raw['invalid_phones'],
+                'duration': myhome_duration,
+                'start_time': myhome_start
+            }
+
+            reports.append({
+                'source': 'MYHOME.AZ',
+                'stats': myhome_stats,
+                'duration': myhome_duration,
+                'start_time': myhome_start
+            })
+    except Exception as e:
+        print(f"✗ MYHOME.AZ scraping failed: {e}")
+    finally:
+        db_pool25.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
