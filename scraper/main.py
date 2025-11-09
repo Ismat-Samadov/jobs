@@ -32,6 +32,7 @@ from sources.mymarket_az_scraper import MymarketAzScraperAsync
 from sources.myhome_az_scraper import MyhomeAzScraper
 from sources.mulk_az_scraper import MulkAzScraper
 from sources.tikili_az_scraper import TikiliAzScraper
+from sources.ofis_az_scraper import OfisAzScraper
 from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
@@ -1221,6 +1222,45 @@ async def main():
         print(f"✗ TIKILI.AZ scraping failed: {e}")
     finally:
         db_pool27.closeall()
+
+    # OFIS.AZ Scraper - scrape real estate property listings
+    print("\n" + "=" * 70)
+    print("OFIS.AZ Scraper (Real Estate Properties)")
+    print("=" * 70)
+    ofis_start = datetime.now()
+
+    # Create database pool for OfisAz scraper
+    db_pool28 = psycopg2.pool.SimpleConnectionPool(
+        1, 10,
+        os.getenv('DATABASE_URL')
+    )
+
+    try:
+        async with OfisAzScraper(db_pool28) as ofis_scraper:
+            ofis_stats_raw = await ofis_scraper.scrape(max_pages=5)
+
+            ofis_end = datetime.now()
+            ofis_duration = (ofis_end - ofis_start).total_seconds()
+
+            ofis_stats = {
+                'new_leads': ofis_stats_raw['new_leads'],
+                'duplicates': ofis_stats_raw['duplicates'],
+                'errors': ofis_stats_raw['errors'],
+                'invalid_phones': ofis_stats_raw['invalid_phones'],
+                'duration': ofis_duration,
+                'start_time': ofis_start
+            }
+
+            reports.append({
+                'source': 'OFIS.AZ',
+                'stats': ofis_stats,
+                'duration': ofis_duration,
+                'start_time': ofis_start
+            })
+    except Exception as e:
+        print(f"✗ OFIS.AZ scraping failed: {e}")
+    finally:
+        db_pool28.closeall()
 
     # Calculate overall duration
     overall_end = datetime.now()
