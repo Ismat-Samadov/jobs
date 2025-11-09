@@ -53,7 +53,7 @@ async def main():
     evv_scraper = EvvAzScraperAsync(max_concurrent=15)
 
     try:
-        evv_stats = await evv_scraper.scrape(all_types=True, pages_per_type=5)
+        evv_stats = await evv_scraper.scrape(all_types=True, pages_per_type=1)
         reports.append({
             'source': 'EVV.AZ',
             'stats': evv_stats,
@@ -71,7 +71,7 @@ async def main():
     villa_scraper = VillaAzScraperAsync(max_concurrent=3)
 
     try:
-        villa_stats = await villa_scraper.scrape(pages=5)
+        villa_stats = await villa_scraper.scrape(pages=1)
         reports.append({
             'source': 'Villa.AZ',
             'stats': villa_stats,
@@ -88,7 +88,7 @@ async def main():
     bul_scraper = BulAzScraperAsync(max_concurrent=10)
 
     try:
-        bul_stats = await bul_scraper.scrape(pages=5)
+        bul_stats = await bul_scraper.scrape(pages=1)
         reports.append({
             'source': 'Bul.AZ',
             'stats': bul_stats,
@@ -108,7 +108,7 @@ async def main():
         # Run synchronous scraper in thread pool
         loop = asyncio.get_event_loop()
         with ThreadPoolExecutor() as executor:
-            result = await loop.run_in_executor(executor, scrape_turbo_az, 5)
+            result = await loop.run_in_executor(executor, scrape_turbo_az, 1)
 
         turbo_end = datetime.now()
         turbo_duration = (turbo_end - turbo_start).total_seconds()
@@ -143,7 +143,7 @@ async def main():
     biturbo_scraper = BiTurboAzScraperAsync(max_concurrent=10)
 
     try:
-        biturbo_stats = await biturbo_scraper.scrape(pages=5)
+        biturbo_stats = await biturbo_scraper.scrape(pages=1)
         reports.append({
             'source': 'BiTurbo.AZ',
             'stats': biturbo_stats,
@@ -160,7 +160,7 @@ async def main():
     autonet_scraper = AutoNetAzScraperAsync(max_concurrent=10)
 
     try:
-        autonet_stats = await autonet_scraper.scrape(pages=5)
+        autonet_stats = await autonet_scraper.scrape(pages=1)
         reports.append({
             'source': 'AutoNet.AZ',
             'stats': autonet_stats,
@@ -184,7 +184,7 @@ async def main():
 
     try:
         async with XidmetlerAzScraper(db_pool) as xidmetler_scraper:
-            await xidmetler_scraper.scrape(max_pages=5)
+            await xidmetler_scraper.scrape(max_pages=1)
 
             xidmetler_end = datetime.now()
             xidmetler_duration = (xidmetler_end - xidmetler_start).total_seconds()
@@ -223,7 +223,7 @@ async def main():
 
     try:
         async with BirjaComScraper(db_pool2) as birja_scraper:
-            await birja_scraper.scrape(max_pages=5)
+            await birja_scraper.scrape(max_pages=1)
 
             birja_end = datetime.now()
             birja_duration = (birja_end - birja_start).total_seconds()
@@ -262,7 +262,7 @@ async def main():
 
     try:
         qarabazar_scraper = QarabazarAzScraper(db_pool3)
-        qarabazar_stats_raw = await qarabazar_scraper.scrape(pages=5, concurrency=10)
+        qarabazar_stats_raw = await qarabazar_scraper.scrape(pages=1, concurrency=10)
 
         qarabazar_end = datetime.now()
         qarabazar_duration = (qarabazar_end - qarabazar_start).total_seconds()
@@ -301,7 +301,7 @@ async def main():
 
     try:
         emlak_scraper = EmlakAzScraper(db_pool4)
-        emlak_stats_raw = await emlak_scraper.scrape(pages=5, concurrency=10)
+        emlak_stats_raw = await emlak_scraper.scrape(pages=1, concurrency=10)
 
         emlak_end = datetime.now()
         emlak_duration = (emlak_end - emlak_start).total_seconds()
@@ -340,7 +340,7 @@ async def main():
 
     try:
         lalafo_scraper = LalafoAzScraper(db_pool5)
-        lalafo_stats_raw = await lalafo_scraper.scrape(pages=5, concurrency=10)
+        lalafo_stats_raw = await lalafo_scraper.scrape(pages=1, concurrency=10)
 
         lalafo_end = datetime.now()
         lalafo_duration = (lalafo_end - lalafo_start).total_seconds()
@@ -379,7 +379,7 @@ async def main():
 
     try:
         async with BinaAzScraper(db_pool6) as bina_scraper:
-            await bina_scraper.scrape(max_pages=5)
+            await bina_scraper.scrape(max_pages=1)
 
             bina_end = datetime.now()
             bina_duration = (bina_end - bina_start).total_seconds()
@@ -418,7 +418,7 @@ async def main():
 
     try:
         async with ArendaAzScraper(db_pool7, max_concurrent=10) as arenda_scraper:
-            arenda_stats_raw = await arenda_scraper.scrape(pages=5, concurrency=10)
+            arenda_stats_raw = await arenda_scraper.scrape(pages=1, concurrency=10)
 
             arenda_end = datetime.now()
             arenda_duration = (arenda_end - arenda_start).total_seconds()
@@ -457,7 +457,7 @@ async def main():
 
     try:
         async with AratapAzScraper(db_pool8) as aratap_scraper:
-            await aratap_scraper.scrape(max_pages=5)
+            await aratap_scraper.scrape(max_pages=1)
 
             aratap_end = datetime.now()
             aratap_duration = (aratap_end - aratap_start).total_seconds()
@@ -496,7 +496,7 @@ async def main():
 
     try:
         async with MashinAlScraper(db_pool9) as mashin_scraper:
-            await mashin_scraper.scrape(max_pages=5)
+            await mashin_scraper.scrape(max_pages=1)
 
             mashin_end = datetime.now()
             mashin_duration = (mashin_end - mashin_start).total_seconds()
@@ -535,7 +535,7 @@ async def main():
 
     try:
         async with MasinlarAzScraper(db_pool10) as masinlar_scraper:
-            await masinlar_scraper.scrape(max_pages=5)
+            await masinlar_scraper.scrape(max_pages=1)
 
             masinlar_end = datetime.now()
             masinlar_duration = (masinlar_end - masinlar_start).total_seconds()
@@ -574,7 +574,7 @@ async def main():
 
     try:
         async with TezBazarAzScraper(db_pool11) as tezbazar_scraper:
-            await tezbazar_scraper.scrape(max_pages=5)
+            await tezbazar_scraper.scrape(max_pages=1)
 
             tezbazar_end = datetime.now()
             tezbazar_duration = (tezbazar_end - tezbazar_start).total_seconds()
@@ -613,7 +613,7 @@ async def main():
 
     try:
         async with TunelAzScraper(db_pool12) as tunel_scraper:
-            await tunel_scraper.scrape(max_pages=5)
+            await tunel_scraper.scrape(max_pages=1)
 
             tunel_end = datetime.now()
             tunel_duration = (tunel_end - tunel_start).total_seconds()
@@ -652,7 +652,7 @@ async def main():
 
     try:
         async with TapAzScraper(db_pool13) as tap_scraper:
-            await tap_scraper.scrape(max_pages=5)
+            await tap_scraper.scrape(max_pages=1)
 
             tap_end = datetime.now()
             tap_duration = (tap_end - tap_start).total_seconds()
@@ -691,7 +691,7 @@ async def main():
 
     try:
         async with IpotekaAzScraper(db_pool14) as ipoteka_scraper:
-            await ipoteka_scraper.scrape(max_pages=5)
+            await ipoteka_scraper.scrape(max_pages=1)
 
             ipoteka_end = datetime.now()
             ipoteka_duration = (ipoteka_end - ipoteka_start).total_seconds()
@@ -730,7 +730,7 @@ async def main():
 
     try:
         async with VipemlakAzScraper(db_pool15) as vipemlak_scraper:
-            await vipemlak_scraper.scrape(max_pages=5)
+            await vipemlak_scraper.scrape(max_pages=1)
 
             vipemlak_end = datetime.now()
             vipemlak_duration = (vipemlak_end - vipemlak_start).total_seconds()
@@ -769,7 +769,7 @@ async def main():
 
     try:
         async with YeniemlakAzScraper(db_pool16) as yeniemlak_scraper:
-            await yeniemlak_scraper.scrape(max_pages=5)
+            await yeniemlak_scraper.scrape(max_pages=1)
 
             yeniemlak_end = datetime.now()
             yeniemlak_duration = (yeniemlak_end - yeniemlak_start).total_seconds()
@@ -808,7 +808,7 @@ async def main():
 
     try:
         async with UnvanAzScraper(db_pool17) as unvan_scraper:
-            await unvan_scraper.scrape(max_pages=5)
+            await unvan_scraper.scrape(max_pages=1)
 
             unvan_end = datetime.now()
             unvan_duration = (unvan_end - unvan_start).total_seconds()
@@ -847,7 +847,7 @@ async def main():
 
     try:
         async with RahatEmlakAzScraper(db_pool18) as rahatemlak_scraper:
-            await rahatemlak_scraper.scrape(max_pages=5)
+            await rahatemlak_scraper.scrape(max_pages=1)
 
             rahatemlak_end = datetime.now()
             rahatemlak_duration = (rahatemlak_end - rahatemlak_start).total_seconds()
@@ -886,7 +886,7 @@ async def main():
 
     try:
         async with UcuztapAzScraper(db_pool19) as ucuztap_scraper:
-            await ucuztap_scraper.scrape(max_pages=5)
+            await ucuztap_scraper.scrape(max_pages=1)
 
             ucuztap_end = datetime.now()
             ucuztap_duration = (ucuztap_end - ucuztap_start).total_seconds()
@@ -925,7 +925,7 @@ async def main():
 
     try:
         async with BirjaInScraper(db_pool20) as birja_in_scraper:
-            await birja_in_scraper.scrape(max_pages=5)
+            await birja_in_scraper.scrape(max_pages=1)
 
             birja_in_end = datetime.now()
             birja_in_duration = (birja_in_end - birja_in_start).total_seconds()
@@ -964,7 +964,7 @@ async def main():
 
     try:
         async with AvtovitrinComScraper(db_pool21) as avtovitrin_scraper:
-            await avtovitrin_scraper.scrape(max_pages=5)
+            await avtovitrin_scraper.scrape(max_pages=1)
 
             avtovitrin_end = datetime.now()
             avtovitrin_duration = (avtovitrin_end - avtovitrin_start).total_seconds()
@@ -1003,7 +1003,7 @@ async def main():
 
     try:
         async with BinalarAzScraperAsync(db_pool22) as binalar_scraper:
-            await binalar_scraper.scrape(max_pages=5)
+            await binalar_scraper.scrape(max_pages=1)
 
             binalar_end = datetime.now()
             binalar_duration = (binalar_end - binalar_start).total_seconds()
@@ -1042,7 +1042,7 @@ async def main():
 
     try:
         async with BinamAzScraperAsync(db_pool23) as binam_scraper:
-            await binam_scraper.scrape(max_pages=5)
+            await binam_scraper.scrape(max_pages=1)
 
             binam_end = datetime.now()
             binam_duration = (binam_end - binam_start).total_seconds()
@@ -1081,7 +1081,7 @@ async def main():
 
     try:
         async with MymarketAzScraperAsync(db_pool24) as mymarket_scraper:
-            await mymarket_scraper.scrape(max_pages=5)
+            await mymarket_scraper.scrape(max_pages=1)
 
             mymarket_end = datetime.now()
             mymarket_duration = (mymarket_end - mymarket_start).total_seconds()
@@ -1120,7 +1120,7 @@ async def main():
 
     try:
         async with MyhomeAzScraper(db_pool25) as myhome_scraper:
-            myhome_stats_raw = await myhome_scraper.scrape(max_pages=5)
+            myhome_stats_raw = await myhome_scraper.scrape(max_pages=1)
 
             myhome_end = datetime.now()
             myhome_duration = (myhome_end - myhome_start).total_seconds()
@@ -1159,7 +1159,7 @@ async def main():
 
     try:
         async with MulkAzScraper(db_pool26) as mulk_scraper:
-            mulk_stats_raw = await mulk_scraper.scrape(max_pages=5)
+            mulk_stats_raw = await mulk_scraper.scrape(max_pages=1)
 
             mulk_end = datetime.now()
             mulk_duration = (mulk_end - mulk_start).total_seconds()
@@ -1198,7 +1198,7 @@ async def main():
 
     try:
         async with TikiliAzScraper(db_pool27) as tikili_scraper:
-            tikili_stats_raw = await tikili_scraper.scrape(max_pages=5)
+            tikili_stats_raw = await tikili_scraper.scrape(max_pages=1)
 
             tikili_end = datetime.now()
             tikili_duration = (tikili_end - tikili_start).total_seconds()
@@ -1237,7 +1237,7 @@ async def main():
 
     try:
         async with OfisAzScraper(db_pool28) as ofis_scraper:
-            ofis_stats_raw = await ofis_scraper.scrape(max_pages=5)
+            ofis_stats_raw = await ofis_scraper.scrape(max_pages=1)
 
             ofis_end = datetime.now()
             ofis_duration = (ofis_end - ofis_start).total_seconds()
