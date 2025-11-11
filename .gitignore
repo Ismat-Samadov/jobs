@@ -1,6 +1,6 @@
 phone
 /data
-
+venv
 .env
 .claude
 scraper/__pycache__

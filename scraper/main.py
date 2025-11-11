@@ -37,8 +37,16 @@ from scripts.telegram import TelegramNotifier
 import os
 import psycopg2.pool
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+# Load .env from project root (parent directory of scraper/)
+env_path = Path(__file__).parent.parent / '.env.local'
+load_dotenv(dotenv_path=env_path)
+
+# Fallback to regular .env if .env.local doesn't exist
+if not env_path.exists():
+    env_path = Path(__file__).parent.parent / '.env'
+    load_dotenv(dotenv_path=env_path)
 
 
 async def main():
