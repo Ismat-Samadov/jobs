@@ -41,6 +41,24 @@ Full-stack application for scraping and managing real estate leads from EVV.AZ a
 - Excel export functionality
 - Role-based access control (Admin/User)
 
+## Screenshots
+
+### Landing Page
+![Landing Page](screens/landing%20page.png)
+
+### Login
+![Login Page](screens/login%20page.png)
+
+### Dashboard
+![Dashboard](screens/dashboard%20page.png)
+
+### Analytics
+![Analytics 1](screens/analytics%20page_1.png)
+![Analytics 2](screens/analytics%20page_2.png)
+
+### File Export
+![File Page](screens/file%20page.png)
+
 ## Quick Start
 
 ### 1. Database Setup
