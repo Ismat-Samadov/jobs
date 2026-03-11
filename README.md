@@ -1,6 +1,6 @@
 # Lead Generator
 
-Full-stack application for scraping and managing real estate leads from EVV.AZ and Villa.AZ.
+Full-stack application for scraping and managing leads from 35+ Azerbaijani classifieds websites across real estate, auto, and general marketplaces.
 
 ## Project Structure
 
@@ -27,11 +27,20 @@ Full-stack application for scraping and managing real estate leads from EVV.AZ a
 ## Features
 
 ### Backend (Python Scraper)
-- Automated daily scraping from EVV.AZ and Villa.AZ
+- Automated daily scraping from 35+ Azerbaijani websites
+- Covers real estate, auto, and general classifieds categories
 - Phone number validation (Azerbaijan mobile numbers)
 - Telegram notifications with detailed reports
 - PostgreSQL storage with duplicate prevention
 - GitHub Actions for automated scheduling
+
+#### Supported Sources
+
+**Real Estate** — arenda.az, bina.az, binalar.az, binam.az, emlak.az, evv.az, ipoteka.az, mulk.az, myhome.az, ofis.az, rahatemlak.az, tikili.az, unvan.az, villa.az, vipemlak.az, yeniemlak.az
+
+**Auto** — aratap.az, autonet.az, avtopro.az, avtovitrin.com, biturbo.az, mashin.al, masinlar.az, turbo.az
+
+**General Marketplaces** — birja.com, birja.in, bul.az, lalafo.az, mymarket.az, qarabazar.az, tap.az, tezbazar.az, ucuztap.az, xidmetler.az
 
 ### Frontend (Next.js)
 - Admin authentication with NextAuth.js
