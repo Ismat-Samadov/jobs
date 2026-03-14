@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+/* Safe area for mobile notches */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 12px);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+/* Prevent text selection during drag */
+.select-none {
+  -webkit-user-select: none;
+  user-select: none;
+}
